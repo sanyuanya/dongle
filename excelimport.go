@@ -64,23 +64,23 @@ func ExcelImport(c fiber.Ctx) error {
 					}
 
 					// 查询手机号是否存在
+					snowflakeId, err := FindPhoneNumberContext(c.Context(), row[3])
 
-					baseQueryPhone := "SELECT phone FROM `users` WHERE phone = $1"
-
-					var phone string
-					if err := db.QueryRowContext(c.Context(), baseQueryPhone, row[1]).Scan(&phone); err != nil {
-						if err.Error() != "sql: no rows in result set" {
-							return c.JSON(Resp{
-								Code:    1,
-								Message: "查询手机号失败",
-								Result:  struct{}{},
-							})
-						}
+					if err != nil {
+						return c.JSON(Resp{
+							Code:    1,
+							Message: "查询手机号失败",
+							Result:  struct{}{},
+						})
 					}
 
-					baseSQL := "INSERT INTO `users` (nike, phone, province, city, shipments, integral) VALUES ($1, $2, $3, $4, $5, $6)"
+					if snowflakeId != 0 {
 
-					db.ExecContext(c.Context(), baseSQL, row[0], row[1], row[2], row[3], row[4], row[5])
+					} else {
+						baseSQL := "INSERT INTO `users` (nike, phone, province, city, shipments, integral) VALUES ($1, $2, $3, $4, $5, $6)"
+
+						db.ExecContext(c.Context(), baseSQL, row[0], row[1], row[2], row[3], row[4], row[5])
+					}
 
 				}
 			}

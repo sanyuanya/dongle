@@ -27,6 +27,8 @@ func main() {
 
 	app.Get("/api/mini/getUserInfo", GetUserInfo)
 
+	app.Post("/api/mini/setUserInfo", SetUserInfo)
+
 	// Start the server on port 3000
 	log.Fatal(app.Listen(":3000"))
 }
