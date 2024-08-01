@@ -1,7 +1,8 @@
-package main
+package rest
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -31,11 +32,19 @@ func ValidateToken(tokenString string) (*jwt.Token, error) {
 }
 
 // GenerateToken generates a JWT token
-func GenerateToken(userID int64) (string, error) {
+func GenerateToken(snowflakeId int64, role string) (string, error) {
+
 	// Create the Claims
 	claims := jwt.MapClaims{
-		"userID": userID,
-		"exp":    time.Now().Add(time.Hour * 72).Unix(), // Token expires in 72 hours
+		"snowflake_id": fmt.Sprintf("%d", snowflakeId),
+		"role":         role,
+		"nbf":          time.Now().Unix() - 1,
+		"iat":          time.Now().Unix(),
+		"jti":          fmt.Sprintf("%d", time.Now().Unix()),
+		"aud":          "dongle",
+		"sub":          "dongle",
+		"iss":          "dongle",
+		"exp":          time.Now().Add(time.Hour * 72).Unix(), // Token expires in 72 hours
 	}
 
 	// Create token

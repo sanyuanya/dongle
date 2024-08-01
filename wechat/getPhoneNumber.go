@@ -1,9 +1,7 @@
-package main
+package wechat
 
 import (
 	"bytes"
-	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -64,20 +62,4 @@ func GetPhoneNumber(code string, access_token string) (*GetPhoneNumberResp, erro
 	}
 
 	return getPhoneNumberResp, nil
-}
-
-func FindPhoneNumberContext(ctx context.Context, phone string) (int64, error) {
-
-	var snowflakeId int64
-
-	baseQueryPhone := "SELECT snowflake_id FROM `users` WHERE phone = $1"
-
-	if err := db.QueryRowContext(ctx, baseQueryPhone, phone).Scan(&snowflakeId); err != nil {
-		if err == sql.ErrNoRows {
-			return 0, nil
-		}
-		return 0, err
-	}
-
-	return snowflakeId, nil
 }

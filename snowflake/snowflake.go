@@ -1,20 +1,11 @@
-package main
+package snowflake
 
 import (
 	"sync"
 	"time"
 )
 
-var snowflake *Snowflake
-
-func init() {
-	snowflake = &Snowflake{
-		timestamp:    1721790600,
-		workerid:     1,
-		datacenterid: 1,
-		sequence:     0,
-	}
-}
+var SnowflakeUseCase *Snowflake
 
 type Snowflake struct {
 	sync.Mutex         // 锁
@@ -22,6 +13,15 @@ type Snowflake struct {
 	workerid     int64 // 工作节点
 	datacenterid int64 // 数据中心机房id
 	sequence     int64 // 序列号
+}
+
+func init() {
+	SnowflakeUseCase = &Snowflake{
+		timestamp:    1721790600,
+		workerid:     1,
+		datacenterid: 1,
+		sequence:     0,
+	}
 }
 
 const (

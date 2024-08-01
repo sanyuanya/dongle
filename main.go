@@ -4,16 +4,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v3"
-)
-
-// var (
-// 	appid  = "wx16bb3389273e4759"
-// 	secret = "2e6b70686ce2e0fa9f41b31677acc8a2"
-// )
-
-var (
-	appid  = "wx370126c8bcf8d00c"
-	secret = "e2bd2db2f82b824c66d021b6d4f5b7bb"
+	"github.com/sanyuanya/dongle/rest"
 )
 
 func main() {
@@ -21,13 +12,22 @@ func main() {
 	app := fiber.New()
 
 	// Define a route for the GET method on the root path '/'
-	app.Post("/api/pc/import", ExcelImport)
 
-	app.Post("/api/mini/register", Register)
+	// pc
+	app.Post("/api/pc/import", rest.ExcelImport)
 
-	app.Get("/api/mini/getUserInfo", GetUserInfo)
+	app.Post("/api/pc/login", rest.Login)
 
-	app.Post("/api/mini/setUserInfo", SetUserInfo)
+	app.Get("/api/pc/userList", rest.UserList)
+
+	app.Post("/api/pc/addWhite", rest.AddWhite)
+
+	//mini program
+	app.Post("/api/mini/register", rest.Register)
+
+	app.Get("/api/mini/getUserInfo", rest.GetUserInfo)
+
+	app.Post("/api/mini/setUserInfo", rest.SetUserInfo)
 
 	// Start the server on port 3000
 	log.Fatal(app.Listen(":3000"))
