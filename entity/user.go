@@ -59,3 +59,19 @@ type ImportUserInfo struct {
 	Integral    int64  `json:"integral"`
 	SnowflakeId int64  `json:"snowflake_id"`
 }
+
+type MiniLoginRequest struct {
+	JsCode string `json:"js_code"`
+}
+
+type RegisterUserRequest struct {
+	OpenId      string `json:"open_id"`
+	SessionKey  string `json:"session_key"`
+	SnowflakeId int64  `json:"snowflake_id"`
+}
+
+type UpdateUserInfoRequest struct {
+	Nick   string `json:"nick"`
+	Avatar string `json:"avatar"`
+	Code   string `json:"code"`
+}

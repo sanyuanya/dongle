@@ -9,7 +9,7 @@ import (
 )
 
 // mysecretpassword
-func Login(c fiber.Ctx) error {
+func PcLogin(c fiber.Ctx) error {
 
 	defer func() {
 		if err := recover(); err != nil {

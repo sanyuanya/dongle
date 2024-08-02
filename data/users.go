@@ -22,30 +22,30 @@ func UpdateUser(userInfo *entity.UserInfo) error {
 	return nil
 }
 
-func RegisterUser(userInfo *entity.UserInfo) error {
+// func RegisterUser(userInfo *entity.UserInfo) error {
 
-	baseSQL := `
-		INSERT INTO 
-			users 
-			(snowflake_id, open_id, nick, avatar, phone, session_key, created_at, updated_at) 
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
-	`
-	_, err := db.Exec(baseSQL,
-		userInfo.SnowflakeId,
-		userInfo.OpenID,
-		userInfo.Nick,
-		userInfo.Avatar,
-		userInfo.Phone,
-		userInfo.SessionKey,
-		time.Now(),
-		time.Now(),
-	)
+// 	baseSQL := `
+// 		INSERT INTO
+// 			users
+// 			(snowflake_id, open_id, nick, avatar, phone, session_key, created_at, updated_at)
+// 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
+// 	`
+// 	_, err := db.Exec(baseSQL,
+// 		userInfo.SnowflakeId,
+// 		userInfo.OpenID,
+// 		userInfo.Nick,
+// 		userInfo.Avatar,
+// 		userInfo.Phone,
+// 		userInfo.SessionKey,
+// 		time.Now(),
+// 		time.Now(),
+// 	)
 
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func GetUserDetailBySnowflakeID(snowflakeId int64) (*entity.UserDetail, error) {
 	baseSQL := `
@@ -303,5 +303,61 @@ func UpdateUserAlipayAccountBySnowflakeID(snowflakeId int64, alipayAccount strin
 	if err != nil {
 		return fmt.Errorf("更新支付宝账号失败: %v", err)
 	}
+	return nil
+}
+
+func FindOpenId(openid string) (int64, error) {
+
+	baseSQL := `
+		SELECT 
+			snowflake_id
+		FROM
+			users
+		WHERE
+			open_id=$1
+	`
+	var snowflakeId int64
+	err := db.QueryRow(baseSQL, openid).Scan(&snowflakeId)
+	if err != nil {
+		return 0, err
+	}
+	return snowflakeId, nil
+}
+
+func RegisterUser(registerUserRequest *entity.RegisterUserRequest) error {
+
+	baseSQL := `
+		INSERT INTO
+			users
+			(snowflake_id, open_id, session_key, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5) RETURNING id
+	`
+	_, err := db.Exec(baseSQL,
+		registerUserRequest.SnowflakeId,
+		registerUserRequest.OpenId,
+		registerUserRequest.SessionKey,
+		time.Now(),
+		time.Now(),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateSessionKey(openid, sessionKey string) error {
+	baseSQL := `
+		UPDATE
+			users
+		SET session_key=$1, updated_at=$2
+		WHERE open_id=$3
+	`
+	_, err := db.Exec(baseSQL, sessionKey, time.Now(), openid)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

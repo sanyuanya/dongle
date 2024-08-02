@@ -16,7 +16,7 @@ func main() {
 	// pc
 	app.Post("/api/pc/import", rest.ExcelImport)
 
-	app.Post("/api/pc/login", rest.Login)
+	app.Post("/api/pc/login", rest.PcLogin)
 
 	app.Get("/api/pc/userList", rest.UserList)
 
@@ -27,7 +27,12 @@ func main() {
 	app.Post("/api/pc/approvalWithdrawal", rest.ApprovalWithdrawal)
 
 	//mini program
-	app.Post("/api/mini/register", rest.Register)
+
+	app.Post("/api/mini/login", rest.MiniLogin)
+
+	app.Post("/api/mini/updateUserInfo", rest.UpdateUserInfo)
+	
+	// app.Post("/api/mini/register", rest.Register)
 
 	app.Get("/api/mini/getUserInfo", rest.GetUserInfo)
 
