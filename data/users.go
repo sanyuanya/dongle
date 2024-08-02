@@ -252,3 +252,56 @@ func AddWhite(whiteList *entity.AddWhiteRequest) error {
 	}
 	return nil
 }
+
+func IsWhite(snowflakeId int64) error {
+	baseSQL := `
+		SELECT 
+			is_white
+		FROM
+			users
+		WHERE
+			snowflake_id=$1 AND is_white=1
+	`
+	var isWhite bool
+	err := db.QueryRow(baseSQL, snowflakeId).Scan(&isWhite)
+	if err != nil {
+		return fmt.Errorf("查询用户是否是白名单失败: %v", err)
+	}
+	return nil
+}
+
+func IsIntegralWithdraw(snowflakeId, integral int64) (bool, error) {
+	baseSQL := `
+		SELECT 
+			integral
+		FROM
+			users
+		WHERE
+			snowflake_id=$1
+	`
+	var userIntegral int64
+	err := db.QueryRow(baseSQL, snowflakeId).Scan(&userIntegral)
+	if err != nil {
+		return false, fmt.Errorf("查询用户积分失败: %v", err)
+	}
+
+	if userIntegral < integral {
+		return false, fmt.Errorf("积分不足: 当前积分 %d", integral)
+	}
+
+	return true, nil
+}
+
+func UpdateUserAlipayAccountBySnowflakeID(snowflakeId int64, alipayAccount string) error {
+	baseSQL := `
+		UPDATE
+			users
+		SET alipay_account=$1, updated_at=$2
+		WHERE snowflake_id=$3
+	`
+	_, err := db.Exec(baseSQL, alipayAccount, time.Now(), snowflakeId)
+	if err != nil {
+		return fmt.Errorf("更新支付宝账号失败: %v", err)
+	}
+	return nil
+}

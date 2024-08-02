@@ -62,6 +62,8 @@ func ExcelImport(c fiber.Ctx) error {
 		panic(err)
 	}
 
+	batch := snowflake.SnowflakeUseCase.NextVal()
+
 	for _, file := range multipart.File["file"] {
 
 		src, err := file.Open()
@@ -145,6 +147,21 @@ func ExcelImport(c fiber.Ctx) error {
 				if err != nil {
 					panic(fmt.Errorf("新增用户失败: %v", err))
 				}
+			}
+
+			addIncomeExpenseRequest := new(entity.AddIncomeExpenseRequest)
+
+			addIncomeExpenseRequest.SnowflakeId = snowflake.SnowflakeUseCase.NextVal()
+			addIncomeExpenseRequest.Summary = "分红奖励"
+			addIncomeExpenseRequest.Integral = importUserInfo.Integral
+			addIncomeExpenseRequest.Shipments = importUserInfo.Shipments
+			addIncomeExpenseRequest.UserId = snowflakeId
+			addIncomeExpenseRequest.Batch = batch
+
+			err = data.AddIncomeExpense(addIncomeExpenseRequest)
+
+			if err != nil {
+				panic(fmt.Errorf("新增收支记录失败: %v", err))
 			}
 
 		}

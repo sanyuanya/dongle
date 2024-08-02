@@ -32,3 +32,18 @@ type UserPageListResponse struct {
 type AddWhiteRequest struct {
 	WhiteList []int64 `json:"white_list"`
 }
+
+type ApprovalWithdrawalRequest struct {
+	ApprovalList []int64 `json:"approval_list"`
+	LifeCycle    int64   `json:"life_cycle"`
+	Rejection    string  `json:"rejection"`
+}
+
+type AddIncomeExpenseRequest struct {
+	SnowflakeId int64  `json:"snowflake_id"`
+	Summary     string `json:"summary"`
+	Integral    int64  `json:"integral"`
+	Shipments   int64  `json:"shipments"`
+	UserId      int64  `json:"user_id"`
+	Batch       int64  `json:"batch"`
+}
