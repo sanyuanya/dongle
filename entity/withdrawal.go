@@ -43,3 +43,20 @@ type GetWithdrawalListResponse struct {
 	UpdatedAt        string `json:"updated_at"`
 	Rejection        string `json:"rejection"`
 }
+
+type GetIncomeListRequest struct {
+	Page     int64  `json:"page,omitempty"`
+	PageSize int64  `json:"page_size,omitempty"`
+	Date     string `json:"date,omitempty"`
+}
+
+type GetIncomeListResponse struct {
+	SnowflakeId int64  `json:"snowflake_id"`
+	Summary     string `json:"summary"`
+	Integral    int64  `json:"integral"`
+	Shipments   int64  `json:"shipments"`
+	Batch       string `json:"batch"`
+	UserId      int64  `json:"user_id"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
+}

@@ -31,8 +31,6 @@ func main() {
 	app.Post("/api/mini/login", rest.MiniLogin)
 
 	app.Post("/api/mini/updateUserInfo", rest.UpdateUserInfo)
-	
-	// app.Post("/api/mini/register", rest.Register)
 
 	app.Get("/api/mini/getUserInfo", rest.GetUserInfo)
 
@@ -41,6 +39,9 @@ func main() {
 	app.Post("/api/mini/applyForWithdrawal", rest.ApplyForWithdrawal)
 
 	app.Get("/api/mini/getWithdrawalList", rest.GetWithdrawalList)
+
+	app.Get("/api/mini/incomeList", rest.GetIncomeList)
+
 	// Start the server on port 3000
 	log.Fatal(app.Listen(":3000"))
 }
