@@ -1,4 +1,4 @@
-package rest
+package mini
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ func GetIncomeList(c fiber.Ctx) error {
 
 	defer func() {
 		if err := recover(); err != nil {
-			c.JSON(Resp{
+			c.JSON(tools.Response{
 				Code:    50000,
 				Message: fmt.Sprintf("%v", err),
 				Result:  struct{}{},
@@ -50,8 +50,8 @@ func GetIncomeList(c fiber.Ctx) error {
 		panic(fmt.Errorf("获取收支列表数量失败: %v", err))
 	}
 
-	return c.JSON(Resp{
-		Code:    20000,
+	return c.JSON(tools.Response{
+		Code:    0,
 		Message: "获取收支列表成功",
 		Result: map[string]any{
 			"data":  incomeList,

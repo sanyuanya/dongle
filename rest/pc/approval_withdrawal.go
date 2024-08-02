@@ -1,4 +1,4 @@
-package rest
+package pc
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ func ApprovalWithdrawal(c fiber.Ctx) error {
 
 	defer func() {
 		if err := recover(); err != nil {
-			c.JSON(Resp{
+			c.JSON(tools.Response{
 				Code:    50000,
 				Message: fmt.Sprintf("%v", err),
 				Result:  struct{}{},
@@ -39,7 +39,7 @@ func ApprovalWithdrawal(c fiber.Ctx) error {
 		panic(fmt.Errorf("无法审批提现: %v", err))
 	}
 
-	return c.JSON(Resp{
+	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "审批提现成功",
 		Result:  struct{}{},

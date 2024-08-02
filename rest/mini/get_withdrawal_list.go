@@ -1,4 +1,4 @@
-package rest
+package mini
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ func GetWithdrawalList(c fiber.Ctx) error {
 
 	defer func() {
 		if err := recover(); err != nil {
-			c.JSON(Resp{
+			c.JSON(tools.Response{
 				Code:    50000,
 				Message: fmt.Sprintf("%v", err),
 				Result:  struct{}{},
@@ -45,10 +45,9 @@ func GetWithdrawalList(c fiber.Ctx) error {
 		panic(fmt.Errorf("获取提现列表失败: %v", err))
 	}
 
-	return c.JSON(Resp{
-		Code:    20000,
+	return c.JSON(tools.Response{
+		Code:    0,
 		Message: "获取提现列表成功",
 		Result:  withdrawalList,
 	})
-
 }

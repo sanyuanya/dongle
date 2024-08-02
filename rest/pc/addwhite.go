@@ -1,4 +1,4 @@
-package rest
+package pc
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ func AddWhite(c fiber.Ctx) error {
 
 	defer func() {
 		if err := recover(); err != nil {
-			c.JSON(Resp{
+			c.JSON(tools.Response{
 				Code:    50000,
 				Message: fmt.Sprintf("%v", err),
 				Result:  struct{}{},
@@ -40,7 +40,7 @@ func AddWhite(c fiber.Ctx) error {
 		panic(fmt.Errorf("添加白名单失败: %v", err))
 	}
 
-	return c.JSON(Resp{
+	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "添加白名单成功",
 		Result:  struct{}{},

@@ -1,4 +1,4 @@
-package rest
+package mini
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/entity"
-	"github.com/sanyuanya/dongle/snowflake"
 	"github.com/sanyuanya/dongle/tools"
 	"github.com/sanyuanya/dongle/wechat"
 )
@@ -15,7 +14,7 @@ func MiniLogin(c fiber.Ctx) error {
 
 	defer func() {
 		if err := recover(); err != nil {
-			c.JSON(Resp{
+			c.JSON(tools.Response{
 				Code:    50000,
 				Message: fmt.Sprintf("%v", err),
 				Result:  struct{}{},
@@ -47,7 +46,7 @@ func MiniLogin(c fiber.Ctx) error {
 
 	if snowflakeId == 0 {
 
-		snowflakeId = snowflake.SnowflakeUseCase.NextVal()
+		snowflakeId = tools.SnowflakeUseCase.NextVal()
 
 		registerUserRequest := &entity.RegisterUserRequest{
 			SnowflakeId: snowflakeId,
@@ -74,7 +73,7 @@ func MiniLogin(c fiber.Ctx) error {
 
 	c.Response().Header.Set("Authorization", token)
 
-	return c.JSON(Resp{
+	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "成功",
 		Result: map[string]any{

@@ -1,4 +1,4 @@
-package rest
+package pc
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/entity"
-	"github.com/sanyuanya/dongle/snowflake"
 	"github.com/sanyuanya/dongle/tools"
 	"github.com/xuri/excelize/v2"
 )
@@ -18,7 +17,7 @@ func ExcelImport(c fiber.Ctx) error {
 
 	defer func() {
 		if err := recover(); err != nil {
-			c.JSON(Resp{
+			c.JSON(tools.Response{
 				Code:    50000,
 				Message: fmt.Sprintf("%v", err),
 				Result:  struct{}{},
@@ -26,8 +25,7 @@ func ExcelImport(c fiber.Ctx) error {
 		}
 	}()
 
-	snowflakeId, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
-	_ = snowflakeId
+	_, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
 	if err != nil {
 		panic(fmt.Errorf("未经授权: %v", err))
 	}
@@ -38,7 +36,7 @@ func ExcelImport(c fiber.Ctx) error {
 		panic(err)
 	}
 
-	batch := snowflake.SnowflakeUseCase.NextVal()
+	batch := tools.SnowflakeUseCase.NextVal()
 
 	for _, file := range multipart.File["file"] {
 
@@ -117,7 +115,7 @@ func ExcelImport(c fiber.Ctx) error {
 				}
 			} else {
 				// 新增用户
-				importUserInfo.SnowflakeId = snowflake.SnowflakeUseCase.NextVal()
+				importUserInfo.SnowflakeId = tools.SnowflakeUseCase.NextVal()
 				err := data.ImportUserInfo(importUserInfo)
 
 				if err != nil {
@@ -127,7 +125,7 @@ func ExcelImport(c fiber.Ctx) error {
 
 			addIncomeExpenseRequest := new(entity.AddIncomeExpenseRequest)
 
-			addIncomeExpenseRequest.SnowflakeId = snowflake.SnowflakeUseCase.NextVal()
+			addIncomeExpenseRequest.SnowflakeId = tools.SnowflakeUseCase.NextVal()
 			addIncomeExpenseRequest.Summary = "分红奖励"
 			addIncomeExpenseRequest.Integral = importUserInfo.Integral
 			addIncomeExpenseRequest.Shipments = importUserInfo.Shipments
@@ -145,7 +143,7 @@ func ExcelImport(c fiber.Ctx) error {
 		defer os.Remove(file.Filename)
 	}
 	// Send a string response to the client
-	return c.JSON(Resp{
+	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",
 		Result:  struct{}{},

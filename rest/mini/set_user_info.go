@@ -1,4 +1,4 @@
-package rest
+package mini
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 func SetUserInfo(c fiber.Ctx) error {
 	defer func() {
 		if err := recover(); err != nil {
-			c.JSON(Resp{
+			c.JSON(tools.Response{
 				Code:    50000,
 				Message: fmt.Sprintf("%v", err),
 				Result:  struct{}{},
@@ -41,39 +41,9 @@ func SetUserInfo(c fiber.Ctx) error {
 		panic(fmt.Errorf("更新用户信息失败: %v", err))
 	}
 
-	return c.JSON(Resp{
+	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",
 		Result:  struct{}{},
-	})
-}
-
-func GetUserInfo(c fiber.Ctx) error {
-
-	defer func() {
-		if err := recover(); err != nil {
-			c.JSON(Resp{
-				Code:    50000,
-				Message: fmt.Sprintf("%v", err),
-				Result:  struct{}{},
-			})
-		}
-	}()
-
-	snowflakeId, err := tools.ValidateUserToken(c.Get("Authorization"), "user")
-
-	if err != nil {
-		panic(fmt.Errorf("未经授权: %v", err))
-	}
-
-	userDetail, err := data.GetUserDetailBySnowflakeID(snowflakeId)
-	if err != nil {
-		panic(fmt.Errorf("获取用户信息失败: %v", err))
-	}
-
-	return c.JSON(Resp{
-		Code:    0,
-		Message: "success",
-		Result:  userDetail,
 	})
 }

@@ -1,4 +1,4 @@
-package rest
+package mini
 
 import (
 	"fmt"
@@ -6,14 +6,13 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/entity"
-	"github.com/sanyuanya/dongle/snowflake"
 	"github.com/sanyuanya/dongle/tools"
 )
 
 func ApplyForWithdrawal(c fiber.Ctx) error {
 	defer func() {
 		if err := recover(); err != nil {
-			c.JSON(Resp{
+			c.JSON(tools.Response{
 				Code:    50000,
 				Message: fmt.Sprintf("%v", err),
 				Result:  struct{}{},
@@ -48,7 +47,7 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 		panic(fmt.Errorf("无法申请提现：%v", err))
 	}
 
-	applyForWithdrawal.SnowflakeId = snowflake.SnowflakeUseCase.NextVal()
+	applyForWithdrawal.SnowflakeId = tools.SnowflakeUseCase.NextVal()
 	applyForWithdrawal.UserId = snowflakeId
 
 	err = data.ApplyForWithdrawal(applyForWithdrawal)
@@ -64,7 +63,7 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 		}
 	}
 
-	return c.JSON(Resp{
+	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "申请提现成功",
 		Result:  struct{}{},
