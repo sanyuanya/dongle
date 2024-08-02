@@ -29,6 +29,7 @@ func main() {
 
 	app.Post("/api/mini/setUserInfo", rest.SetUserInfo)
 
+	app.Post("/api/mini/applyForWithdrawal", rest.ApplyForWithdrawal)
 	// Start the server on port 3000
 	log.Fatal(app.Listen(":3000"))
 }

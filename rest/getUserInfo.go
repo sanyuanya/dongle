@@ -26,7 +26,7 @@ func SetUserInfo(c fiber.Ctx) error {
 	token, err := ValidateToken(authorization)
 
 	if err != nil {
-		panic(fmt.Errorf("unauthorized: %v", err))
+		panic(fmt.Errorf("未经授权: %v", err))
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
@@ -42,7 +42,7 @@ func SetUserInfo(c fiber.Ctx) error {
 	}
 
 	if role != "user" {
-		panic(fmt.Errorf("unauthorized"))
+		panic(fmt.Errorf("未经授权"))
 	}
 
 	payload := new(entity.SetUserInfoRequest)
@@ -100,7 +100,7 @@ func GetUserInfo(c fiber.Ctx) error {
 			panic(fmt.Errorf("获取用户信息失败: %v", err))
 		}
 
-		panic(fmt.Errorf("unauthorized: %v", err))
+		panic(fmt.Errorf("未经授权: %v", err))
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
@@ -116,7 +116,7 @@ func GetUserInfo(c fiber.Ctx) error {
 	}
 
 	if role != "user" {
-		panic(fmt.Errorf("unauthorized"))
+		panic(fmt.Errorf("未经授权"))
 	}
 
 	snowflakeId, err := strconv.ParseInt(snowflakeIdStr, 10, 64)

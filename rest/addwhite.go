@@ -27,7 +27,7 @@ func AddWhite(c fiber.Ctx) error {
 	token, err := ValidateToken(authorization)
 
 	if err != nil {
-		panic(fmt.Errorf("unauthorized: %v", err))
+		panic(fmt.Errorf("未经授权: %v", err))
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
@@ -43,7 +43,7 @@ func AddWhite(c fiber.Ctx) error {
 	}
 
 	if role != "admin" {
-		panic(fmt.Errorf("unauthorized"))
+		panic(fmt.Errorf("未经授权"))
 	}
 
 	snowflakeId, err := strconv.ParseInt(snowflakeIdStr, 10, 64)
