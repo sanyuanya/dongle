@@ -8,6 +8,7 @@ import (
 	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/entity"
 	"github.com/sanyuanya/dongle/snowflake"
+	"github.com/sanyuanya/dongle/tools"
 	"github.com/sanyuanya/dongle/wechat"
 )
 
@@ -66,7 +67,7 @@ func MiniLogin(c fiber.Ctx) error {
 		}
 	}
 
-	token, err := GenerateToken(snowflakeId, "user")
+	token, err := tools.GenerateToken(snowflakeId, "user")
 
 	if err != nil {
 		panic(fmt.Errorf("生成token失败: %v", err))
@@ -84,7 +85,6 @@ func MiniLogin(c fiber.Ctx) error {
 		},
 	})
 }
-
 
 func Register(c fiber.Ctx) error {
 

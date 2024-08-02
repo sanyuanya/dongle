@@ -1,4 +1,4 @@
-package rest
+package tools
 
 import (
 	"errors"

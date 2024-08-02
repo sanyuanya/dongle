@@ -2,12 +2,11 @@ package rest
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/golang-jwt/jwt"
 	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/entity"
+	"github.com/sanyuanya/dongle/tools"
 )
 
 func SetUserInfo(c fiber.Ctx) error {
@@ -21,36 +20,15 @@ func SetUserInfo(c fiber.Ctx) error {
 		}
 	}()
 
-	authorization := c.Get("Authorization")
-
-	token, err := ValidateToken(authorization)
+	snowflakeId, err := tools.ValidateUserToken(c.Get("Authorization"), "user")
 
 	if err != nil {
 		panic(fmt.Errorf("未经授权: %v", err))
 	}
 
-	claims := token.Claims.(jwt.MapClaims)
-
-	snowflakeIdStr, ok := claims["snowflake_id"].(string)
-	if !ok {
-		panic(fmt.Errorf("snowflake_id is not a string"))
-	}
-
-	role, ok := claims["role"].(string)
-	if !ok {
-		panic(fmt.Errorf("role is not a string"))
-	}
-
-	if role != "user" {
-		panic(fmt.Errorf("未经授权"))
-	}
-
 	payload := new(entity.SetUserInfoRequest)
 
-	payload.SnowflakeId, err = strconv.ParseInt(snowflakeIdStr, 10, 64)
-	if err != nil {
-		panic(fmt.Errorf("无法将 snowflake_id 转换为 int64: %v", err))
-	}
+	payload.SnowflakeId = snowflakeId
 
 	err = c.Bind().Body(payload)
 
@@ -82,46 +60,10 @@ func GetUserInfo(c fiber.Ctx) error {
 		}
 	}()
 
-	authorization := c.Get("Authorization")
-
-	token, err := ValidateToken(authorization)
+	snowflakeId, err := tools.ValidateUserToken(c.Get("Authorization"), "user")
 
 	if err != nil {
-
-		snowflakeId, err := strconv.ParseInt(c.Query("snowflake_id"), 10, 64)
-		if err != nil {
-			panic(fmt.Errorf("无法将 snowflake_id 转换为 int64: %v", err))
-		}
-
-		userDetail, err := data.GetUserDetailBySnowflakeID(snowflakeId)
-
-		_ = userDetail
-		if err != nil {
-			panic(fmt.Errorf("获取用户信息失败: %v", err))
-		}
-
 		panic(fmt.Errorf("未经授权: %v", err))
-	}
-
-	claims := token.Claims.(jwt.MapClaims)
-
-	snowflakeIdStr, ok := claims["snowflake_id"].(string)
-	if !ok {
-		panic(fmt.Errorf("snowflake_id is not a string"))
-	}
-
-	role, ok := claims["role"].(string)
-	if !ok {
-		panic(fmt.Errorf("role is not a string"))
-	}
-
-	if role != "user" {
-		panic(fmt.Errorf("未经授权"))
-	}
-
-	snowflakeId, err := strconv.ParseInt(snowflakeIdStr, 10, 64)
-	if err != nil {
-		panic(fmt.Errorf("无法将 snowflake_id 转换为 int64: %v", err))
 	}
 
 	userDetail, err := data.GetUserDetailBySnowflakeID(snowflakeId)

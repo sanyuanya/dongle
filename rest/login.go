@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/entity"
+	"github.com/sanyuanya/dongle/tools"
 )
 
 // mysecretpassword
@@ -32,7 +33,7 @@ func PcLogin(c fiber.Ctx) error {
 		panic(fmt.Errorf("登录失败 : %v", err))
 	}
 
-	token, err := GenerateToken(snowflakeId, "admin")
+	token, err := tools.GenerateToken(snowflakeId, "admin")
 
 	if err != nil {
 		panic(fmt.Errorf("生成token失败 : %v", err))
