@@ -31,20 +31,29 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 		panic(fmt.Errorf("无法绑定请求体: %v", err))
 	}
 
+	// 判断是否是白名单用户
 	err = data.IsWhite(snowflakeId)
 
 	if err != nil {
 		panic(fmt.Errorf("无法申请提现: %v", err))
 	}
 
-	isWithdraw, err := data.IsIntegralWithdraw(snowflakeId, applyForWithdrawal.Integral)
+	// 判断用户当前所属积分是否大于等于提现积分
+	err = data.IsIntegralWithdraw(snowflakeId, applyForWithdrawal.Integral)
 
 	if err != nil {
 		panic(fmt.Errorf("无法申请提现: %v", err))
 	}
 
-	if !isWithdraw {
-		panic(fmt.Errorf("无法申请提现：%v", err))
+	// 判断 可提现积分是否大于等于提现积分
+	userDetail, err := data.GetUserDetailBySnowflakeID(snowflakeId)
+
+	if err != nil {
+		panic(fmt.Errorf("无法申请提现: %v", err))
+	}
+
+	if userDetail.WithdrawablePoints < applyForWithdrawal.Integral {
+		panic(fmt.Errorf("无法申请提现: %v", "当前提现积分大于可提现积分"))
 	}
 
 	applyForWithdrawal.SnowflakeId = tools.SnowflakeUseCase.NextVal()
@@ -56,8 +65,18 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 		panic(fmt.Errorf("无法申请提现: %v", err))
 	}
 
+	// 扣除用户积分和可提现积分
+	err = data.DeductUserIntegralAndWithdrawablePointsBySnowflakeId(snowflakeId, applyForWithdrawal.Integral)
+
+	if err != nil {
+		panic(fmt.Errorf("无法申请提现: %v", err))
+	}
+
 	if applyForWithdrawal.WithdrawalMethod == "alipay" {
-		err = data.UpdateUserAlipayAccountBySnowflakeID(applyForWithdrawal.UserId, applyForWithdrawal.AlipayAccount)
+		err = data.UpdateUserAlipayAccountBySnowflakeId(
+			applyForWithdrawal.UserId,
+			applyForWithdrawal.AlipayAccount,
+		)
 		if err != nil {
 			panic(fmt.Errorf("无法申请提现: %v", err))
 		}

@@ -71,9 +71,37 @@ func UpdateUserInfo(c fiber.Ctx) error {
 		SnowflakeId: snowflakeId,
 	}
 
-	err = data.UpdateUser(userInfo)
+	// 查询 手机号是否已经存在了
+	userInfoReplace, err := data.FindUserByPhone(userInfo.Phone)
 	if err != nil {
-		panic(fmt.Errorf("修改用户信息失败: %v", err))
+		panic(fmt.Errorf("查询用户失败: %v", err))
+	}
+
+	if userInfoReplace != nil && userInfoReplace.SnowflakeId != snowflakeId {
+
+		err = data.UserInfoReplace(userInfoReplace, userInfo.SnowflakeId)
+		if err != nil {
+			panic(fmt.Errorf("替换用户信息失败: %v", err))
+		}
+
+		// 替换导入的用户信息
+
+		err := data.UpdateIncomeExpense(userInfoReplace.SnowflakeId, userInfo.SnowflakeId)
+
+		if err != nil {
+			panic(fmt.Errorf("替换用户收支明细信息失败: %v", err))
+		}
+
+		// 删除原来的用户信息
+		err = data.DeleteUser(snowflakeId)
+		if err != nil {
+			panic(fmt.Errorf("删除用户信息失败: %v", err))
+		}
+	} else {
+		err = data.UpdateUserBySnowflakeId(userInfo)
+		if err != nil {
+			panic(fmt.Errorf("修改用户信息失败: %v", err))
+		}
 	}
 
 	return c.JSON(tools.Response{

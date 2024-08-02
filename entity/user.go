@@ -31,23 +31,25 @@ type UserInfo struct {
 }
 
 type UserDetail struct {
-	SnowflakeId   int64  `json:"snowflake_id"`
-	OpenID        string `json:"open_id"`
-	Nick          string `json:"nick"`
-	Avatar        string `json:"avatar"`
-	Phone         string `json:"phone"`
-	Integral      int    `json:"integral"`
-	Shipments     int    `json:"shipments"`
-	Province      string `json:"province"`
-	City          string `json:"city"`
-	District      string `json:"district"`
-	IDCard        string `json:"id_card"`
-	CompanyName   string `json:"company_name"`
-	Job           string `json:"job"`
-	AlipayAccount string `json:"alipay_account"`
-	SessionKey    string `json:"session_key"`
-	CreatedAt     string `json:"created_at"`
-	UpdatedAt     string `json:"updated_at"`
+	SnowflakeId        int64  `json:"snowflake_id"`
+	OpenID             string `json:"open_id"`
+	Nick               string `json:"nick"`
+	Avatar             string `json:"avatar"`
+	Phone              string `json:"phone"`
+	Integral           int    `json:"integral"`
+	Shipments          int    `json:"shipments"`
+	Province           string `json:"province"`
+	City               string `json:"city"`
+	District           string `json:"district"`
+	IDCard             string `json:"id_card"`
+	CompanyName        string `json:"company_name"`
+	Job                string `json:"job"`
+	AlipayAccount      string `json:"alipay_account"`
+	SessionKey         string `json:"session_key"`
+	IsWhite            int64  `json:"is_white"`
+	WithdrawablePoints int64  `json:"withdrawable_points"`
+	CreatedAt          string `json:"created_at"`
+	UpdatedAt          string `json:"updated_at"`
 }
 
 type ImportUserInfo struct {
@@ -74,4 +76,15 @@ type UpdateUserInfoRequest struct {
 	Nick   string `json:"nick"`
 	Avatar string `json:"avatar"`
 	Code   string `json:"code"`
+}
+
+type UserInfoReplace struct {
+	Nick        string `json:"nick"`
+	SnowflakeId int64  `json:"snowflake_id"`
+	Phone       string `json:"phone"`
+	Province    string `json:"province"`
+	City        string `json:"city"`
+	Shipments   int64  `json:"shipments"`
+	Integral    int64  `json:"integral"`
+	IsWhite     int64  `json:"is_white"`
 }

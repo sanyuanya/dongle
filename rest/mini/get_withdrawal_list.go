@@ -39,7 +39,7 @@ func GetWithdrawalList(c fiber.Ctx) error {
 
 	getWithdrawalListRequest.Date = c.Query("date", "")
 
-	withdrawalList, err := data.GetWithdrawalListBySnowflakeId(snowflakeId, getWithdrawalListRequest)
+	withdrawalList, err := data.GetWithdrawalListByUserId(snowflakeId, getWithdrawalListRequest)
 
 	if err != nil {
 		panic(fmt.Errorf("获取提现列表失败: %v", err))

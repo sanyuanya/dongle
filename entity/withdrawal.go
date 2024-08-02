@@ -60,3 +60,8 @@ type GetIncomeListResponse struct {
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
 }
+
+type Withdrawal struct {
+	UserId   int64 `json:"user_id"`
+	Integral int64 `json:"integral"`
+}

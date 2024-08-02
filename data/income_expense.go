@@ -113,3 +113,22 @@ func GetIncomeCountBySnowflakeId(snowflakeId int64, page *entity.GetIncomeListRe
 
 	return count, nil
 }
+
+func UpdateIncomeExpense(new int64, old int64) error {
+
+	baseSQL := `
+		UPDATE
+			income_expense
+		SET
+			user_id=$1
+		WHERE
+			user_id=$2
+			`
+	_, err := db.Exec(baseSQL, new, old)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -150,12 +150,42 @@ func ApprovalWithdrawal(approvalWithdrawalRequest *entity.ApprovalWithdrawalRequ
 		if err != nil {
 			return fmt.Errorf("审批提现失败: %v", err)
 		}
-	}
 
+		// 如果审批驳回 把用户的积分加回去
+		if approvalWithdrawalRequest.LifeCycle == 2 {
+			withdrawal, err := GetWithdrawalBySnowflakeId(snowflakeId)
+			if err != nil {
+				return fmt.Errorf("获取提现记录失败: %v", err)
+			}
+			err = AddIntegralAndWithdrawablePointsBySnowflakeId(withdrawal.UserId, withdrawal.Integral)
+			if err != nil {
+				return fmt.Errorf("增加用户积分失败: %v", err)
+			}
+		}
+	}
 	return nil
 }
 
-func GetWithdrawalListBySnowflakeId(snowflakeId int64, getWithdrawal *entity.GetWithdrawalListRequest) ([]*entity.GetWithdrawalListResponse, error) {
+func GetWithdrawalBySnowflakeId(snowflakeId int64) (*entity.Withdrawal, error) {
+
+	baseSQL := `
+		SELECT
+			user_id, integral
+		FROM
+			withdrawals
+		WHERE
+			snowflake_id=$1 AND deleted_at IS NULL
+	`
+	withdrawal := &entity.Withdrawal{}
+	err := db.QueryRow(baseSQL, snowflakeId).Scan(&withdrawal.UserId, &withdrawal.Integral)
+	if err != nil {
+		return nil, fmt.Errorf("查询提现失败: %v", err)
+	}
+
+	return withdrawal, nil
+}
+
+func GetWithdrawalListByUserId(snowflakeId int64, getWithdrawal *entity.GetWithdrawalListRequest) ([]*entity.GetWithdrawalListResponse, error) {
 
 	baseSQL := `
 		SELECT

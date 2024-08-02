@@ -71,6 +71,14 @@ func MiniLogin(c fiber.Ctx) error {
 		panic(fmt.Errorf("生成token失败: %v", err))
 	}
 
+	// 保存一下 token 方便测试
+
+	err = data.UpdateUserApiToken(snowflakeId, token)
+
+	if err != nil {
+		panic(fmt.Errorf("更新token失败: %v", err))
+	}
+
 	c.Response().Header.Set("Authorization", token)
 
 	return c.JSON(tools.Response{
