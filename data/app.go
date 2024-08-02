@@ -1,6 +1,6 @@
 package data
 
-func FindAppId() (accessToken string, expiresIn int64, err error) {
+func FindAccessTokenByAppId() (accessToken string, expiresIn int64, err error) {
 
 	appId := "wx370126c8bcf8d00c"
 
