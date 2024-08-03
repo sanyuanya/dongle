@@ -40,6 +40,9 @@ func ExcelImport(c fiber.Ctx) error {
 
 	for _, file := range multipart.File["file"] {
 
+		// Remove the temporary file
+		defer os.Remove(file.Filename)
+
 		src, err := file.Open()
 		if err != nil {
 			panic(err)
@@ -139,8 +142,7 @@ func ExcelImport(c fiber.Ctx) error {
 			}
 
 		}
-		// Remove the temporary file
-		defer os.Remove(file.Filename)
+
 	}
 	// Send a string response to the client
 	return c.JSON(tools.Response{
