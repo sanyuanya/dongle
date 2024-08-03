@@ -17,7 +17,7 @@ type SetUserInfoRequest struct {
 	District    string `json:"district"`
 	CompanyName string `json:"company_name"`
 	Job         string `json:"job"`
-	SnowflakeId int64  `json:"snowflake_id"`
+	SnowflakeId string `json:"snowflake_id"`
 }
 
 type UserInfo struct {
@@ -27,11 +27,11 @@ type UserInfo struct {
 	Phone       string `json:"phone"`
 	ApiToken    string `json:"api_token"`
 	SessionKey  string `json:"session_key"`
-	SnowflakeId int64  `json:"snowflake_id"`
+	SnowflakeId string `json:"snowflake_id"`
 }
 
 type UserDetail struct {
-	SnowflakeId        int64  `json:"snowflake_id"`
+	SnowflakeId        string `json:"snowflake_id"`
 	OpenID             string `json:"open_id"`
 	Nick               string `json:"nick"`
 	Avatar             string `json:"avatar"`
@@ -59,7 +59,7 @@ type ImportUserInfo struct {
 	City        string `json:"city"`
 	Shipments   int64  `json:"shipments"`
 	Integral    int64  `json:"integral"`
-	SnowflakeId int64  `json:"snowflake_id"`
+	SnowflakeId string `json:"snowflake_id"`
 }
 
 type MiniLoginRequest struct {
@@ -69,7 +69,7 @@ type MiniLoginRequest struct {
 type RegisterUserRequest struct {
 	OpenId      string `json:"open_id"`
 	SessionKey  string `json:"session_key"`
-	SnowflakeId int64  `json:"snowflake_id"`
+	SnowflakeId string `json:"snowflake_id"`
 }
 
 type UpdateUserInfoRequest struct {
@@ -80,7 +80,7 @@ type UpdateUserInfoRequest struct {
 
 type UserInfoReplace struct {
 	Nick        string `json:"nick"`
-	SnowflakeId int64  `json:"snowflake_id"`
+	SnowflakeId string `json:"snowflake_id"`
 	Avatar      string `json:"avatar"`
 	Phone       string `json:"phone"`
 	Province    string `json:"province"`

@@ -4,8 +4,8 @@ type ApplyForWithdrawalRequest struct {
 	Integral         int64  `json:"integral"`
 	AlipayAccount    string `json:"alipay_account"`
 	WithdrawalMethod string `json:"withdrawal_method"`
-	SnowflakeId      int64  `json:"snowflake_id"`
-	UserId           int64  `json:"user_id"`
+	SnowflakeId      string `json:"snowflake_id"`
+	UserId           string `json:"user_id"`
 }
 
 type WithdrawalPageListRequest struct {
@@ -17,7 +17,7 @@ type WithdrawalPageListRequest struct {
 
 type WithdrawalList struct {
 	SnowflakeId      string `json:"snowflake_id"`
-	UserId           int64  `json:"user_id"`
+	UserId           string `json:"user_id"`
 	Nick             string `json:"nick"`
 	Phone            string `json:"phone"`
 	Integral         int64  `json:"integral"`
@@ -35,7 +35,7 @@ type GetWithdrawalListRequest struct {
 }
 
 type GetWithdrawalListResponse struct {
-	SnowflakeId      int64  `json:"snowflake_id"`
+	SnowflakeId      string `json:"snowflake_id"`
 	LifeCycle        int    `json:"life_cycle"`
 	Integral         int64  `json:"integral"`
 	WithdrawalMethod string `json:"withdrawal_method"`
@@ -51,7 +51,7 @@ type GetIncomeListRequest struct {
 }
 
 type GetIncomeListResponse struct {
-	SnowflakeId int64  `json:"snowflake_id"`
+	SnowflakeId string `json:"snowflake_id"`
 	Summary     string `json:"summary"`
 	Integral    int64  `json:"integral"`
 	Shipments   int64  `json:"shipments"`
@@ -62,6 +62,6 @@ type GetIncomeListResponse struct {
 }
 
 type Withdrawal struct {
-	UserId   int64 `json:"user_id"`
-	Integral int64 `json:"integral"`
+	UserId   string `json:"user_id"`
+	Integral int64  `json:"integral"`
 }

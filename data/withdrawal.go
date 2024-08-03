@@ -150,6 +150,7 @@ func ApprovalWithdrawal(approvalWithdrawalRequest *entity.ApprovalWithdrawalRequ
 
 		// 如果审批驳回 把用户的积分加回去
 		if approvalWithdrawalRequest.LifeCycle == 2 {
+			fmt.Printf("snowflakeId: %v\n", snowflakeId)
 			withdrawal, err := GetWithdrawalBySnowflakeId(snowflakeId)
 			if err != nil {
 				return fmt.Errorf("获取提现记录失败: %v", err)
@@ -182,7 +183,7 @@ func GetWithdrawalBySnowflakeId(snowflakeId string) (*entity.Withdrawal, error) 
 	return withdrawal, nil
 }
 
-func GetWithdrawalCountByUserId(snowflakeId int64, getWithdrawal *entity.GetWithdrawalListRequest) (int64, error) {
+func GetWithdrawalCountByUserId(snowflakeId string, getWithdrawal *entity.GetWithdrawalListRequest) (int64, error) {
 
 	baseSQL := `
 		SELECT
@@ -210,7 +211,7 @@ func GetWithdrawalCountByUserId(snowflakeId int64, getWithdrawal *entity.GetWith
 	return count, nil
 }
 
-func GetWithdrawalListByUserId(snowflakeId int64, getWithdrawal *entity.GetWithdrawalListRequest) ([]*entity.GetWithdrawalListResponse, error) {
+func GetWithdrawalListByUserId(snowflakeId string, getWithdrawal *entity.GetWithdrawalListRequest) ([]*entity.GetWithdrawalListResponse, error) {
 
 	baseSQL := `
 		SELECT

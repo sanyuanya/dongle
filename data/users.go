@@ -22,7 +22,7 @@ func UpdateUserBySnowflakeId(userInfo *entity.UserInfo) error {
 	return nil
 }
 
-func GetUserDetailBySnowflakeID(snowflakeId int64) (*entity.UserDetail, error) {
+func GetUserDetailBySnowflakeID(snowflakeId string) (*entity.UserDetail, error) {
 	baseSQL := `
 		SELECT 
 			snowflake_id, openid, nick, avatar, phone, integral, shipments, province, city, district, id_card, company_name, job, alipay_account, created_at, updated_at, session_key, is_white, withdrawable_points
@@ -240,7 +240,7 @@ func SetUpWhiteRequest(whiteList *entity.SetUpWhiteRequest) error {
 	return nil
 }
 
-func IsWhite(snowflakeId int64) error {
+func IsWhite(snowflakeId string) error {
 	baseSQL := `
 		SELECT 
 			is_white
@@ -280,7 +280,7 @@ func IsWithdrawablePoints(snowflakeId, integral int64) (bool, error) {
 
 }
 
-func IsIntegralWithdraw(snowflakeId, integral int64) error {
+func IsIntegralWithdraw(snowflakeId string, integral int64) error {
 	baseSQL := `
 		SELECT 
 			integral
@@ -302,7 +302,7 @@ func IsIntegralWithdraw(snowflakeId, integral int64) error {
 	return nil
 }
 
-func UpdateUserAlipayAccountBySnowflakeId(snowflakeId int64, alipayAccount string) error {
+func UpdateUserAlipayAccountBySnowflakeId(snowflakeId string, alipayAccount string) error {
 	baseSQL := `
 		UPDATE
 			users
@@ -316,7 +316,7 @@ func UpdateUserAlipayAccountBySnowflakeId(snowflakeId int64, alipayAccount strin
 	return nil
 }
 
-func FindOpenId(openid string) (int64, error) {
+func FindOpenId(openid string) (string, error) {
 
 	baseSQL := `
 		SELECT 
@@ -326,13 +326,13 @@ func FindOpenId(openid string) (int64, error) {
 		WHERE
 			openid=$1 AND deleted_at IS NULL
 	`
-	var snowflakeId int64
+	var snowflakeId string
 	err := db.QueryRow(baseSQL, openid).Scan(&snowflakeId)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return 0, nil
+			return "", nil
 		}
-		return 0, err
+		return "", err
 	}
 	return snowflakeId, nil
 }
@@ -406,7 +406,7 @@ func FindUserByPhone(phone string) (*entity.UserInfoReplace, error) {
 	return userInfoReplace, nil
 }
 
-func UserInfoReplace(userInfoReplace *entity.UserInfoReplace, snowflakeId int64) error {
+func UserInfoReplace(userInfoReplace *entity.UserInfoReplace, snowflakeId string) error {
 	baseSQL := `
 		UPDATE
 			users
@@ -430,7 +430,7 @@ func UserInfoReplace(userInfoReplace *entity.UserInfoReplace, snowflakeId int64)
 	return nil
 }
 
-func DeleteUser(snowflakeId int64) error {
+func DeleteUser(snowflakeId string) error {
 	baseSQL := `
 		UPDATE
 			users
@@ -444,7 +444,7 @@ func DeleteUser(snowflakeId int64) error {
 	return nil
 }
 
-func UpdateUserApiToken(snowflakeId int64, apiToken string) error {
+func UpdateUserApiToken(snowflakeId string, apiToken string) error {
 	baseSQL := `
 		UPDATE
 			users
@@ -458,7 +458,7 @@ func UpdateUserApiToken(snowflakeId int64, apiToken string) error {
 	return nil
 }
 
-func DeductUserIntegralAndWithdrawablePointsBySnowflakeId(snowflakeId, integral int64) error {
+func DeductUserIntegralAndWithdrawablePointsBySnowflakeId(snowflakeId string, integral int64) error {
 	baseSQL := `
 		UPDATE
 			users
@@ -472,7 +472,7 @@ func DeductUserIntegralAndWithdrawablePointsBySnowflakeId(snowflakeId, integral 
 	return nil
 }
 
-func AddIntegralAndWithdrawablePointsBySnowflakeId(snowflakeId, integral int64) error {
+func AddIntegralAndWithdrawablePointsBySnowflakeId(snowflakeId string, integral int64) error {
 	baseSQL := `
 		UPDATE
 			users

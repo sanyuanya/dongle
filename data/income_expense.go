@@ -32,7 +32,7 @@ func AddIncomeExpense(addIncomeExpenseRequest *entity.AddIncomeExpenseRequest) e
 	return nil
 }
 
-func GetIncomeListBySnowflakeId(snowflakeId int64, page *entity.GetIncomeListRequest) ([]*entity.GetIncomeListResponse, error) {
+func GetIncomeListBySnowflakeId(snowflakeId string, page *entity.GetIncomeListRequest) ([]*entity.GetIncomeListResponse, error) {
 
 	baseSQL := `
 		SELECT 
@@ -85,7 +85,7 @@ func GetIncomeListBySnowflakeId(snowflakeId int64, page *entity.GetIncomeListReq
 	return incomeList, nil
 }
 
-func GetIncomeCountBySnowflakeId(snowflakeId int64, page *entity.GetIncomeListRequest) (int64, error) {
+func GetIncomeCountBySnowflakeId(snowflakeId string, page *entity.GetIncomeListRequest) (int64, error) {
 
 	baseSQL := `
 		SELECT
@@ -115,7 +115,7 @@ func GetIncomeCountBySnowflakeId(snowflakeId int64, page *entity.GetIncomeListRe
 	return count, nil
 }
 
-func UpdateIncomeExpense(new int64, old int64) error {
+func UpdateIncomeExpense(new string, old string) error {
 
 	baseSQL := `
 		UPDATE

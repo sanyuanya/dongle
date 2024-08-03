@@ -32,11 +32,11 @@ func ValidateToken(tokenString string) (*jwt.Token, error) {
 }
 
 // GenerateToken generates a JWT token
-func GenerateToken(snowflakeId int64, role string) (string, error) {
+func GenerateToken(snowflakeId string, role string) (string, error) {
 
 	// Create the Claims
 	claims := jwt.MapClaims{
-		"snowflake_id": fmt.Sprintf("%d", snowflakeId),
+		"snowflake_id": snowflakeId,
 		"role":         role,
 		"nbf":          time.Now().Unix() - 1,
 		"iat":          time.Now().Unix(),

@@ -44,11 +44,7 @@ func MiniLogin(c fiber.Ctx) error {
 		panic(fmt.Errorf("openid查询失败: %v", err))
 	}
 
-	fmt.Printf("snowflakeId: %v\n", snowflakeId)
-	if snowflakeId == 0 {
-
-		fmt.Printf("snowflakeId 2: %v\n", snowflakeId)
-
+	if snowflakeId == "" {
 		snowflakeId = tools.SnowflakeUseCase.NextVal()
 
 		registerUserRequest := &entity.RegisterUserRequest{
@@ -62,9 +58,6 @@ func MiniLogin(c fiber.Ctx) error {
 			panic(fmt.Errorf("openid注册失败: %v", err))
 		}
 	} else {
-
-		fmt.Printf("snowflakeId 3: %v\n", snowflakeId)
-
 		err := data.UpdateSessionKey(code2SessionResp.OpenID, code2SessionResp.SessionKey)
 		if err != nil {
 			panic(fmt.Errorf("openid更新失败: %v", err))
@@ -72,13 +65,11 @@ func MiniLogin(c fiber.Ctx) error {
 	}
 
 	token, err := tools.GenerateToken(snowflakeId, "user")
-
 	if err != nil {
 		panic(fmt.Errorf("生成token失败: %v", err))
 	}
 
 	// 保存一下 token 方便测试
-
 	err = data.UpdateUserApiToken(snowflakeId, token)
 
 	if err != nil {

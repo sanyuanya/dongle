@@ -42,10 +42,10 @@ type ApprovalWithdrawalRequest struct {
 }
 
 type AddIncomeExpenseRequest struct {
-	SnowflakeId int64  `json:"snowflake_id"`
+	SnowflakeId string `json:"snowflake_id"`
 	Summary     string `json:"summary"`
 	Integral    int64  `json:"integral"`
 	Shipments   int64  `json:"shipments"`
 	UserId      int64  `json:"user_id"`
-	Batch       int64  `json:"batch"`
+	Batch       string `json:"batch"`
 }
