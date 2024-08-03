@@ -29,6 +29,8 @@ func main() {
 
 	app.Post("/api/pc/updateUserInfo", pc.UpdateUserInfo)
 
+	app.Get("/api/pc/incomeList", pc.GetIncomeList)
+
 	//mini program
 
 	app.Post("/api/mini/login", mini.MiniLogin)

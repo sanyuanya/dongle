@@ -133,3 +133,107 @@ func UpdateIncomeExpense(new string, old string) error {
 
 	return nil
 }
+
+func IncomeListCount(page *entity.IncomePageListExpenseRequest) (int64, error) {
+
+	baseSQL := `
+		SELECT
+			COUNT(*)
+		FROM
+			income_expense i
+		JOIN
+			users u
+		ON
+			i.user_id = u.snowflake_id
+		WHERE
+			1=1
+		`
+	paramIndex := 1
+	executeParams := []interface{}{}
+
+	if page.Date != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(i.created_at)>=DATE($%d)", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, page.Date)
+	}
+
+	if page.Keyword != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND u.phone LIKE $%d", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, "%"+page.Keyword+"%")
+	}
+
+	var count int64
+	err := db.QueryRow(baseSQL, executeParams...).Scan(&count)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func IncomePageList(page *entity.IncomePageListExpenseRequest) ([]*entity.IncomePageListExpenseResponse, error) {
+
+	baseSQL := `
+		SELECT 
+			i.snowflake_id, i.user_id, i.summary, i.integral, i.shipments, i.batch, TO_CHAR(i.created_at, 'YYYY-MM-DD') created_at, TO_CHAR(i.updated_at, 'YYYY-MM-DD') updated_at, u.nick, u.phone
+		FROM 
+			income_expense i
+		JOIN 
+			users u
+		ON
+			i.user_id = u.snowflake_id
+		WHERE 
+			1=1
+		`
+	paramIndex := 1
+	executeParams := []interface{}{}
+
+	if page.Date != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(i.created_at)>=DATE($%d)", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, page.Date)
+	}
+
+	if page.Keyword != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND u.phone LIKE $%d", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, "%"+page.Keyword+"%")
+	}
+
+	baseSQL = baseSQL + fmt.Sprintf(" ORDER BY i.created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
+	executeParams = append(executeParams, page.PageSize, page.PageSize*(page.Page-1))
+
+	rows, err := db.Query(baseSQL, executeParams...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	incomeList := make([]*entity.IncomePageListExpenseResponse, 0)
+
+	for rows.Next() {
+		income := new(entity.IncomePageListExpenseResponse)
+		err := rows.Scan(
+			&income.SnowflakeId,
+			&income.UserId,
+			&income.Summary,
+			&income.Integral,
+			&income.Shipments,
+			&income.Batch,
+			&income.CreatedAt,
+			&income.UpdatedAt,
+			&income.Nick,
+			&income.Phone,
+		)
+		if err != nil {
+			return nil, err
+		}
+		incomeList = append(incomeList, income)
+	}
+
+	return incomeList, nil
+}

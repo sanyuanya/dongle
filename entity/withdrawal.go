@@ -65,3 +65,23 @@ type Withdrawal struct {
 	UserId   string `json:"user_id"`
 	Integral int64  `json:"integral"`
 }
+
+type IncomePageListExpenseRequest struct {
+	Page     int64  `json:"page,omitempty"`
+	PageSize int64  `json:"page_size,omitempty"`
+	Date     string `json:"date,omitempty"`
+	Keyword  string `json:"keyword,omitempty"`
+}
+
+type IncomePageListExpenseResponse struct {
+	SnowflakeId string `json:"snowflake_id"`
+	UserId      string `json:"user_id"`
+	Summary     string `json:"summary"`
+	Integral    int64  `json:"integral"`
+	Shipments   int64  `json:"shipments"`
+	Batch       string `json:"batch"`
+	Nick        string `json:"nick"`
+	Phone       string `json:"phone"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
+}
