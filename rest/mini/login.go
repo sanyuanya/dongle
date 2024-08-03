@@ -14,9 +14,25 @@ func MiniLogin(c fiber.Ctx) error {
 
 	defer func() {
 		if err := recover(); err != nil {
+
+			var code int
+			var message string
+
+			switch e := err.(type) {
+			case tools.CustomError:
+				code = e.Code
+				message = e.Message
+			case error:
+				code = 50001
+				message = e.Error()
+			default:
+				code = 50002
+				message = fmt.Sprintf("%v", e)
+			}
+
 			c.JSON(tools.Response{
-				Code:    50000,
-				Message: fmt.Sprintf("%v", err),
+				Code:    code,
+				Message: message,
 				Result:  struct{}{},
 			})
 		}
@@ -26,22 +42,22 @@ func MiniLogin(c fiber.Ctx) error {
 
 	err := c.Bind().Body(miniLoginRequest)
 	if err != nil {
-		panic(fmt.Errorf("请求参数错误 : %v", err))
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
 	}
 
 	code2SessionResp, err := wechat.Code2Session(miniLoginRequest.JsCode)
 	if err != nil {
-		panic(fmt.Errorf("获取openid失败: %v", err))
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取openid失败: %v", err)})
 	}
 
 	if code2SessionResp.ErrCode != 0 {
-		panic(fmt.Errorf("获取openid失败: %v", code2SessionResp.ErrMsg))
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取openid失败: %v", code2SessionResp.ErrMsg)})
 	}
 
 	snowflakeId, err := data.FindOpenId(code2SessionResp.OpenID)
 
 	if err != nil {
-		panic(fmt.Errorf("openid查询失败: %v", err))
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("openid查询失败: %v", err)})
 	}
 
 	if snowflakeId == "" {
@@ -55,30 +71,29 @@ func MiniLogin(c fiber.Ctx) error {
 
 		err := data.RegisterUser(registerUserRequest)
 		if err != nil {
-			panic(fmt.Errorf("openid注册失败: %v", err))
+			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("openid注册失败: %v", err)})
 		}
 	} else {
 		err := data.UpdateSessionKey(code2SessionResp.OpenID, code2SessionResp.SessionKey)
 		if err != nil {
-			panic(fmt.Errorf("openid更新失败: %v", err))
+			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("openid更新失败: %v", err)})
 		}
 	}
 
 	token, err := tools.GenerateToken(snowflakeId, "user")
 	if err != nil {
-		panic(fmt.Errorf("生成token失败: %v", err))
+		panic(tools.CustomError{Code: 50004, Message: fmt.Sprintf("生成token失败: %v", err)})
 	}
 
 	// 保存一下 token 方便测试
 	err = data.UpdateUserApiToken(snowflakeId, token)
 
 	if err != nil {
-		panic(fmt.Errorf("更新token失败: %v", err))
+		panic(tools.CustomError{Code: 50005, Message: fmt.Sprintf("更新token失败: %v", err)})
 	}
 
 	c.Response().Header.Set("Authorization", token)
 
-	fmt.Printf("snowflakeId 4: %v\n", snowflakeId)
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "成功",

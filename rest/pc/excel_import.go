@@ -17,9 +17,25 @@ func ExcelImport(c fiber.Ctx) error {
 
 	defer func() {
 		if err := recover(); err != nil {
+
+			var code int
+			var message string
+
+			switch e := err.(type) {
+			case tools.CustomError:
+				code = e.Code
+				message = e.Message
+			case error:
+				code = 50001
+				message = e.Error()
+			default:
+				code = 50002
+				message = fmt.Sprintf("%v", e)
+			}
+
 			c.JSON(tools.Response{
-				Code:    50000,
-				Message: fmt.Sprintf("%v", err),
+				Code:    code,
+				Message: message,
 				Result:  struct{}{},
 			})
 		}
@@ -27,13 +43,13 @@ func ExcelImport(c fiber.Ctx) error {
 
 	_, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
 	if err != nil {
-		panic(fmt.Errorf("未经授权: %v", err))
+		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
 
 	multipart, err := c.MultipartForm()
 
 	if err != nil {
-		panic(err)
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
 	}
 
 	batch := tools.SnowflakeUseCase.NextVal()
@@ -45,19 +61,19 @@ func ExcelImport(c fiber.Ctx) error {
 
 		src, err := file.Open()
 		if err != nil {
-			panic(err)
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法打开文件: %v", err)})
 		}
 		defer src.Close()
 
 		// Destination
 		dst, err := os.Create("upload/" + file.Filename)
 		if err != nil {
-			panic(err)
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法创建文件: %v", err)})
 		}
 
 		// Copy
 		if _, err = io.Copy(dst, src); err != nil {
-			panic(err)
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法复制文件: %v", err)})
 		}
 
 		// Close the file
@@ -65,12 +81,12 @@ func ExcelImport(c fiber.Ctx) error {
 
 		f, err := excelize.OpenFile("upload/" + file.Filename)
 		if err != nil {
-			panic(err)
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法打开文件: %v", err)})
 		}
 		// 获取 Sheet1 上所有单元格
 		rows, err := f.GetRows("Sheet1")
 		if err != nil {
-			panic(err)
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法获取行: %v", err)})
 		}
 
 		for rowIndex, row := range rows[1:] {
@@ -82,8 +98,7 @@ func ExcelImport(c fiber.Ctx) error {
 				if colIndex == 4 || colIndex == 5 {
 					// 判断是否为数字
 					if _, err := strconv.ParseInt(colCell, 10, 64); err != nil {
-
-						panic(fmt.Errorf("第 %d 行, 第 %d 列, 格式错误: %v", rowIndex+1, colIndex+1, err))
+						panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 格式错误: %v", rowIndex+1, colIndex+1, err)})
 					}
 				}
 
@@ -95,12 +110,12 @@ func ExcelImport(c fiber.Ctx) error {
 				// 更新用户积分和出货量
 				importUserInfo.Shipments, err = strconv.ParseInt(row[4], 10, 64)
 				if err != nil {
-					panic(fmt.Errorf("出货量格式错误: %v", err))
+					panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 格式错误: %v", rowIndex+1, colIndex+1, err)})
 				}
 
 				importUserInfo.Integral, err = strconv.ParseInt(row[5], 10, 64)
 				if err != nil {
-					panic(fmt.Errorf("积分格式错误: %v", err))
+					panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 格式错误: %v", rowIndex+1, colIndex+1, err)})
 				}
 			}
 
@@ -108,13 +123,13 @@ func ExcelImport(c fiber.Ctx) error {
 			snowflakeId, err := data.FindPhoneNumberContext(row[3])
 
 			if err != nil {
-				panic(fmt.Errorf("查询手机号失败: %v", err))
+				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询手机号失败: %v", err)})
 			}
 
 			if snowflakeId != 0 {
 				err := data.UpdateUserIntegralAndShipments(snowflakeId, importUserInfo.Integral, importUserInfo.Shipments)
 				if err != nil {
-					panic(fmt.Errorf("更新用户积分和出货量失败: %v", err))
+					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新用户积分和出货量失败: %v", err)})
 				}
 			} else {
 				// 新增用户
@@ -122,7 +137,7 @@ func ExcelImport(c fiber.Ctx) error {
 				err := data.ImportUserInfo(importUserInfo)
 
 				if err != nil {
-					panic(fmt.Errorf("新增用户失败: %v", err))
+					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增用户失败: %v", err)})
 				}
 			}
 
@@ -138,7 +153,7 @@ func ExcelImport(c fiber.Ctx) error {
 			err = data.AddIncomeExpense(addIncomeExpenseRequest)
 
 			if err != nil {
-				panic(fmt.Errorf("新增收支记录失败: %v", err))
+				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增收支记录失败: %v", err)})
 			}
 
 		}

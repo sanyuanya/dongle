@@ -10,11 +10,28 @@ import (
 )
 
 func ApplyForWithdrawal(c fiber.Ctx) error {
+
 	defer func() {
 		if err := recover(); err != nil {
+
+			var code int
+			var message string
+
+			switch e := err.(type) {
+			case tools.CustomError:
+				code = e.Code
+				message = e.Message
+			case error:
+				code = 50001
+				message = e.Error()
+			default:
+				code = 50002
+				message = fmt.Sprintf("%v", e)
+			}
+
 			c.JSON(tools.Response{
-				Code:    50000,
-				Message: fmt.Sprintf("%v", err),
+				Code:    code,
+				Message: message,
 				Result:  struct{}{},
 			})
 		}
@@ -22,38 +39,38 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 
 	snowflakeId, err := tools.ValidateUserToken(c.Get("Authorization"), "user")
 	if err != nil {
-		panic(fmt.Errorf("未经授权: %v", err))
+		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
 
 	applyForWithdrawal := new(entity.ApplyForWithdrawalRequest)
 	err = c.Bind().Body(applyForWithdrawal)
 	if err != nil {
-		panic(fmt.Errorf("无法绑定请求体: %v", err))
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
 	}
 
 	// 判断是否是白名单用户
 	err = data.IsWhite(snowflakeId)
 
 	if err != nil {
-		panic(fmt.Errorf("无法申请提现: %v", err))
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
 	// 判断用户当前所属积分是否大于等于提现积分
 	err = data.IsIntegralWithdraw(snowflakeId, applyForWithdrawal.Integral)
 
 	if err != nil {
-		panic(fmt.Errorf("无法申请提现: %v", err))
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
 	// 判断 可提现积分是否大于等于提现积分
 	userDetail, err := data.GetUserDetailBySnowflakeID(snowflakeId)
 
 	if err != nil {
-		panic(fmt.Errorf("无法申请提现: %v", err))
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
 	if userDetail.WithdrawablePoints < applyForWithdrawal.Integral {
-		panic(fmt.Errorf("无法申请提现: %v", "当前提现积分大于可提现积分"))
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", "当前提现积分大于可提现积分")})
 	}
 
 	applyForWithdrawal.SnowflakeId = tools.SnowflakeUseCase.NextVal()
@@ -62,14 +79,14 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 	err = data.ApplyForWithdrawal(applyForWithdrawal)
 
 	if err != nil {
-		panic(fmt.Errorf("无法申请提现: %v", err))
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
 	// 扣除用户积分和可提现积分
 	err = data.DeductUserIntegralAndWithdrawablePointsBySnowflakeId(snowflakeId, applyForWithdrawal.Integral)
 
 	if err != nil {
-		panic(fmt.Errorf("无法申请提现: %v", err))
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
 	if applyForWithdrawal.WithdrawalMethod == "alipay" {
@@ -78,7 +95,7 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 			applyForWithdrawal.AlipayAccount,
 		)
 		if err != nil {
-			panic(fmt.Errorf("无法申请提现: %v", err))
+			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 		}
 	}
 

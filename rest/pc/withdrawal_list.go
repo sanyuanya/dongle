@@ -14,32 +14,47 @@ func WithdrawalList(c fiber.Ctx) error {
 
 	defer func() {
 		if err := recover(); err != nil {
+
+			var code int
+			var message string
+
+			switch e := err.(type) {
+			case tools.CustomError:
+				code = e.Code
+				message = e.Message
+			case error:
+				code = 50001
+				message = e.Error()
+			default:
+				code = 50002
+				message = fmt.Sprintf("%v", e)
+			}
+
 			c.JSON(tools.Response{
-				Code:    50000,
-				Message: fmt.Sprintf("%v", err),
+				Code:    code,
+				Message: message,
 				Result:  struct{}{},
 			})
 		}
 	}()
 
-	snowflakeId, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
-	_ = snowflakeId
+	_, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
 	if err != nil {
-		panic(fmt.Errorf("未经授权: %v", err))
+		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
 
 	withdrawalPageListRequest := &entity.WithdrawalPageListRequest{}
 
 	if withdrawalPageListRequest.Page, err = strconv.ParseInt(c.Query("page", "1"), 10, 64); err != nil {
-		panic(fmt.Errorf("page 参数错误: %v", err))
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("page 参数错误: %v", err)})
 	}
 
 	if withdrawalPageListRequest.PageSize, err = strconv.ParseInt(c.Query("page_size", "10"), 10, 64); err != nil {
-		panic(fmt.Errorf("page_size 参数错误: %v", err))
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("page_size 参数错误: %v", err)})
 	}
 
 	if withdrawalPageListRequest.LifeCycle, err = strconv.ParseInt(c.Query("life_cycle", "0"), 10, 64); err != nil {
-		panic(fmt.Errorf("is_white 参数错误: %v", err))
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("life_cycle 参数错误: %v", err)})
 	}
 
 	withdrawalPageListRequest.Keyword = c.Query("keyword")
@@ -47,13 +62,13 @@ func WithdrawalList(c fiber.Ctx) error {
 	withdrawalList, err := data.WithdrawalPageList(withdrawalPageListRequest)
 
 	if err != nil {
-		panic(fmt.Errorf("获取提现列表失败: %v", err))
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取提现列表失败: %v", err)})
 	}
 
 	total, err := data.WithdrawalListCount(withdrawalPageListRequest)
 
 	if err != nil {
-		panic(fmt.Errorf("获取提现总数失败: %v", err))
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取提现总数失败: %v", err)})
 	}
 
 	return c.JSON(tools.Response{
