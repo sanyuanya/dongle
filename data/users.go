@@ -67,11 +67,20 @@ func UpdateUserInfo(userInfo *entity.SetUserInfoRequest) error {
 		SET nick=$1, avatar=$2, phone=$3, id_card=$4, province=$5, city=$6, district=$7, company_name=$8, job=$9, updated_at=$10
 		WHERE snowflake_id=$11 AND deleted_at IS NULL
 	`
-	_, err := db.Exec(baseSQL, userInfo.Nick, userInfo.Avatar, userInfo.Phone, userInfo.IDCard, userInfo.Province, userInfo.City, userInfo.District, userInfo.CompanyName, userInfo.Job, time.Now(), userInfo.SnowflakeId)
+	result, err := db.Exec(baseSQL, userInfo.Nick, userInfo.Avatar, userInfo.Phone, userInfo.IDCard, userInfo.Province, userInfo.City, userInfo.District, userInfo.CompanyName, userInfo.Job, time.Now(), userInfo.SnowflakeId)
 
 	if err != nil {
 		return err
 	}
+	row, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("更新用户信息失败: %v", err)
+	}
+
+	if row == 0 {
+		return fmt.Errorf("更新用户信息失败: %v", "未找到用户")
+	}
+
 	return nil
 }
 
@@ -153,7 +162,7 @@ func GetUserPageList(page *entity.UserPageListRequest) ([]*entity.UserPageListRe
 
 	baseSQL := `
 		SELECT 
-			snowflake_id, nick, avatar, phone, integral, shipments, province, city, district, id_card, company_name, job, alipay_account, is_white
+			snowflake_id, nick, avatar, phone, integral, shipments, province, city, district, id_card, company_name, job, alipay_account, is_white, withdrawable_points
 		FROM
 			users
 		WHERE
@@ -202,6 +211,7 @@ func GetUserPageList(page *entity.UserPageListRequest) ([]*entity.UserPageListRe
 			&user.Job,
 			&user.AlipayAccount,
 			&user.IsWhite,
+			&user.WithdrawablePoints,
 		)
 		if err != nil {
 			return nil, err
@@ -212,21 +222,21 @@ func GetUserPageList(page *entity.UserPageListRequest) ([]*entity.UserPageListRe
 	return userPageList, nil
 }
 
-func AddWhite(whiteList *entity.AddWhiteRequest) error {
+func SetUpWhiteRequest(whiteList *entity.SetUpWhiteRequest) error {
 
 	baseSQL := `
 		UPDATE
 			users
-		SET is_white=1
-		WHERE snowflake_id = $1 AND deleted_at IS NULL
+		SET is_white=$1, updated_at=$2
+		WHERE snowflake_id = $3 AND deleted_at IS NULL
 	`
-
 	for _, snowflakeId := range whiteList.WhiteList {
-		_, err := db.Exec(baseSQL, snowflakeId)
+		_, err := db.Exec(baseSQL, whiteList.Status, time.Now(), snowflakeId)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -473,5 +483,30 @@ func AddIntegralAndWithdrawablePointsBySnowflakeId(snowflakeId, integral int64) 
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func UpdateUserDetail(payload *entity.UpdateUserDetailRequest) error {
+	baseSQL := `
+		UPDATE
+			users
+		SET nick=$1, phone=$2, province=$3, city=$4, district=$5, company_name=$8, job=$9, is_white=$10, shipments=$11, integral=$12, withdrawable_points=$13, updated_at=$14
+		WHERE snowflake_id=$15
+	`
+	result, err := db.Exec(baseSQL, payload.Nick, payload.Phone, payload.Province, payload.City, payload.District, payload.CompanyName, payload.Job, payload.IsWhite, payload.Shipments, payload.Integral, payload.WithdrawablePoints, time.Now(), payload.SnowflakeId)
+	if err != nil {
+		return err
+	}
+
+	row, err := result.RowsAffected()
+
+	if err != nil {
+		return fmt.Errorf("更新用户信息失败: %v", err)
+	}
+
+	if row == 0 {
+		return fmt.Errorf("更新用户信息失败: %v", "未找到用户")
+	}
+
 	return nil
 }

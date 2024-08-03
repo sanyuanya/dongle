@@ -21,11 +21,13 @@ func main() {
 
 	app.Get("/api/pc/userList", pc.UserList)
 
-	app.Post("/api/pc/addWhite", pc.AddWhite)
+	app.Post("/api/pc/addWhite", pc.SetUpWhite)
 
 	app.Get("/api/pc/withdrawalList", pc.WithdrawalList)
 
 	app.Post("/api/pc/approvalWithdrawal", pc.ApprovalWithdrawal)
+
+	app.Post("/api/pc/updateUserInfo", pc.UpdateUserInfo)
 
 	//mini program
 

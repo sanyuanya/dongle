@@ -1,6 +1,7 @@
 package data
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/sanyuanya/dongle/entity"
@@ -16,6 +17,10 @@ func Login(auth *entity.LoginRequest) (int64, error) {
 
 	err := db.QueryRow("SELECT snowflake_id, password FROM admins WHERE account=$1", auth.Account).Scan(&snowflakeId, &password)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("账号不存在")
+		}
+
 		return 0, err
 	}
 

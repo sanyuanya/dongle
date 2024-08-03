@@ -1,4 +1,4 @@
-package mini
+package pc
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/sanyuanya/dongle/tools"
 )
 
-func SetUserInfo(c fiber.Ctx) error {
+func UpdateUserInfo(c fiber.Ctx) error {
 	defer func() {
 		if err := recover(); err != nil {
 			c.JSON(tools.Response{
@@ -20,27 +20,18 @@ func SetUserInfo(c fiber.Ctx) error {
 		}
 	}()
 
-	snowflakeId, err := tools.ValidateUserToken(c.Get("Authorization"), "user")
+	_, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
 	if err != nil {
 		panic(fmt.Errorf("未经授权: %v", err))
 	}
 
-	payload := new(entity.SetUserInfoRequest)
+	payload := new(entity.UpdateUserDetailRequest)
 	err = c.Bind().Body(payload)
-
 	if err != nil {
-		panic(fmt.Errorf("参数错误: %v", err))
+		panic(fmt.Errorf("无法绑定请求体: %v", err))
 	}
 
-	payload.SnowflakeId = snowflakeId
-	err = data.UpdateUserInfo(payload)
-	if err != nil {
-		panic(fmt.Errorf("更新用户信息失败: %v", err))
-	}
+	err = data.UpdateUserDetail(payload)
 
-	return c.JSON(tools.Response{
-		Code:    0,
-		Message: "success",
-		Result:  payload,
-	})
+	return nil
 }

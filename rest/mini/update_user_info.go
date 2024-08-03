@@ -77,8 +77,12 @@ func UpdateUserInfo(c fiber.Ctx) error {
 		panic(fmt.Errorf("查询用户失败: %v", err))
 	}
 
+	fmt.Printf("userInfoReplace: %v\n", userInfoReplace)
+	fmt.Printf("userInfo: %v\n", userInfo)
 	if userInfoReplace != nil && userInfoReplace.SnowflakeId != snowflakeId {
 
+		userInfoReplace.Nick = userInfo.Nick
+		userInfoReplace.Avatar = userInfo.Avatar
 		err = data.UserInfoReplace(userInfoReplace, userInfo.SnowflakeId)
 		if err != nil {
 			panic(fmt.Errorf("替换用户信息失败: %v", err))

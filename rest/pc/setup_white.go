@@ -9,7 +9,7 @@ import (
 	"github.com/sanyuanya/dongle/tools"
 )
 
-func AddWhite(c fiber.Ctx) error {
+func SetUpWhite(c fiber.Ctx) error {
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -27,14 +27,14 @@ func AddWhite(c fiber.Ctx) error {
 		panic(fmt.Errorf("未经授权: %v", err))
 	}
 
-	addWhiteList := new(entity.AddWhiteRequest)
-	err = c.Bind().Body(addWhiteList)
+	setUpWhiteList := new(entity.SetUpWhiteRequest)
+	err = c.Bind().Body(setUpWhiteList)
 
 	if err != nil {
 		panic(fmt.Errorf("参数错误: %v", err))
 	}
 
-	err = data.AddWhite(addWhiteList)
+	err = data.SetUpWhiteRequest(setUpWhiteList)
 
 	if err != nil {
 		panic(fmt.Errorf("添加白名单失败: %v", err))

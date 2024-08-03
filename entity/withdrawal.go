@@ -16,7 +16,7 @@ type WithdrawalPageListRequest struct {
 }
 
 type WithdrawalList struct {
-	SnowflakeId      int64  `json:"snowflake_id"`
+	SnowflakeId      string `json:"snowflake_id"`
 	UserId           int64  `json:"user_id"`
 	Nick             string `json:"nick"`
 	Phone            string `json:"phone"`

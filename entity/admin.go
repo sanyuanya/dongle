@@ -13,30 +13,32 @@ type UserPageListRequest struct {
 }
 
 type UserPageListResponse struct {
-	SnowflakeId   int64  `json:"snowflake_id"`
-	Nick          string `json:"nick"`
-	Avatar        string `json:"avatar"`
-	Phone         string `json:"phone"`
-	Integral      int    `json:"integral"`
-	Shipments     int    `json:"shipments"`
-	Province      string `json:"province"`
-	City          string `json:"city"`
-	District      string `json:"district"`
-	IDCard        string `json:"id_card"`
-	CompanyName   string `json:"company_name"`
-	Job           string `json:"job"`
-	AlipayAccount string `json:"alipay_account"`
-	IsWhite       int    `json:"is_white"`
+	SnowflakeId        string `json:"snowflake_id"`
+	Nick               string `json:"nick"`
+	Avatar             string `json:"avatar"`
+	Phone              string `json:"phone"`
+	Integral           int    `json:"integral"`
+	Shipments          int    `json:"shipments"`
+	Province           string `json:"province"`
+	City               string `json:"city"`
+	District           string `json:"district"`
+	IDCard             string `json:"id_card"`
+	CompanyName        string `json:"company_name"`
+	Job                string `json:"job"`
+	AlipayAccount      string `json:"alipay_account"`
+	IsWhite            int    `json:"is_white"`
+	WithdrawablePoints int64  `json:"withdrawable_points"`
 }
 
-type AddWhiteRequest struct {
-	WhiteList []int64 `json:"white_list"`
+type SetUpWhiteRequest struct {
+	WhiteList []string `json:"white_list"`
+	Status    int64    `json:"status"`
 }
 
 type ApprovalWithdrawalRequest struct {
-	ApprovalList []int64 `json:"approval_list"`
-	LifeCycle    int64   `json:"life_cycle"`
-	Rejection    string  `json:"rejection"`
+	ApprovalList []string `json:"approval_list"`
+	LifeCycle    int64    `json:"life_cycle"`
+	Rejection    string   `json:"rejection"`
 }
 
 type AddIncomeExpenseRequest struct {

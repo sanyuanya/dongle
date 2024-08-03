@@ -166,7 +166,7 @@ func ApprovalWithdrawal(approvalWithdrawalRequest *entity.ApprovalWithdrawalRequ
 	return nil
 }
 
-func GetWithdrawalBySnowflakeId(snowflakeId int64) (*entity.Withdrawal, error) {
+func GetWithdrawalBySnowflakeId(snowflakeId string) (*entity.Withdrawal, error) {
 
 	baseSQL := `
 		SELECT
