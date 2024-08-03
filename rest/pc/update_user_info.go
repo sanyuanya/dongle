@@ -33,5 +33,12 @@ func UpdateUserInfo(c fiber.Ctx) error {
 
 	err = data.UpdateUserDetail(payload)
 
-	return nil
+	if err != nil {
+		panic(fmt.Errorf("无法更新用户信息: %v", err))
+	}
+	return c.JSON(tools.Response{
+		Code:    0,
+		Message: "更新用户信息成功",
+		Result:  struct{}{},
+	})
 }
