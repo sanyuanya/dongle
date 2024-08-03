@@ -45,9 +45,18 @@ func GetWithdrawalList(c fiber.Ctx) error {
 		panic(fmt.Errorf("获取提现列表失败: %v", err))
 	}
 
+	total, err := data.GetWithdrawalCountByUserId(snowflakeId, getWithdrawalListRequest)
+
+	if err != nil {
+		panic(fmt.Errorf("获取提现列表数量失败: %v", err))
+	}
+
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "获取提现列表成功",
-		Result:  withdrawalList,
+		Result: map[string]any{
+			"data":  withdrawalList,
+			"total": total,
+		},
 	})
 }

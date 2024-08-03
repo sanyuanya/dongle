@@ -16,9 +16,9 @@ func WithdrawalListCount(page *entity.WithdrawalPageListRequest) (int64, error) 
 		JOIN
 			users u
 		ON
-			withdrawals.user_id = users.snowflake_id
+			w.user_id = u.snowflake_id
 		
-		WHERE deleted_at IS NULL
+		WHERE w.deleted_at IS NULL
 	`
 
 	executeParams := []interface{}{}
@@ -56,12 +56,9 @@ func WithdrawalPageList(page *entity.WithdrawalPageListRequest) ([]*entity.Withd
 		JOIN
 			users u
 		ON
-			withdrawals.user_id = users.snowflake_id
+			w.user_id = u.snowflake_id
 		
-		WHERE deleted_at IS NULL
-
-		-- ORDER BY created_at DESC LIMIT 
-
+		WHERE w.deleted_at IS NULL
 	`
 
 	executeParams := []interface{}{}
@@ -185,11 +182,39 @@ func GetWithdrawalBySnowflakeId(snowflakeId string) (*entity.Withdrawal, error) 
 	return withdrawal, nil
 }
 
+func GetWithdrawalCountByUserId(snowflakeId int64, getWithdrawal *entity.GetWithdrawalListRequest) (int64, error) {
+
+	baseSQL := `
+		SELECT
+			COUNT(*)
+		FROM
+			withdrawals
+		WHERE
+			user_id=$1 AND deleted_at IS NULL
+	`
+	paramIndex := 2
+	executeParams := []interface{}{snowflakeId}
+
+	if getWithdrawal.Date != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at)>=DATE(%d)", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, getWithdrawal.Date)
+	}
+
+	var count int64
+	err := db.QueryRow(baseSQL, executeParams...).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("查询提现列表数量失败: %v", err)
+	}
+
+	return count, nil
+}
+
 func GetWithdrawalListByUserId(snowflakeId int64, getWithdrawal *entity.GetWithdrawalListRequest) ([]*entity.GetWithdrawalListResponse, error) {
 
 	baseSQL := `
 		SELECT
-			snowflake_id, life_cycle, integral, withdrawal_method, created_at, updated_at, rejection
+			snowflake_id, life_cycle, integral, withdrawal_method, TO_CHAR(created_at, 'YYYY-MM-DD') created_at, TO_CHAR(updated_at, 'YYYY-MM-DD') updated_at, rejection
 		FROM
 			withdrawals
 		WHERE
