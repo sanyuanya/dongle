@@ -41,7 +41,7 @@ func ExcelImport(c fiber.Ctx) error {
 	for _, file := range multipart.File["file"] {
 
 		// Remove the temporary file
-		defer os.Remove(file.Filename)
+		defer os.Remove("upload/" + file.Filename)
 
 		src, err := file.Open()
 		if err != nil {

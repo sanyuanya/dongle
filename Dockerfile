@@ -9,3 +9,5 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /dongle
 
 FROM debian:latest
 COPY --from=builder /dongle /dongle
+
+ENTRYPOINT [ "/dongle" ]

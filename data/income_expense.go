@@ -68,6 +68,7 @@ func GetIncomeListBySnowflakeId(snowflakeId int64, page *entity.GetIncomeListReq
 		income := new(entity.GetIncomeListResponse)
 		err := rows.Scan(
 			&income.SnowflakeId,
+			&income.UserId,
 			&income.Summary,
 			&income.Integral,
 			&income.Shipments,
