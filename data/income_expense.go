@@ -46,7 +46,7 @@ func GetIncomeListBySnowflakeId(snowflakeId string, page *entity.GetIncomeListRe
 	executeParams := []interface{}{snowflakeId}
 
 	if page.Date != "" {
-		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at)>=DATE(%d)", paramIndex)
+		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at) = DATE($%d)", paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, page.Date)
 	}
@@ -100,7 +100,7 @@ func GetIncomeCountBySnowflakeId(snowflakeId string, page *entity.GetIncomeListR
 	executeParams := []interface{}{snowflakeId}
 
 	if page.Date != "" {
-		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at)>=DATE(%d)", paramIndex)
+		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at)>=DATE($%d)", paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, page.Date)
 	}
@@ -185,7 +185,7 @@ func IncomePageList(page *entity.IncomePageListExpenseRequest) ([]*entity.Income
 		ON
 			i.user_id = u.snowflake_id
 		WHERE 
-			1=1
+			i.deleted_at IS NULL
 		`
 	paramIndex := 1
 	executeParams := []interface{}{}
