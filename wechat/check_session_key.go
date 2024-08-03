@@ -3,6 +3,7 @@ package wechat
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
@@ -37,7 +38,14 @@ func CheckSessionKey(openid, accessToken, sessionKey string) (error, error) {
 	q.Set("sig_method", "hmac_sha256")
 
 	u.RawQuery = q.Encode()
-	resp, err := http.Get(u.String())
+
+	// 创建一个自定义的 http.Client，跳过证书验证
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
+	resp, err := client.Get(u.String())
 
 	if err != nil {
 		return nil, err

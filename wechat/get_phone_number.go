@@ -2,8 +2,8 @@ package wechat
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -37,7 +37,6 @@ func GetPhoneNumber(code string, access_token string) (*GetPhoneNumberResp, erro
 	}
 	q := u.Query()
 	q.Set("access_token", access_token)
-	// q.Set("code", code)
 	u.RawQuery = q.Encode()
 
 	payload := map[string]string{
@@ -49,8 +48,13 @@ func GetPhoneNumber(code string, access_token string) (*GetPhoneNumberResp, erro
 		log.Fatal(err)
 	}
 
-	fmt.Println(u.String())
-	resp, err := http.Post(u.String(), "application/json", bytes.NewBuffer(payloadBytes))
+	// 创建一个自定义的 http.Client，跳过证书验证
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
+	resp, err := client.Post(u.String(), "application/json", bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		log.Fatal(err)
 	}

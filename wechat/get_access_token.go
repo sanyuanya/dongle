@@ -1,6 +1,7 @@
 package wechat
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -25,8 +26,13 @@ func GetAccessToken() (*getAccessTokenResp, error) {
 	q.Set("grant_type", "client_credential")
 	u.RawQuery = q.Encode()
 
-	log.Printf("get access token url: %s\n", u.String())
-	resp, err := http.Get(u.String())
+	// 创建一个自定义的 http.Client，跳过证书验证
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
+	resp, err := client.Get(u.String())
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,6 +1,7 @@
 package wechat
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -31,7 +32,14 @@ func Code2Session(jsCode string) (*Code2SessionResp, error) {
 	q.Set("grant_type", "authorization_code")
 
 	u.RawQuery = q.Encode()
-	resp, err := http.Get(u.String())
+
+	// 创建一个自定义的 http.Client，跳过证书验证
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
+	resp, err := client.Get(u.String())
 
 	if err != nil {
 		return nil, err
