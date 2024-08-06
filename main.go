@@ -1,17 +1,62 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"log"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/rest/mini"
 	"github.com/sanyuanya/dongle/rest/pc"
+	"github.com/sanyuanya/dongle/tools"
 )
 
 func main() {
 	// Initialize a new Fiber app
 	app := fiber.New()
 
+	app.Use(func(c fiber.Ctx) error {
+
+		var jsonBody map[string]interface{}
+
+		// Only read and log the body for non-GET requests
+		if c.Method() == fiber.MethodPost {
+			// Read the request body
+			body, err := io.ReadAll(bytes.NewReader(c.Body()))
+			if err != nil {
+				return c.JSON(tools.Response{
+					Code:    50010,
+					Message: "Error reading body",
+					Result:  struct{}{},
+				})
+			}
+
+			// Check if the body is empty
+			if len(body) != 0 {
+				// Parse the request body as JSON
+				if err := json.Unmarshal(body, &jsonBody); err != nil {
+					return c.JSON(tools.Response{
+						Code:    50011,
+						Message: "Error unmarshalling JSON",
+						Result:  struct{}{},
+					})
+				}
+			}
+			// Set the body back to the context
+			c.Context().SetBody(body)
+		}
+
+		tools.Logger.Info("Request:",
+			"method", c.Method(),
+			"path", c.OriginalURL(),
+			"headers", c.GetReqHeaders(),
+			"body", jsonBody,
+		)
+
+		// Continue to the next middleware/handler
+		return c.Next()
+	})
 	// Define a route for the GET method on the root path '/'
 
 	// pc
