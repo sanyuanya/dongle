@@ -73,6 +73,10 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", "当前提现积分大于可提现积分")})
 	}
 
+	if applyForWithdrawal.Integral <= 0 {
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", "提现积分必须大于0")})
+	}
+
 	applyForWithdrawal.SnowflakeId = tools.SnowflakeUseCase.NextVal()
 	applyForWithdrawal.UserId = snowflakeId
 

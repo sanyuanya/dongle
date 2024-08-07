@@ -57,6 +57,8 @@ func WithdrawalList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("life_cycle 参数错误: %v", err)})
 	}
 
+	withdrawalPageListRequest.Date = c.Query("date")
+
 	withdrawalPageListRequest.Keyword = c.Query("keyword")
 
 	withdrawalList, err := data.WithdrawalPageList(withdrawalPageListRequest)

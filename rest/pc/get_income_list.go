@@ -53,8 +53,8 @@ func GetIncomeList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("page_size 参数错误: %v", err)})
 	}
 
-	payload.Date = c.Query("date")
-	payload.Keyword = c.Query("keyword")
+	payload.Date = c.Query("date", "")
+	payload.Keyword = c.Query("keyword", "")
 
 	incomeList, err := data.IncomePageList(payload)
 

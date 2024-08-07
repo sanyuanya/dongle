@@ -13,6 +13,7 @@ type WithdrawalPageListRequest struct {
 	PageSize  int64  `json:"page_size,omitempty"`
 	Keyword   string `json:"keyword,omitempty"`
 	LifeCycle int64  `json:"life_cycle,omitempty"`
+	Date      string `json:"date,omitempty"`
 }
 
 type WithdrawalList struct {

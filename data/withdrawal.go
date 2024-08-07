@@ -49,7 +49,7 @@ func WithdrawalPageList(page *entity.WithdrawalPageListRequest) ([]*entity.Withd
 
 	baseSQL := `
 		SELECT
-			w.snowflake_id, w.user_id, w.integral, w.withdrawal_method, w.life_cycle, w.created_at, w.updated_at, w.rejection,
+			w.snowflake_id, w.user_id, w.integral, w.withdrawal_method, w.life_cycle, TO_CHAR(w.created_at, 'YYYY-MM-DD HH24:MI:SS') created_at, TO_CHAR(w.updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at, w.rejection,
 			u.nick, u.phone
 		FROM
 			withdrawals w
@@ -74,6 +74,12 @@ func WithdrawalPageList(page *entity.WithdrawalPageListRequest) ([]*entity.Withd
 		baseSQL = baseSQL + fmt.Sprintf(" AND (u.nick LIKE $%d OR u.phone LIKE $%d)", paramIndex, paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, "%"+page.Keyword+"%")
+	}
+
+	if page.Date != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at) = DATE($%d)", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, page.Date)
 	}
 
 	baseSQL = baseSQL + fmt.Sprintf(" ORDER BY w.created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)

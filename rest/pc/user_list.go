@@ -45,15 +45,15 @@ func UserList(c fiber.Ctx) error {
 
 	userPageListRequest := &entity.UserPageListRequest{}
 
-	if userPageListRequest.Page, err = strconv.ParseInt(c.Query("page"), 10, 64); err != nil {
+	if userPageListRequest.Page, err = strconv.ParseInt(c.Query("page", "1"), 10, 64); err != nil {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("page 参数错误: %v", err)})
 	}
 
-	if userPageListRequest.PageSize, err = strconv.ParseInt(c.Query("page_size"), 10, 64); err != nil {
+	if userPageListRequest.PageSize, err = strconv.ParseInt(c.Query("page_size", "10"), 10, 64); err != nil {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("page_size 参数错误: %v", err)})
 	}
 
-	if userPageListRequest.IsWhite, err = strconv.ParseInt(c.Query("is_white"), 10, 64); err != nil {
+	if userPageListRequest.IsWhite, err = strconv.ParseInt(c.Query("is_white", "0"), 10, 64); err != nil {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("is_white 参数错误: %v", err)})
 	}
 

@@ -490,8 +490,8 @@ func UpdateUserDetail(payload *entity.UpdateUserDetailRequest) error {
 	baseSQL := `
 		UPDATE
 			users
-		SET nick=$1, phone=$2, province=$3, city=$4, district=$5, company_name=$8, job=$9, is_white=$10, shipments=$11, integral=$12, withdrawable_points=$13, updated_at=$14
-		WHERE snowflake_id=$15
+		SET nick=$1, phone=$2, province=$3, city=$4, district=$5, company_name=$6, job=$7, is_white=$8, shipments=$9, integral=$10, withdrawable_points=$11, updated_at=$12
+		WHERE snowflake_id=$13
 	`
 	result, err := db.Exec(baseSQL, payload.Nick, payload.Phone, payload.Province, payload.City, payload.District, payload.CompanyName, payload.Job, payload.IsWhite, payload.Shipments, payload.Integral, payload.WithdrawablePoints, time.Now(), payload.SnowflakeId)
 	if err != nil {
