@@ -25,9 +25,15 @@ func WithdrawalListCount(page *entity.WithdrawalPageListRequest) (int64, error) 
 	paramIndex := 1
 
 	if page.LifeCycle != 0 {
-		baseSQL = baseSQL + fmt.Sprintf(" AND w.life_cycle=$%d", paramIndex)
+		baseSQL = baseSQL + fmt.Sprintf(" AND w.life_cycle = $%d", paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, page.LifeCycle)
+	}
+
+	if page.Date != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(w.created_at) = DATE($%d)", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, page.Date)
 	}
 
 	if page.Keyword != "" {
@@ -65,7 +71,7 @@ func WithdrawalPageList(page *entity.WithdrawalPageListRequest) ([]*entity.Withd
 	paramIndex := 1
 
 	if page.LifeCycle != 0 {
-		baseSQL = baseSQL + fmt.Sprintf(" AND w.life_cycle=$%d", paramIndex)
+		baseSQL = baseSQL + fmt.Sprintf(" AND w.life_cycle = $%d", paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, page.LifeCycle)
 	}
@@ -77,7 +83,7 @@ func WithdrawalPageList(page *entity.WithdrawalPageListRequest) ([]*entity.Withd
 	}
 
 	if page.Date != "" {
-		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at) = DATE($%d)", paramIndex)
+		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(w.created_at) = DATE($%d)", paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, page.Date)
 	}
