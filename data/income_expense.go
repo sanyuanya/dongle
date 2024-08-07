@@ -82,6 +82,9 @@ func GetIncomeListBySnowflakeId(snowflakeId string, page *entity.GetIncomeListRe
 		incomeList = append(incomeList, income)
 	}
 
+	if incomeList == nil {
+		incomeList = []*entity.GetIncomeListResponse{}
+	}
 	return incomeList, nil
 }
 
@@ -177,7 +180,7 @@ func IncomePageList(page *entity.IncomePageListExpenseRequest) ([]*entity.Income
 
 	baseSQL := `
 		SELECT 
-			i.snowflake_id, i.user_id, i.summary, i.integral, i.shipments, i.batch, TO_CHAR(i.created_at, 'YYYY-MM-DD') created_at, TO_CHAR(i.updated_at, 'YYYY-MM-DD') updated_at, u.nick, u.phone
+			i.snowflake_id, i.user_id, i.summary, i.integral, i.shipments, i.batch, TO_CHAR(i.created_at, 'YYYY-MM-DD HH24:MI:SS') created_at, TO_CHAR(i.updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at, u.nick, u.phone
 		FROM 
 			income_expense i
 		JOIN 
@@ -233,6 +236,10 @@ func IncomePageList(page *entity.IncomePageListExpenseRequest) ([]*entity.Income
 			return nil, err
 		}
 		incomeList = append(incomeList, income)
+	}
+
+	if incomeList == nil {
+		incomeList = []*entity.IncomePageListExpenseResponse{}
 	}
 
 	return incomeList, nil

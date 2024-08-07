@@ -118,6 +118,10 @@ func WithdrawalPageList(page *entity.WithdrawalPageListRequest) ([]*entity.Withd
 		withdrawalList = append(withdrawalList, withdrawal)
 	}
 
+	if withdrawalList == nil {
+		withdrawalList = []*entity.WithdrawalList{}
+	}
+
 	return withdrawalList, nil
 }
 
@@ -267,6 +271,11 @@ func GetWithdrawalListByUserId(snowflakeId string, getWithdrawal *entity.GetWith
 			return nil, fmt.Errorf("扫描提现列表失败: %v", err)
 		}
 		withdrawalList = append(withdrawalList, withdrawal)
+	}
+
+	// Ensure withdrawalList is not nil
+	if withdrawalList == nil {
+		withdrawalList = []*entity.GetWithdrawalListResponse{}
 	}
 
 	return withdrawalList, nil

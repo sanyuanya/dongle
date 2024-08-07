@@ -219,6 +219,9 @@ func GetUserPageList(page *entity.UserPageListRequest) ([]*entity.UserPageListRe
 		userPageList = append(userPageList, user)
 	}
 
+	if userPageList == nil {
+		userPageList = []*entity.UserPageListResponse{}
+	}
 	return userPageList, nil
 }
 
