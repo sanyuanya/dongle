@@ -65,6 +65,11 @@ func ExcelImport(c fiber.Ctx) error {
 		}
 		defer src.Close()
 
+		err = os.MkdirAll("upload", os.ModePerm)
+		if err != nil {
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法创建文件夹: %v", err)})
+		}
+
 		// Destination
 		dst, err := os.Create("upload/" + file.Filename)
 		if err != nil {
