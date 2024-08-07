@@ -22,29 +22,34 @@ func main() {
 
 		// Only read and log the body for non-GET requests
 		if c.Method() == fiber.MethodPost {
-			// Read the request body
-			body, err := io.ReadAll(bytes.NewReader(c.Body()))
-			if err != nil {
-				return c.JSON(tools.Response{
-					Code:    50010,
-					Message: "Error reading body",
-					Result:  struct{}{},
-				})
-			}
 
-			// Check if the body is empty
-			if len(body) != 0 {
-				// Parse the request body as JSON
-				if err := json.Unmarshal(body, &jsonBody); err != nil {
+			contentType := c.Get("Content-Type")
+
+			if contentType == "application/json" {
+				// Read the request body
+				body, err := io.ReadAll(bytes.NewReader(c.Body()))
+				if err != nil {
 					return c.JSON(tools.Response{
-						Code:    50011,
-						Message: "Error unmarshalling JSON",
+						Code:    50010,
+						Message: "Error reading body",
 						Result:  struct{}{},
 					})
 				}
+
+				// Check if the body is empty
+				if len(body) != 0 {
+					// Parse the request body as JSON
+					if err := json.Unmarshal(body, &jsonBody); err != nil {
+						return c.JSON(tools.Response{
+							Code:    50011,
+							Message: "Error unmarshalling JSON",
+							Result:  struct{}{},
+						})
+					}
+				}
+				// Set the body back to the context
+				c.Context().SetBody(body)
 			}
-			// Set the body back to the context
-			c.Context().SetBody(body)
 		}
 
 		tools.Logger.Info("Request:",

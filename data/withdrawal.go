@@ -208,7 +208,7 @@ func GetWithdrawalCountByUserId(snowflakeId string, getWithdrawal *entity.GetWit
 	executeParams := []interface{}{snowflakeId}
 
 	if getWithdrawal.Date != "" {
-		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at)>=DATE(%d)", paramIndex)
+		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at) = DATE($%d)", paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, getWithdrawal.Date)
 	}
@@ -237,7 +237,7 @@ func GetWithdrawalListByUserId(snowflakeId string, getWithdrawal *entity.GetWith
 	executeParams := []interface{}{snowflakeId}
 
 	if getWithdrawal.Date != "" {
-		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at)>=DATE(%d)", paramIndex)
+		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at) = DATE($%d)", paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, getWithdrawal.Date)
 	}
