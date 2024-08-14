@@ -55,6 +55,7 @@ func ApprovalWithdrawal(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法审批提现: %v", err)})
 	}
 
+	
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "审批提现成功",

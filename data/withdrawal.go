@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/sanyuanya/dongle/entity"
+	"github.com/sanyuanya/dongle/pay"
+	"github.com/sanyuanya/dongle/tools"
 )
 
 func WithdrawalListCount(page *entity.WithdrawalPageListRequest) (int64, error) {
@@ -163,7 +165,6 @@ func ApprovalWithdrawal(approvalWithdrawalRequest *entity.ApprovalWithdrawalRequ
 		if err != nil {
 			return fmt.Errorf("审批提现失败: %v", err)
 		}
-
 		// 如果审批驳回 把用户的积分加回去
 		if approvalWithdrawalRequest.LifeCycle == 2 {
 			withdrawal, err := GetWithdrawalBySnowflakeId(snowflakeId)
@@ -174,9 +175,128 @@ func ApprovalWithdrawal(approvalWithdrawalRequest *entity.ApprovalWithdrawalRequ
 			if err != nil {
 				return fmt.Errorf("增加用户积分失败: %v", err)
 			}
+		} else {
+			transferDetailList := []*pay.TransferDetail{}
+			transferDetail, err := ComposeTransferDetail(snowflakeId)
+			if err != nil {
+				return fmt.Errorf("获取提现详情失败: %v", err)
+			}
+
+			transferDetailList = append(transferDetailList, transferDetail)
+			batchesRequest, err := ComposeBatches(transferDetailList)
+			if err != nil {
+				return fmt.Errorf("组合批次失败: %v", err)
+			}
+
+			batchesResponse, err := pay.Batches(batchesRequest)
+			if err != nil {
+				return fmt.Errorf("发起批次失败: %v", err)
+			}
+
+			err = CreatePay(batchesRequest.TotalAmount, batchesRequest.TotalNum, batchesResponse)
+			if err != nil {
+				return fmt.Errorf("创建支付记录失败: %v", err)
+			}
+
+			err = UpdateWithdrawalBatchId(transferDetailList, batchesResponse)
+			if err != nil {
+				return fmt.Errorf("更新提现记录失败: %v", err)
+			}
 		}
 	}
 	return nil
+}
+func UpdateWithdrawalBatchId(transferDetailList []*pay.TransferDetail, batchResponse *pay.BatchesResponse) error {
+	baseSQL := `
+		UPDATE
+			withdrawals
+		SET pay_id=$1
+		WHERE snowflake_id = $2
+	`
+	for _, transferDetail := range transferDetailList {
+		_, err := db.Exec(baseSQL, batchResponse.BatchId, transferDetail.OutDetailNo)
+		if err != nil {
+			return fmt.Errorf("更新提现记录失败: %v", err)
+		}
+	}
+	return nil
+}
+
+func CreatePay(totalAmount int, totalNum int, batchResponse *pay.BatchesResponse) error {
+	baseSQL := `
+		INSERT
+		INTO
+			pay
+			(snowflake_id, name, total_amount, total_num, status, created_at, updated_at, batch_id)
+		VALUES
+			($1, $2, $3, $4, $5, $6, $7)
+	`
+
+	_, err := db.Exec(baseSQL,
+		batchResponse.OutBatchNo,
+		"分红奖励",
+		totalAmount,
+		totalNum,
+		batchResponse.BatchStatus,
+		time.Now(),
+		time.Now(),
+		batchResponse.BatchId)
+
+	if err != nil {
+		return fmt.Errorf("创建支付记录失败: %v", err)
+	}
+
+	return nil
+}
+
+func ComposeBatches(transferDetailList []*pay.TransferDetail) (*pay.BatchesRequest, error) {
+
+	totalAmount := 0
+	for _, transferDetail := range transferDetailList {
+		totalAmount += transferDetail.TransferAmount
+	}
+
+	batchesRequest := &pay.BatchesRequest{
+		AppId:              "wx370126c8bcf8d00c",
+		OutBatchNo:         tools.SnowflakeUseCase.NextVal(),
+		BatchName:          "分红奖励报销单",
+		BatchRemark:        "分红奖励报销单",
+		TotalAmount:        totalAmount,
+		TotalNum:           len(transferDetailList),
+		TransferDetailList: transferDetailList,
+	}
+
+	return batchesRequest, nil
+}
+
+func ComposeTransferDetail(snowflakeId string) (*pay.TransferDetail, error) {
+
+	baseSQL := `
+		SELECT 
+			w.integral * 100, u.open_id, u.nick
+		FROM
+			withdrawals w
+		JOIN
+			users u
+		ON
+			w.user_id = u.snowflake_id
+		WHERE	
+			w.life_cycle = 3 AND w.snowflake_id = $1 AND w.deleted_at IS NULL
+	`
+
+	transferDetail := &pay.TransferDetail{}
+	err := db.QueryRow(baseSQL, snowflakeId).Scan(
+		&transferDetail.TransferAmount,
+		&transferDetail.OpenId,
+		&transferDetail.UserName)
+
+	transferDetail.OutDetailNo = snowflakeId
+	transferDetail.TransferRemark = "提现"
+
+	if err != nil {
+		return nil, fmt.Errorf("查询提现列表失败: %v", err)
+	}
+	return transferDetail, nil
 }
 
 func GetWithdrawalBySnowflakeId(snowflakeId string) (*entity.Withdrawal, error) {
