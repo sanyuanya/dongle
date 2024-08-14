@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/sanyuanya/dongle/rest/mini"
 	"github.com/sanyuanya/dongle/rest/pc"
 	"github.com/sanyuanya/dongle/tools"
@@ -15,6 +16,7 @@ import (
 func main() {
 	// Initialize a new Fiber app
 	app := fiber.New()
+	app.Use(recover.New())
 
 	app.Use(func(c fiber.Ctx) error {
 
@@ -63,7 +65,6 @@ func main() {
 		return c.Next()
 	})
 	// Define a route for the GET method on the root path '/'
-
 	// pc
 	app.Post("/api/pc/import", pc.ExcelImport)
 
