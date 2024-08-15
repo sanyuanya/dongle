@@ -72,7 +72,7 @@ func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 		return nil, fmt.Errorf("无法读取私钥文件: %v", err)
 	}
 
-	publicFilePath := fmt.Sprintf("%s/platform_certificate.pem", certPath)
+	publicFilePath := fmt.Sprintf("%s/wechatpay_17BDDF6F46451DE2C953B628B76D4458B00CF054.pem", certPath)
 	publicKey, err := common.ReadPublicKey(publicFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("无法读取公钥文件: %v", err)
@@ -98,10 +98,10 @@ func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 
 	serialNo := "17BDDF6F46451DE2C953B628B76D4458B00CF054"
 
-	// encrypt, err := common.Encrypt([]byte(serialNo), publicKey)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("无法加密签名: %v", err)
-	// }
+	encrypt, err := common.Encrypt([]byte(serialNo), publicKey)
+	if err != nil {
+		return nil, fmt.Errorf("无法加密签名: %v", err)
+	}
 
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(payloadByte))
 
@@ -112,7 +112,7 @@ func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", authorization)
-	req.Header.Set("Wechatpay-Serial", serialNo)
+	req.Header.Set("Wechatpay-Serial", encrypt)
 
 	fmt.Printf("请求头: %v\n", req.Header)
 	fmt.Printf("请求体: %s\n", string(payloadByte))
