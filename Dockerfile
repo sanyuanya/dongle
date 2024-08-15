@@ -1,17 +1,17 @@
-FROM golang:1.22.5 as builder
+FROM golang:1.22.5 AS builder
 
 WORKDIR /app
 
 COPY . .
 
-COPY ./pay/cert /cert
+
 RUN go mod download
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /dongle
 
 FROM debian:latest
 COPY --from=builder /dongle /dongle
-
+COPY ./pay/cert /cert
 ENV TZ=Asia/Shanghai \
   DEBIAN_FRONTEND=noninteractive
 

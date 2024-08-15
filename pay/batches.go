@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -55,11 +56,6 @@ func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 		return nil, fmt.Errorf("无法生成随机字符串: %v", err)
 	}
 
-	payloadByte, err := json.Marshal(body)
-	if err != nil {
-		return nil, fmt.Errorf("无法序列化请求体: %v", err)
-	}
-
 	env := os.Getenv("ENVIRONMENT")
 
 	certPath := ""
@@ -76,6 +72,25 @@ func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 		return nil, fmt.Errorf("无法读取私钥文件: %v", err)
 	}
 
+	publicFilePath := fmt.Sprintf("%s/platform_certificate.pem", certPath)
+	publicKey, err := common.ReadPublicKey(publicFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("无法读取公钥文件: %v", err)
+	}
+
+	for _, transferDetail := range body.TransferDetailList {
+		encryptUserName, err := common.Encrypt([]byte(transferDetail.UserName), publicKey)
+		if err != nil {
+			return nil, fmt.Errorf("无法加密用户名: %v", err)
+		}
+		transferDetail.UserName = encryptUserName
+	}
+
+	payloadByte, err := json.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("无法序列化请求体: %v", err)
+	}
+
 	authorization, err := common.Signature(method, path, timestamp, nonceStr, string(payloadByte), privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("无法生成签名: %v", err)
@@ -83,16 +98,10 @@ func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 
 	serialNo := "17BDDF6F46451DE2C953B628B76D4458B00CF054"
 
-	publicFilePath := fmt.Sprintf("%s/apiclient_cert.pem", certPath)
-	publicKey, err := common.ReadPublicKey(publicFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("无法读取公钥文件: %v", err)
-	}
-
-	encrypt, err := common.Encrypt([]byte(serialNo), publicKey)
-	if err != nil {
-		return nil, fmt.Errorf("无法加密签名: %v", err)
-	}
+	// encrypt, err := common.Encrypt([]byte(serialNo), publicKey)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("无法加密签名: %v", err)
+	// }
 
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(payloadByte))
 
@@ -103,7 +112,10 @@ func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", authorization)
-	req.Header.Set("Wechatpay-Serial", encrypt)
+	req.Header.Set("Wechatpay-Serial", serialNo)
+
+	fmt.Printf("请求头: %v\n", req.Header)
+	fmt.Printf("请求体: %s\n", string(payloadByte))
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -117,7 +129,17 @@ func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 
 	defer resp.Body.Close()
 
+	// 打印响应详细信息
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("无法读取响应体: %v", err)
+	}
+	fmt.Printf("响应状态码: %d\n", resp.StatusCode)
+	fmt.Printf("响应头: %v\n", resp.Header)
+	fmt.Printf("响应体: %s\n", string(respBody))
+
 	if resp.StatusCode != http.StatusOK {
+
 		return nil, fmt.Errorf("无法发起商家转账: %v", resp.Status)
 	}
 	batchesResponse := &BatchesResponse{}
