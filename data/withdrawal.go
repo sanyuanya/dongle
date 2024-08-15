@@ -246,7 +246,7 @@ func ComposeTransferDetail(snowflakeId string) (*pay.TransferDetail, error) {
 
 	baseSQL := `
 		SELECT 
-			w.integral * 100, u.open_id, u.nick
+			w.integral * 100, u.openid, u.nick
 		FROM
 			withdrawals w
 		JOIN
