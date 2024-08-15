@@ -39,29 +39,40 @@ func PcLogin(c fiber.Ctx) error {
 	}()
 
 	loginRequest := new(entity.LoginRequest)
+
 	err := c.Bind().Body(loginRequest)
 	if err != nil {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
 	}
 
-	snowflakeId, err := data.Login(loginRequest)
+	tx, err := data.Transaction()
 
 	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	snowflakeId, err := data.Login(tx, loginRequest)
+
+	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("登录失败: %v", err)})
 	}
 
 	token, err := tools.GenerateToken(snowflakeId, "admin")
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50004, Message: fmt.Sprintf("生成token失败: %v", err)})
 	}
 
-	err = data.SetApiToken(snowflakeId, token)
+	err = data.SetApiToken(tx, snowflakeId, token)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50005, Message: fmt.Sprintf("设置token失败 : %v", err)})
 	}
 
+	data.Commit(tx)
 	c.Response().Header.Set("Authorization", token)
 	return c.JSON(tools.Response{
 		Code:    0,

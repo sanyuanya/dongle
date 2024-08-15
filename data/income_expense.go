@@ -1,6 +1,7 @@
 package data
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -32,7 +33,7 @@ func AddIncomeExpense(addIncomeExpenseRequest *entity.AddIncomeExpenseRequest) e
 	return nil
 }
 
-func GetIncomeListBySnowflakeId(snowflakeId string, page *entity.GetIncomeListRequest) ([]*entity.GetIncomeListResponse, error) {
+func GetIncomeListBySnowflakeId(tx *sql.Tx, snowflakeId string, page *entity.GetIncomeListRequest) ([]*entity.GetIncomeListResponse, error) {
 
 	baseSQL := `
 		SELECT 
@@ -54,7 +55,7 @@ func GetIncomeListBySnowflakeId(snowflakeId string, page *entity.GetIncomeListRe
 	baseSQL = baseSQL + fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
 	executeParams = append(executeParams, page.PageSize, page.PageSize*(page.Page-1))
 
-	rows, err := db.Query(baseSQL, executeParams...)
+	rows, err := tx.Query(baseSQL, executeParams...)
 
 	if err != nil {
 		return nil, err
@@ -88,7 +89,7 @@ func GetIncomeListBySnowflakeId(snowflakeId string, page *entity.GetIncomeListRe
 	return incomeList, nil
 }
 
-func GetIncomeCountBySnowflakeId(snowflakeId string, page *entity.GetIncomeListRequest) (int64, error) {
+func GetIncomeCountBySnowflakeId(tx *sql.Tx, snowflakeId string, page *entity.GetIncomeListRequest) (int64, error) {
 
 	baseSQL := `
 		SELECT
@@ -109,7 +110,7 @@ func GetIncomeCountBySnowflakeId(snowflakeId string, page *entity.GetIncomeListR
 	}
 
 	var count int64
-	err := db.QueryRow(baseSQL, executeParams...).Scan(&count)
+	err := tx.QueryRow(baseSQL, executeParams...).Scan(&count)
 
 	if err != nil {
 		return 0, err
@@ -118,7 +119,7 @@ func GetIncomeCountBySnowflakeId(snowflakeId string, page *entity.GetIncomeListR
 	return count, nil
 }
 
-func UpdateIncomeExpense(new string, old string) error {
+func UpdateIncomeExpense(tx *sql.Tx, new string, old string) error {
 
 	baseSQL := `
 		UPDATE
@@ -128,7 +129,7 @@ func UpdateIncomeExpense(new string, old string) error {
 		WHERE
 			user_id=$2
 			`
-	_, err := db.Exec(baseSQL, new, old)
+	_, err := tx.Exec(baseSQL, new, old)
 
 	if err != nil {
 		return err
@@ -137,7 +138,7 @@ func UpdateIncomeExpense(new string, old string) error {
 	return nil
 }
 
-func IncomeListCount(page *entity.IncomePageListExpenseRequest) (int64, error) {
+func IncomeListCount(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) (int64, error) {
 
 	baseSQL := `
 		SELECT
@@ -167,7 +168,7 @@ func IncomeListCount(page *entity.IncomePageListExpenseRequest) (int64, error) {
 	}
 
 	var count int64
-	err := db.QueryRow(baseSQL, executeParams...).Scan(&count)
+	err := tx.QueryRow(baseSQL, executeParams...).Scan(&count)
 
 	if err != nil {
 		return 0, err
@@ -176,7 +177,7 @@ func IncomeListCount(page *entity.IncomePageListExpenseRequest) (int64, error) {
 	return count, nil
 }
 
-func IncomePageList(page *entity.IncomePageListExpenseRequest) ([]*entity.IncomePageListExpenseResponse, error) {
+func IncomePageList(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) ([]*entity.IncomePageListExpenseResponse, error) {
 
 	baseSQL := `
 		SELECT 
@@ -208,7 +209,7 @@ func IncomePageList(page *entity.IncomePageListExpenseRequest) ([]*entity.Income
 	baseSQL = baseSQL + fmt.Sprintf(" ORDER BY i.created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
 	executeParams = append(executeParams, page.PageSize, page.PageSize*(page.Page-1))
 
-	rows, err := db.Query(baseSQL, executeParams...)
+	rows, err := tx.Query(baseSQL, executeParams...)
 
 	if err != nil {
 		return nil, err

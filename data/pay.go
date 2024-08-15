@@ -1,13 +1,14 @@
 package data
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/sanyuanya/dongle/pay"
 )
 
-func CreatePay(totalAmount int, totalNum int, batchResponse *pay.BatchesResponse) error {
+func CreatePay(tx *sql.Tx, totalAmount int, totalNum int, batchResponse *pay.BatchesResponse) error {
 	baseSQL := `
 		INSERT
 		INTO
@@ -17,7 +18,7 @@ func CreatePay(totalAmount int, totalNum int, batchResponse *pay.BatchesResponse
 			($1, $2, $3, $4, $5, $6, $7, $8)
 	`
 
-	_, err := db.Exec(baseSQL,
+	_, err := tx.Exec(baseSQL,
 		batchResponse.OutBatchNo,
 		"分红奖励",
 		totalAmount,
@@ -35,7 +36,7 @@ func CreatePay(totalAmount int, totalNum int, batchResponse *pay.BatchesResponse
 	return nil
 }
 
-func UpdatePay(transferBatch pay.TransferBatch) error {
+func UpdatePay(tx *sql.Tx, transferBatch pay.TransferBatch) error {
 
 	baseSQL := `
 		UPDATE pay
@@ -56,7 +57,7 @@ func UpdatePay(transferBatch pay.TransferBatch) error {
 			update_time = $15
 		WHERE snowflake_id = $16
 	`
-	result, err := db.Exec(baseSQL,
+	result, err := tx.Exec(baseSQL,
 		transferBatch.BatchId,
 		transferBatch.BatchName,
 		transferBatch.BatchRemark,

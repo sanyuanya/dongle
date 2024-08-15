@@ -59,15 +59,24 @@ func UserList(c fiber.Ctx) error {
 
 	userPageListRequest.Keyword = c.Query("keyword")
 
-	userList, err := data.GetUserPageList(userPageListRequest)
+	tx, err := data.Transaction()
 	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	userList, err := data.GetUserPageList(tx, userPageListRequest)
+	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取用户列表失败: %v", err)})
 	}
 
-	userTotal, err := data.GetUserPageCount(userPageListRequest)
+	userTotal, err := data.GetUserPageCount(tx, userPageListRequest)
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取用户总数失败: %v", err)})
 	}
+
+	data.Commit(tx)
 
 	return c.JSON(tools.Response{
 		Code:    0,

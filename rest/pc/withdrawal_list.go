@@ -61,18 +61,26 @@ func WithdrawalList(c fiber.Ctx) error {
 
 	withdrawalPageListRequest.Keyword = c.Query("keyword")
 
-	withdrawalList, err := data.WithdrawalPageList(withdrawalPageListRequest)
+	tx, err := data.Transaction()
+	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	withdrawalList, err := data.WithdrawalPageList(tx, withdrawalPageListRequest)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取提现列表失败: %v", err)})
 	}
 
-	total, err := data.WithdrawalListCount(withdrawalPageListRequest)
+	total, err := data.WithdrawalListCount(tx, withdrawalPageListRequest)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取提现总数失败: %v", err)})
 	}
 
+	data.Commit(tx)
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",

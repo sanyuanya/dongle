@@ -8,21 +8,31 @@ import (
 	"github.com/sanyuanya/dongle/entity"
 )
 
-func UpdateUserBySnowflakeId(userInfo *entity.UserInfo) error {
+func UpdateUserBySnowflakeId(tx *sql.Tx, userInfo *entity.UserInfo) error {
 	baseSQL := `
 		UPDATE
 			users
 		SET nick=$1, avatar=$2, phone=$3, updated_at=$4
 		WHERE snowflake_id=$5 AND deleted_at IS NULL`
-	_, err := db.Exec(baseSQL, userInfo.Nick, userInfo.Avatar, userInfo.Phone, time.Now(), userInfo.SnowflakeId)
+	result, err := tx.Exec(baseSQL, userInfo.Nick, userInfo.Avatar, userInfo.Phone, time.Now(), userInfo.SnowflakeId)
 
 	if err != nil {
 		return err
 	}
+
+	row, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("更新用户信息失败: %v", err)
+	}
+
+	if row == 0 {
+		return fmt.Errorf("更新用户信息失败: %v", "未找到用户")
+	}
+
 	return nil
 }
 
-func GetUserDetailBySnowflakeID(snowflakeId string) (*entity.UserDetail, error) {
+func GetUserDetailBySnowflakeID(tx *sql.Tx, snowflakeId string) (*entity.UserDetail, error) {
 	baseSQL := `
 		SELECT 
 			snowflake_id, openid, nick, avatar, phone, integral, shipments, province, city, district, id_card, company_name, job, alipay_account, created_at, updated_at, session_key, is_white, withdrawable_points
@@ -31,7 +41,7 @@ func GetUserDetailBySnowflakeID(snowflakeId string) (*entity.UserDetail, error) 
 		WHERE
 			snowflake_id=$1
 	`
-	row := db.QueryRow(baseSQL, snowflakeId)
+	row := tx.QueryRow(baseSQL, snowflakeId)
 	userDetail := &entity.UserDetail{}
 	err := row.Scan(
 		&userDetail.SnowflakeId,
@@ -60,14 +70,14 @@ func GetUserDetailBySnowflakeID(snowflakeId string) (*entity.UserDetail, error) 
 	return userDetail, nil
 }
 
-func UpdateUserInfo(userInfo *entity.SetUserInfoRequest) error {
+func UpdateUserInfo(tx *sql.Tx, userInfo *entity.SetUserInfoRequest) error {
 	baseSQL := `
 		UPDATE
 			users
 		SET nick=$1, avatar=$2, phone=$3, id_card=$4, province=$5, city=$6, district=$7, company_name=$8, job=$9, updated_at=$10
 		WHERE snowflake_id=$11 AND deleted_at IS NULL
 	`
-	result, err := db.Exec(baseSQL, userInfo.Nick, userInfo.Avatar, userInfo.Phone, userInfo.IDCard, userInfo.Province, userInfo.City, userInfo.District, userInfo.CompanyName, userInfo.Job, time.Now(), userInfo.SnowflakeId)
+	result, err := tx.Exec(baseSQL, userInfo.Nick, userInfo.Avatar, userInfo.Phone, userInfo.IDCard, userInfo.Province, userInfo.City, userInfo.District, userInfo.CompanyName, userInfo.Job, time.Now(), userInfo.SnowflakeId)
 
 	if err != nil {
 		return err
@@ -124,7 +134,7 @@ func ImportUserInfo(importUserInfo *entity.ImportUserInfo) error {
 	return nil
 }
 
-func GetUserPageCount(page *entity.UserPageListRequest) (int64, error) {
+func GetUserPageCount(tx *sql.Tx, page *entity.UserPageListRequest) (int64, error) {
 	baseSQL := `
 		SELECT 
 			COUNT(1)
@@ -150,7 +160,7 @@ func GetUserPageCount(page *entity.UserPageListRequest) (int64, error) {
 	}
 
 	var count int64
-	err := db.QueryRow(baseSQL, executeParams...).Scan(&count)
+	err := tx.QueryRow(baseSQL, executeParams...).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
@@ -158,7 +168,7 @@ func GetUserPageCount(page *entity.UserPageListRequest) (int64, error) {
 	return count, nil
 }
 
-func GetUserPageList(page *entity.UserPageListRequest) ([]*entity.UserPageListResponse, error) {
+func GetUserPageList(tx *sql.Tx, page *entity.UserPageListRequest) ([]*entity.UserPageListResponse, error) {
 
 	baseSQL := `
 		SELECT 
@@ -187,7 +197,7 @@ func GetUserPageList(page *entity.UserPageListRequest) ([]*entity.UserPageListRe
 	baseSQL = baseSQL + fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
 	executeParams = append(executeParams, page.PageSize, page.PageSize*(page.Page-1))
 
-	rows, err := db.Query(baseSQL, executeParams...)
+	rows, err := tx.Query(baseSQL, executeParams...)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +235,7 @@ func GetUserPageList(page *entity.UserPageListRequest) ([]*entity.UserPageListRe
 	return userPageList, nil
 }
 
-func SetUpWhiteRequest(whiteList *entity.SetUpWhiteRequest) error {
+func SetUpWhiteRequest(tx *sql.Tx, whiteList *entity.SetUpWhiteRequest) error {
 
 	baseSQL := `
 		UPDATE
@@ -234,7 +244,7 @@ func SetUpWhiteRequest(whiteList *entity.SetUpWhiteRequest) error {
 		WHERE snowflake_id = $3 AND deleted_at IS NULL
 	`
 	for _, snowflakeId := range whiteList.WhiteList {
-		_, err := db.Exec(baseSQL, whiteList.Status, time.Now(), snowflakeId)
+		_, err := tx.Exec(baseSQL, whiteList.Status, time.Now(), snowflakeId)
 		if err != nil {
 			return err
 		}
@@ -243,7 +253,7 @@ func SetUpWhiteRequest(whiteList *entity.SetUpWhiteRequest) error {
 	return nil
 }
 
-func IsWhite(snowflakeId string) error {
+func IsWhite(tx *sql.Tx, snowflakeId string) error {
 	baseSQL := `
 		SELECT 
 			is_white
@@ -253,7 +263,7 @@ func IsWhite(snowflakeId string) error {
 			snowflake_id=$1 AND is_white=1 AND deleted_at IS NULL
 	`
 	var isWhite bool
-	err := db.QueryRow(baseSQL, snowflakeId).Scan(&isWhite)
+	err := tx.QueryRow(baseSQL, snowflakeId).Scan(&isWhite)
 	if err != nil {
 		return fmt.Errorf("查询用户是否是白名单失败: %v", err)
 	}
@@ -283,7 +293,7 @@ func IsWithdrawablePoints(snowflakeId, integral int64) (bool, error) {
 
 }
 
-func IsIntegralWithdraw(snowflakeId string, integral int64) error {
+func IsIntegralWithdraw(tx *sql.Tx, snowflakeId string, integral int64) error {
 	baseSQL := `
 		SELECT 
 			integral
@@ -293,7 +303,7 @@ func IsIntegralWithdraw(snowflakeId string, integral int64) error {
 			snowflake_id=$1 AND deleted_at IS NULL
 	`
 	var userIntegral int64
-	err := db.QueryRow(baseSQL, snowflakeId).Scan(&userIntegral)
+	err := tx.QueryRow(baseSQL, snowflakeId).Scan(&userIntegral)
 	if err != nil {
 		return fmt.Errorf("查询用户积分失败: %v", err)
 	}
@@ -305,21 +315,21 @@ func IsIntegralWithdraw(snowflakeId string, integral int64) error {
 	return nil
 }
 
-func UpdateUserAlipayAccountBySnowflakeId(snowflakeId string, alipayAccount string) error {
+func UpdateUserAlipayAccountBySnowflakeId(tx *sql.Tx, snowflakeId string, alipayAccount string) error {
 	baseSQL := `
 		UPDATE
 			users
 		SET alipay_account=$1, updated_at=$2
 		WHERE snowflake_id=$3
 	`
-	_, err := db.Exec(baseSQL, alipayAccount, time.Now(), snowflakeId)
+	_, err := tx.Exec(baseSQL, alipayAccount, time.Now(), snowflakeId)
 	if err != nil {
 		return fmt.Errorf("更新支付宝账号失败: %v", err)
 	}
 	return nil
 }
 
-func FindOpenId(openid string) (string, error) {
+func FindOpenId(tx *sql.Tx, openid string) (string, error) {
 
 	baseSQL := `
 		SELECT 
@@ -330,7 +340,7 @@ func FindOpenId(openid string) (string, error) {
 			openid=$1 AND deleted_at IS NULL
 	`
 	var snowflakeId string
-	err := db.QueryRow(baseSQL, openid).Scan(&snowflakeId)
+	err := tx.QueryRow(baseSQL, openid).Scan(&snowflakeId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", nil
@@ -340,7 +350,7 @@ func FindOpenId(openid string) (string, error) {
 	return snowflakeId, nil
 }
 
-func RegisterUser(registerUserRequest *entity.RegisterUserRequest) error {
+func RegisterUser(tx *sql.Tx, registerUserRequest *entity.RegisterUserRequest) error {
 
 	baseSQL := `
 		INSERT INTO
@@ -348,7 +358,7 @@ func RegisterUser(registerUserRequest *entity.RegisterUserRequest) error {
 			(snowflake_id, openid, session_key, created_at, updated_at)
 			VALUES ($1, $2, $3, $4, $5)
 	`
-	_, err := db.Exec(baseSQL,
+	_, err := tx.Exec(baseSQL,
 		registerUserRequest.SnowflakeId,
 		registerUserRequest.OpenId,
 		registerUserRequest.SessionKey,
@@ -363,14 +373,14 @@ func RegisterUser(registerUserRequest *entity.RegisterUserRequest) error {
 	return nil
 }
 
-func UpdateSessionKey(openid, sessionKey string) error {
+func UpdateSessionKey(tx *sql.Tx, openid, sessionKey string) error {
 	baseSQL := `
 		UPDATE
 			users
 		SET session_key=$1, updated_at=$2
 		WHERE openid=$3 AND deleted_at IS NULL
 	`
-	_, err := db.Exec(baseSQL, sessionKey, time.Now(), openid)
+	_, err := tx.Exec(baseSQL, sessionKey, time.Now(), openid)
 	if err != nil {
 		return err
 	}
@@ -378,7 +388,7 @@ func UpdateSessionKey(openid, sessionKey string) error {
 	return nil
 }
 
-func FindUserByPhone(phone string) (*entity.UserInfoReplace, error) {
+func FindUserByPhone(tx *sql.Tx, phone string) (*entity.UserInfoReplace, error) {
 	baseSQL := `
 		SELECT 
 			snowflake_id, nick, phone, province, city, shipments, integral, is_white
@@ -390,7 +400,7 @@ func FindUserByPhone(phone string) (*entity.UserInfoReplace, error) {
 
 	userInfoReplace := &entity.UserInfoReplace{}
 
-	err := db.QueryRow(baseSQL, phone).Scan(
+	err := tx.QueryRow(baseSQL, phone).Scan(
 		&userInfoReplace.SnowflakeId,
 		&userInfoReplace.Nick,
 		&userInfoReplace.Phone,
@@ -409,14 +419,14 @@ func FindUserByPhone(phone string) (*entity.UserInfoReplace, error) {
 	return userInfoReplace, nil
 }
 
-func UserInfoReplace(userInfoReplace *entity.UserInfoReplace, snowflakeId string) error {
+func UserInfoReplace(tx *sql.Tx, userInfoReplace *entity.UserInfoReplace, snowflakeId string) error {
 	baseSQL := `
 		UPDATE
 			users
 		SET nick=$1, phone=$2, province=$3, city=$4, shipments=$5, integral=$6, is_white=$7, updated_at=$8
 		WHERE snowflake_id=$9
 	`
-	_, err := db.Exec(baseSQL,
+	_, err := tx.Exec(baseSQL,
 		userInfoReplace.Nick,
 		userInfoReplace.Phone,
 		userInfoReplace.Province,
@@ -433,21 +443,21 @@ func UserInfoReplace(userInfoReplace *entity.UserInfoReplace, snowflakeId string
 	return nil
 }
 
-func DeleteUser(snowflakeId string) error {
+func DeleteUser(tx *sql.Tx, snowflakeId string) error {
 	baseSQL := `
 		UPDATE
 			users
 		SET deleted_at=$1
 		WHERE snowflake_id=$2
 	`
-	_, err := db.Exec(baseSQL, time.Now(), snowflakeId)
+	_, err := tx.Exec(baseSQL, time.Now(), snowflakeId)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func UpdateUserApiToken(snowflakeId string, apiToken string) error {
+func UpdateUserApiToken(tx *sql.Tx, snowflakeId string, apiToken string) error {
 	baseSQL := `
 		UPDATE
 			users
@@ -461,21 +471,21 @@ func UpdateUserApiToken(snowflakeId string, apiToken string) error {
 	return nil
 }
 
-func DeductUserIntegralAndWithdrawablePointsBySnowflakeId(snowflakeId string, integral int64) error {
+func DeductUserIntegralAndWithdrawablePointsBySnowflakeId(tx *sql.Tx, snowflakeId string, integral int64) error {
 	baseSQL := `
 		UPDATE
 			users
 		SET integral=integral-$1, withdrawable_points=withdrawable_points-$1, updated_at=$2
 		WHERE snowflake_id=$3
 	`
-	_, err := db.Exec(baseSQL, integral, time.Now(), snowflakeId)
+	_, err := tx.Exec(baseSQL, integral, time.Now(), snowflakeId)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func AddIntegralAndWithdrawablePointsBySnowflakeId(snowflakeId string, integral int64) error {
+func AddIntegralAndWithdrawablePointsBySnowflakeId(tx *sql.Tx, snowflakeId string, integral int64) error {
 	baseSQL := `
 		UPDATE
 			users
@@ -489,14 +499,14 @@ func AddIntegralAndWithdrawablePointsBySnowflakeId(snowflakeId string, integral 
 	return nil
 }
 
-func UpdateUserDetail(payload *entity.UpdateUserDetailRequest) error {
+func UpdateUserDetail(tx *sql.Tx, payload *entity.UpdateUserDetailRequest) error {
 	baseSQL := `
 		UPDATE
 			users
 		SET nick=$1, phone=$2, province=$3, city=$4, district=$5, company_name=$6, job=$7, is_white=$8, shipments=$9, integral=$10, withdrawable_points=$11, updated_at=$12
 		WHERE snowflake_id=$13
 	`
-	result, err := db.Exec(baseSQL, payload.Nick, payload.Phone, payload.Province, payload.City, payload.District, payload.CompanyName, payload.Job, payload.IsWhite, payload.Shipments, payload.Integral, payload.WithdrawablePoints, time.Now(), payload.SnowflakeId)
+	result, err := tx.Exec(baseSQL, payload.Nick, payload.Phone, payload.Province, payload.City, payload.District, payload.CompanyName, payload.Job, payload.IsWhite, payload.Shipments, payload.Integral, payload.WithdrawablePoints, time.Now(), payload.SnowflakeId)
 	if err != nil {
 		return err
 	}

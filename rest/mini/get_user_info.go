@@ -42,10 +42,18 @@ func GetUserInfo(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
 
-	userDetail, err := data.GetUserDetailBySnowflakeID(snowflakeId)
+	tx, err := data.Transaction()
 	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	userDetail, err := data.GetUserDetailBySnowflakeID(tx, snowflakeId)
+	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取用户信息失败: %v", err)})
 	}
+
+	data.Commit(tx)
 
 	return c.JSON(tools.Response{
 		Code:    0,

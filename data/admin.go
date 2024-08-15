@@ -8,14 +8,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func Login(auth *entity.LoginRequest) (string, error) {
+func Login(tx *sql.Tx, auth *entity.LoginRequest) (string, error) {
 
 	// Check if the account exists
 
 	var snowflakeId string
 	var password string
 
-	err := db.QueryRow("SELECT snowflake_id, password FROM admins WHERE account=$1", auth.Account).Scan(&snowflakeId, &password)
+	err := tx.QueryRow("SELECT snowflake_id, password FROM admins WHERE account=$1", auth.Account).Scan(&snowflakeId, &password)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", fmt.Errorf("账号不存在")
@@ -37,8 +37,8 @@ func Login(auth *entity.LoginRequest) (string, error) {
 	return "", fmt.Errorf("密码错误")
 }
 
-func SetApiToken(snowflakeId string, token string) error {
-	_, err := db.Exec("UPDATE admins SET api_token=$1 WHERE snowflake_id=$2", token, snowflakeId)
+func SetApiToken(tx *sql.Tx, snowflakeId string, token string) error {
+	_, err := tx.Exec("UPDATE admins SET api_token=$1 WHERE snowflake_id=$2", token, snowflakeId)
 	if err != nil {
 		return err
 	}

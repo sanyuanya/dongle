@@ -54,9 +54,15 @@ func MiniLogin(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取openid失败: %v", code2SessionResp.ErrMsg)})
 	}
 
-	snowflakeId, err := data.FindOpenId(code2SessionResp.OpenID)
+	tx, err := data.Transaction()
+	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	snowflakeId, err := data.FindOpenId(tx, code2SessionResp.OpenID)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("openid查询失败: %v", err)})
 	}
 
@@ -69,13 +75,15 @@ func MiniLogin(c fiber.Ctx) error {
 			SessionKey:  code2SessionResp.SessionKey,
 		}
 
-		err := data.RegisterUser(registerUserRequest)
+		err := data.RegisterUser(tx, registerUserRequest)
 		if err != nil {
+			data.Rollback(tx)
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("openid注册失败: %v", err)})
 		}
 	} else {
-		err := data.UpdateSessionKey(code2SessionResp.OpenID, code2SessionResp.SessionKey)
+		err := data.UpdateSessionKey(tx, code2SessionResp.OpenID, code2SessionResp.SessionKey)
 		if err != nil {
+			data.Rollback(tx)
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("openid更新失败: %v", err)})
 		}
 	}
@@ -86,14 +94,16 @@ func MiniLogin(c fiber.Ctx) error {
 	}
 
 	// 保存一下 token 方便测试
-	err = data.UpdateUserApiToken(snowflakeId, token)
+	err = data.UpdateUserApiToken(tx, snowflakeId, token)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50005, Message: fmt.Sprintf("更新token失败: %v", err)})
 	}
 
 	c.Response().Header.Set("Authorization", token)
 
+	data.Commit(tx)
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "成功",

@@ -56,18 +56,26 @@ func GetIncomeList(c fiber.Ctx) error {
 	payload.Date = c.Query("date", "")
 	payload.Keyword = c.Query("keyword", "")
 
-	incomeList, err := data.IncomePageList(payload)
+	tx, err := data.Transaction()
+	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	incomeList, err := data.IncomePageList(tx, payload)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取收入列表失败: %v", err)})
 	}
 
-	total, err := data.IncomeListCount(payload)
+	total, err := data.IncomeListCount(tx, payload)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取收入总数失败: %v", err)})
 	}
 
+	data.Commit(tx)
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",

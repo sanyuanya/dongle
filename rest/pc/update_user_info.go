@@ -48,12 +48,19 @@ func UpdateUserInfo(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
 	}
 
-	err = data.UpdateUserDetail(payload)
+	tx, err := data.Transaction()
+	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	err = data.UpdateUserDetail(tx, payload)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法更新用户信息: %v", err)})
 	}
 
+	data.Commit(tx)
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "更新用户信息成功",

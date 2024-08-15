@@ -49,32 +49,43 @@ func OutTransferNo(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40001, Message: fmt.Sprintf("查询失败：%v", err)})
 	}
 
-	// 更新提现记录
-	err = data.UpdateWithdrawalInfoBySnowflakeId(outTransferNoResponse)
+	tx, err := data.Transaction()
+
 	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	// 更新提现记录
+	err = data.UpdateWithdrawalInfoBySnowflakeId(tx, outTransferNoResponse)
+	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 40003, Message: fmt.Sprintf("更新失败：%v", err)})
 	}
 
 	// 如果支付失败，把提现金额退回到用户账户
 	if outTransferNoResponse.DetailStatus != "FAIL" {
 
-		withdrawal, err := data.GetWithdrawalBySnowflakeIdAndPaymentStatusIsFail(outTransferNoResponse.OutDetailNo)
+		withdrawal, err := data.GetWithdrawalBySnowflakeIdAndPaymentStatusIsFail(tx, outTransferNoResponse.OutDetailNo)
 		if err != nil {
+			data.Rollback(tx)
 			return fmt.Errorf("获取提现记录失败: %v", err)
 		}
 
-		err = data.UpdateWithdrawalStatusBySnowflakeId(outTransferNoResponse.OutDetailNo, "FAIL")
+		err = data.UpdateWithdrawalStatusBySnowflakeId(tx, outTransferNoResponse.OutDetailNo, "FAIL")
 		if err != nil {
+			data.Rollback(tx)
 			return fmt.Errorf("更新提现状态失败: %v", err)
 		}
 
-		err = data.AddIntegralAndWithdrawablePointsBySnowflakeId(withdrawal.UserId, withdrawal.Integral)
+		err = data.AddIntegralAndWithdrawablePointsBySnowflakeId(tx, withdrawal.UserId, withdrawal.Integral)
 		if err != nil {
+			data.Rollback(tx)
 			return fmt.Errorf("增加用户积分失败: %v", err)
 		}
 
 	}
 
+	data.Commit(tx)
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",

@@ -56,16 +56,24 @@ func GetIncomeList(c fiber.Ctx) error {
 
 	payload.Date = c.Query("date")
 
-	incomeList, err := data.GetIncomeListBySnowflakeId(snowflakeId, payload)
+	tx, err := data.Transaction()
 	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	incomeList, err := data.GetIncomeListBySnowflakeId(tx, snowflakeId, payload)
+	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取收支列表失败: %v", err)})
 	}
 
-	total, err := data.GetIncomeCountBySnowflakeId(snowflakeId, payload)
+	total, err := data.GetIncomeCountBySnowflakeId(tx, snowflakeId, payload)
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取收支列表数量失败: %v", err)})
 	}
 
+	data.Commit(tx)
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "获取收支列表成功",

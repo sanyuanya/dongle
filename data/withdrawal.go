@@ -1,6 +1,7 @@
 package data
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/sanyuanya/dongle/tools"
 )
 
-func WithdrawalListCount(page *entity.WithdrawalPageListRequest) (int64, error) {
+func WithdrawalListCount(tx *sql.Tx, page *entity.WithdrawalPageListRequest) (int64, error) {
 	baseSQL := `
 		SELECT
 			COUNT(*)
@@ -45,7 +46,7 @@ func WithdrawalListCount(page *entity.WithdrawalPageListRequest) (int64, error) 
 	}
 
 	var count int64
-	err := db.QueryRow(baseSQL, executeParams...).Scan(&count)
+	err := tx.QueryRow(baseSQL, executeParams...).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("查询提现列表数量失败: %v", err)
 	}
@@ -53,7 +54,7 @@ func WithdrawalListCount(page *entity.WithdrawalPageListRequest) (int64, error) 
 	return count, nil
 }
 
-func WithdrawalPageList(page *entity.WithdrawalPageListRequest) ([]*entity.WithdrawalList, error) {
+func WithdrawalPageList(tx *sql.Tx, page *entity.WithdrawalPageListRequest) ([]*entity.WithdrawalList, error) {
 
 	baseSQL := `
 		SELECT
@@ -93,7 +94,7 @@ func WithdrawalPageList(page *entity.WithdrawalPageListRequest) ([]*entity.Withd
 	baseSQL = baseSQL + fmt.Sprintf(" ORDER BY w.created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
 	executeParams = append(executeParams, page.PageSize, page.PageSize*(page.Page-1))
 
-	rows, err := db.Query(baseSQL, executeParams...)
+	rows, err := tx.Query(baseSQL, executeParams...)
 	if err != nil {
 		return nil, fmt.Errorf("查询提现列表失败: %v", err)
 	}
@@ -127,7 +128,7 @@ func WithdrawalPageList(page *entity.WithdrawalPageListRequest) ([]*entity.Withd
 	return withdrawalList, nil
 }
 
-func ApplyForWithdrawal(applyForWithdrawal *entity.ApplyForWithdrawalRequest) error {
+func ApplyForWithdrawal(tx *sql.Tx, applyForWithdrawal *entity.ApplyForWithdrawalRequest) error {
 
 	baseSQL := `
 
@@ -136,7 +137,7 @@ func ApplyForWithdrawal(applyForWithdrawal *entity.ApplyForWithdrawalRequest) er
 			(snowflake_id, user_id, integral, withdrawal_method, life_cycle, created_at, updated_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
-	_, err := db.Exec(baseSQL,
+	_, err := tx.Exec(baseSQL,
 		applyForWithdrawal.SnowflakeId,
 		applyForWithdrawal.UserId,
 		applyForWithdrawal.Integral,
@@ -151,7 +152,7 @@ func ApplyForWithdrawal(applyForWithdrawal *entity.ApplyForWithdrawalRequest) er
 	return nil
 }
 
-func ApprovalWithdrawal(approvalWithdrawalRequest *entity.ApprovalWithdrawalRequest) error {
+func ApprovalWithdrawal(tx *sql.Tx, snowflakeId string, rejection string, lifeCycle int64) error {
 
 	baseSQL := `
 		UPDATE
@@ -159,54 +160,24 @@ func ApprovalWithdrawal(approvalWithdrawalRequest *entity.ApprovalWithdrawalRequ
 		SET life_cycle=$1, rejection=$2, updated_at=$3
 		WHERE snowflake_id = $4
 	`
-	for _, snowflakeId := range approvalWithdrawalRequest.ApprovalList {
 
-		_, err := db.Exec(baseSQL, approvalWithdrawalRequest.LifeCycle, approvalWithdrawalRequest.Rejection, time.Now(), snowflakeId)
-		if err != nil {
-			return fmt.Errorf("审批提现失败: %v", err)
-		}
-		// 如果审批驳回 把用户的积分加回去
-		if approvalWithdrawalRequest.LifeCycle == 2 {
-			withdrawal, err := GetWithdrawalBySnowflakeId(snowflakeId)
-			if err != nil {
-				return fmt.Errorf("获取提现记录失败: %v", err)
-			}
-			err = AddIntegralAndWithdrawablePointsBySnowflakeId(withdrawal.UserId, withdrawal.Integral)
-			if err != nil {
-				return fmt.Errorf("增加用户积分失败: %v", err)
-			}
-		} else {
-			transferDetailList := []*pay.TransferDetail{}
-			transferDetail, err := ComposeTransferDetail(snowflakeId)
-			if err != nil {
-				return fmt.Errorf("获取提现详情失败: %v", err)
-			}
-
-			transferDetailList = append(transferDetailList, transferDetail)
-			batchesRequest, err := ComposeBatches(transferDetailList)
-			if err != nil {
-				return fmt.Errorf("组合批次失败: %v", err)
-			}
-
-			batchesResponse, err := pay.Batches(batchesRequest)
-			if err != nil {
-				return fmt.Errorf("发起批次失败: %v", err)
-			}
-
-			err = CreatePay(batchesRequest.TotalAmount, batchesRequest.TotalNum, batchesResponse)
-			if err != nil {
-				return fmt.Errorf("创建支付记录失败: %v", err)
-			}
-
-			err = UpdateWithdrawalBatchId(transferDetailList, batchesResponse)
-			if err != nil {
-				return fmt.Errorf("更新提现记录失败: %v", err)
-			}
-		}
+	result, err := tx.Exec(baseSQL, lifeCycle, rejection, time.Now(), snowflakeId)
+	if err != nil {
+		return fmt.Errorf("审批提现失败: %v", err)
 	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("获取受影响行数失败: %v", err)
+	}
+
+	if affected == 0 {
+		return fmt.Errorf("未找到对应的提现记录")
+	}
+
 	return nil
 }
-func UpdateWithdrawalBatchId(transferDetailList []*pay.TransferDetail, batchResponse *pay.BatchesResponse) error {
+func UpdateWithdrawalBatchId(tx *sql.Tx, transferDetailList []*pay.TransferDetail, batchResponse *pay.BatchesResponse) error {
 	baseSQL := `
 		UPDATE
 			withdrawals
@@ -214,7 +185,7 @@ func UpdateWithdrawalBatchId(transferDetailList []*pay.TransferDetail, batchResp
 		WHERE snowflake_id = $2
 	`
 	for _, transferDetail := range transferDetailList {
-		_, err := db.Exec(baseSQL, batchResponse.BatchId, transferDetail.OutDetailNo)
+		_, err := tx.Exec(baseSQL, batchResponse.BatchId, transferDetail.OutDetailNo)
 		if err != nil {
 			return fmt.Errorf("更新提现记录失败: %v", err)
 		}
@@ -242,7 +213,7 @@ func ComposeBatches(transferDetailList []*pay.TransferDetail) (*pay.BatchesReque
 	return batchesRequest, nil
 }
 
-func ComposeTransferDetail(snowflakeId string) (*pay.TransferDetail, error) {
+func ComposeTransferDetail(tx *sql.Tx, snowflakeId string) (*pay.TransferDetail, error) {
 
 	baseSQL := `
 		SELECT 
@@ -258,7 +229,7 @@ func ComposeTransferDetail(snowflakeId string) (*pay.TransferDetail, error) {
 	`
 
 	transferDetail := &pay.TransferDetail{}
-	err := db.QueryRow(baseSQL, snowflakeId).Scan(
+	err := tx.QueryRow(baseSQL, snowflakeId).Scan(
 		&transferDetail.TransferAmount,
 		&transferDetail.OpenId,
 		&transferDetail.UserName)
@@ -272,7 +243,7 @@ func ComposeTransferDetail(snowflakeId string) (*pay.TransferDetail, error) {
 	return transferDetail, nil
 }
 
-func GetWithdrawalBySnowflakeId(snowflakeId string) (*entity.Withdrawal, error) {
+func GetWithdrawalBySnowflakeId(tx *sql.Tx, snowflakeId string) (*entity.Withdrawal, error) {
 
 	baseSQL := `
 		SELECT
@@ -283,7 +254,7 @@ func GetWithdrawalBySnowflakeId(snowflakeId string) (*entity.Withdrawal, error) 
 			snowflake_id=$1 AND deleted_at IS NULL
 	`
 	withdrawal := &entity.Withdrawal{}
-	err := db.QueryRow(baseSQL, snowflakeId).Scan(&withdrawal.UserId, &withdrawal.Integral)
+	err := tx.QueryRow(baseSQL, snowflakeId).Scan(&withdrawal.UserId, &withdrawal.Integral)
 	if err != nil {
 		return nil, fmt.Errorf("查询提现失败: %v", err)
 	}
@@ -291,7 +262,7 @@ func GetWithdrawalBySnowflakeId(snowflakeId string) (*entity.Withdrawal, error) 
 	return withdrawal, nil
 }
 
-func GetWithdrawalBySnowflakeIdAndPaymentStatusIsFail(snowflakeId string) (*entity.Withdrawal, error) {
+func GetWithdrawalBySnowflakeIdAndPaymentStatusIsFail(tx *sql.Tx, snowflakeId string) (*entity.Withdrawal, error) {
 
 	baseSQL := `
 		SELECT
@@ -302,7 +273,7 @@ func GetWithdrawalBySnowflakeIdAndPaymentStatusIsFail(snowflakeId string) (*enti
 			snowflake_id=$1 AND deleted_at IS NULL AND payment_status != 'FAIL'
 	`
 	withdrawal := &entity.Withdrawal{}
-	err := db.QueryRow(baseSQL, snowflakeId).Scan(&withdrawal.UserId, &withdrawal.Integral)
+	err := tx.QueryRow(baseSQL, snowflakeId).Scan(&withdrawal.UserId, &withdrawal.Integral)
 	if err != nil {
 		return nil, fmt.Errorf("查询提现失败: %v", err)
 	}
@@ -310,7 +281,7 @@ func GetWithdrawalBySnowflakeIdAndPaymentStatusIsFail(snowflakeId string) (*enti
 	return withdrawal, nil
 }
 
-func GetWithdrawalCountByUserId(snowflakeId string, getWithdrawal *entity.GetWithdrawalListRequest) (int64, error) {
+func GetWithdrawalCountByUserId(tx *sql.Tx, snowflakeId string, getWithdrawal *entity.GetWithdrawalListRequest) (int64, error) {
 
 	baseSQL := `
 		SELECT
@@ -330,7 +301,7 @@ func GetWithdrawalCountByUserId(snowflakeId string, getWithdrawal *entity.GetWit
 	}
 
 	var count int64
-	err := db.QueryRow(baseSQL, executeParams...).Scan(&count)
+	err := tx.QueryRow(baseSQL, executeParams...).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("查询提现列表数量失败: %v", err)
 	}
@@ -338,7 +309,7 @@ func GetWithdrawalCountByUserId(snowflakeId string, getWithdrawal *entity.GetWit
 	return count, nil
 }
 
-func GetWithdrawalListByUserId(snowflakeId string, getWithdrawal *entity.GetWithdrawalListRequest) ([]*entity.GetWithdrawalListResponse, error) {
+func GetWithdrawalListByUserId(tx *sql.Tx, snowflakeId string, getWithdrawal *entity.GetWithdrawalListRequest) ([]*entity.GetWithdrawalListResponse, error) {
 
 	baseSQL := `
 		SELECT
@@ -361,7 +332,7 @@ func GetWithdrawalListByUserId(snowflakeId string, getWithdrawal *entity.GetWith
 	baseSQL = baseSQL + fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
 	executeParams = append(executeParams, getWithdrawal.PageSize, getWithdrawal.PageSize*(getWithdrawal.Page-1))
 
-	rows, err := db.Query(baseSQL, executeParams...)
+	rows, err := tx.Query(baseSQL, executeParams...)
 	if err != nil {
 		return nil, fmt.Errorf("查询提现列表失败: %v", err)
 	}
@@ -393,7 +364,7 @@ func GetWithdrawalListByUserId(snowflakeId string, getWithdrawal *entity.GetWith
 	return withdrawalList, nil
 }
 
-func UpdateWithdrawalInfoBySnowflakeId(withdrawal *pay.OutDetailNoResponse) error {
+func UpdateWithdrawalInfoBySnowflakeId(tx *sql.Tx, withdrawal *pay.OutDetailNoResponse) error {
 
 	baseSQL := `
 		UPDATE
@@ -411,7 +382,7 @@ func UpdateWithdrawalInfoBySnowflakeId(withdrawal *pay.OutDetailNoResponse) erro
 			snowflake_id = $9
 	`
 
-	result, err := db.Exec(baseSQL, time.Now(),
+	result, err := tx.Exec(baseSQL, time.Now(),
 		withdrawal.DetailId,
 		withdrawal.InitiateTime,
 		withdrawal.UpdateTime,
@@ -438,7 +409,7 @@ func UpdateWithdrawalInfoBySnowflakeId(withdrawal *pay.OutDetailNoResponse) erro
 	return nil
 }
 
-func UpdateWithdrawalStatusBySnowflakeId(snowflakeId string, status string) error {
+func UpdateWithdrawalStatusBySnowflakeId(tx *sql.Tx, snowflakeId string, status string) error {
 
 	baseSQL := `
 		UPDATE
@@ -449,7 +420,7 @@ func UpdateWithdrawalStatusBySnowflakeId(snowflakeId string, status string) erro
 			snowflake_id = $2 AND deleted_at IS NULL AND life_cycle = 3
 	`
 
-	result, err := db.Exec(baseSQL, 4, snowflakeId)
+	result, err := tx.Exec(baseSQL, 4, snowflakeId)
 	if err != nil {
 		return fmt.Errorf("更新提现状态失败: %v", err)
 	}

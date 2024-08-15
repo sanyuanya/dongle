@@ -49,23 +49,31 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 	}
 
 	// 判断是否是白名单用户
-	err = data.IsWhite(snowflakeId)
+	tx, err := data.Transaction()
+	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	err = data.IsWhite(tx, snowflakeId)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
 	// 判断用户当前所属积分是否大于等于提现积分
-	err = data.IsIntegralWithdraw(snowflakeId, applyForWithdrawal.Integral)
+	err = data.IsIntegralWithdraw(tx, snowflakeId, applyForWithdrawal.Integral)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
 	// 判断 可提现积分是否大于等于提现积分
-	userDetail, err := data.GetUserDetailBySnowflakeID(snowflakeId)
+	userDetail, err := data.GetUserDetailBySnowflakeID(tx, snowflakeId)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
@@ -80,29 +88,33 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 	applyForWithdrawal.SnowflakeId = tools.SnowflakeUseCase.NextVal()
 	applyForWithdrawal.UserId = snowflakeId
 
-	err = data.ApplyForWithdrawal(applyForWithdrawal)
+	err = data.ApplyForWithdrawal(tx, applyForWithdrawal)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
 	// 扣除用户积分和可提现积分
-	err = data.DeductUserIntegralAndWithdrawablePointsBySnowflakeId(snowflakeId, applyForWithdrawal.Integral)
-
+	err = data.DeductUserIntegralAndWithdrawablePointsBySnowflakeId(tx, snowflakeId, applyForWithdrawal.Integral)
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
 	if applyForWithdrawal.WithdrawalMethod == "alipay" {
 		err = data.UpdateUserAlipayAccountBySnowflakeId(
+			tx,
 			applyForWithdrawal.UserId,
 			applyForWithdrawal.AlipayAccount,
 		)
 		if err != nil {
+			data.Rollback(tx)
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 		}
 	}
 
+	data.Commit(tx)
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "申请提现成功",

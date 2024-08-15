@@ -48,12 +48,19 @@ func OutBatchNo(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40001, Message: fmt.Sprintf("查询失败：%v", err)})
 	}
 
-	err = data.UpdatePay(outBatchNoResponse.TransferBatch)
+	tx, err := data.Transaction()
+	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	err = data.UpdatePay(tx, outBatchNoResponse.TransferBatch)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 40002, Message: fmt.Sprintf("更新失败：%v", err)})
 	}
 
+	data.Commit(tx)
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",

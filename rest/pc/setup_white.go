@@ -50,7 +50,12 @@ func SetUpWhite(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
 	}
 
-	err = data.SetUpWhiteRequest(setUpWhiteList)
+	tx, err := data.Transaction()
+	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	err = data.SetUpWhiteRequest(tx, setUpWhiteList)
 
 	if err != nil {
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("添加白名单失败: %v", err)})

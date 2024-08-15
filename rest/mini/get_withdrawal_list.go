@@ -55,18 +55,26 @@ func GetWithdrawalList(c fiber.Ctx) error {
 
 	getWithdrawalListRequest.Date = c.Query("date", "")
 
-	withdrawalList, err := data.GetWithdrawalListByUserId(snowflakeId, getWithdrawalListRequest)
+	tx, err := data.Transaction()
+	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	withdrawalList, err := data.GetWithdrawalListByUserId(tx, snowflakeId, getWithdrawalListRequest)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取提现列表失败: %v", err)})
 	}
 
-	total, err := data.GetWithdrawalCountByUserId(snowflakeId, getWithdrawalListRequest)
+	total, err := data.GetWithdrawalCountByUserId(tx, snowflakeId, getWithdrawalListRequest)
 
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取提现列表数量失败: %v", err)})
 	}
 
+	data.Commit(tx)
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "获取提现列表成功",

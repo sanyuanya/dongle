@@ -30,7 +30,7 @@ func init() {
 	}
 }
 
-func Begin() (*sql.Tx, error) {
+func Transaction() (*sql.Tx, error) {
 	return db.Begin()
 }
 

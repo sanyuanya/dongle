@@ -50,11 +50,19 @@ func SetUserInfo(c fiber.Ctx) error {
 	}
 
 	payload.SnowflakeId = snowflakeId
-	err = data.UpdateUserInfo(payload)
+
+	tx, err := data.Transaction()
 	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	err = data.UpdateUserInfo(tx, payload)
+	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新用户信息失败: %v", err)})
 	}
 
+	data.Commit(tx)
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",
