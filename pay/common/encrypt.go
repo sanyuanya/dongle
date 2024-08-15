@@ -4,14 +4,17 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 )
 
-func Encrypt(message []byte, pub *rsa.PublicKey) ([]byte, error) {
+func Encrypt(message []byte, pub *rsa.PublicKey) (string, error) {
 	hash := sha256.New()
 	ciphertext, err := rsa.EncryptOAEP(hash, rand.Reader, pub, message, nil)
 	if err != nil {
-		return nil, fmt.Errorf("加密失败: %v", err)
+		return "", fmt.Errorf("加密失败: %v", err)
 	}
-	return ciphertext, nil
+
+	base64Ciphertext := base64.StdEncoding.EncodeToString(ciphertext)
+	return base64Ciphertext, nil
 }

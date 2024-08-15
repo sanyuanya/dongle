@@ -2,10 +2,12 @@ package pay
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/sanyuanya/dongle/pay/common"
@@ -38,7 +40,11 @@ type BatchesResponse struct {
 
 func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 
-	url := "https://api.mch.weixin.qq.com/v3/transfer/batches"
+	host := "https://api.mch.weixin.qq.com"
+
+	path := "/v3/transfer/batches"
+
+	url := fmt.Sprintf("%s%s", host, path)
 
 	method := http.MethodPost
 
@@ -54,19 +60,31 @@ func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 		return nil, fmt.Errorf("无法序列化请求体: %v", err)
 	}
 
-	privateKey, err := common.ReadPrivateKey("apiclient_key.pem")
+	env := os.Getenv("ENVIRONMENT")
+
+	certPath := ""
+	switch env {
+	case "production":
+		certPath = "/cert"
+	default:
+		certPath = "/Users/sanyuanya/hjworkspace/go_dev/dongle_new/pay/cert"
+	}
+
+	privateFilePath := fmt.Sprintf("%s/apiclient_key.pem", certPath)
+	privateKey, err := common.ReadPrivateKey(privateFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("无法读取私钥文件: %v", err)
 	}
 
-	authorization, err := common.Signature(method, url, timestamp, nonceStr, string(payloadByte), privateKey)
+	authorization, err := common.Signature(method, path, timestamp, nonceStr, string(payloadByte), privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("无法生成签名: %v", err)
 	}
 
 	serialNo := "17BDDF6F46451DE2C953B628B76D4458B00CF054"
 
-	publicKey, err := common.ReadPublicKey("apiclient_cert.pem")
+	publicFilePath := fmt.Sprintf("%s/apiclient_cert.pem", certPath)
+	publicKey, err := common.ReadPublicKey(publicFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("无法读取公钥文件: %v", err)
 	}
@@ -85,9 +103,12 @@ func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", authorization)
-	req.Header.Set("Wechatpay-Serial", string(encrypt))
+	req.Header.Set("Wechatpay-Serial", encrypt)
 
-	client := &http.Client{}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
 	resp, err := client.Do(req)
 
 	if err != nil {

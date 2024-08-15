@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 )
@@ -12,7 +13,12 @@ func Signature(method string, url string, timestamp string, nonceStr string, bod
 
 	signStr := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", method, url, timestamp, nonceStr, body)
 
-	signature, err := rsa.SignPKCS1v15(rand.Reader, pri, crypto.SHA256, []byte(signStr))
+	fmt.Printf("signStr: %s\n", signStr)
+
+	// 计算 SHA256 哈希值
+	hashed := sha256.Sum256([]byte(signStr))
+
+	signature, err := rsa.SignPKCS1v15(rand.Reader, pri, crypto.SHA256, hashed[:])
 	if err != nil {
 		return "", fmt.Errorf("无法签名: %v", err)
 	}

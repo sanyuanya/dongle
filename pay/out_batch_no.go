@@ -1,6 +1,7 @@
 package pay
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -73,7 +74,10 @@ func OutBatchNo(outBatchNo string) (*OutBatchNoResponse, error) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", authorization)
 
-	client := &http.Client{}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
 	resp, err := client.Do(req)
 
 	if err != nil {

@@ -82,6 +82,8 @@ func main() {
 
 	app.Get("/api/pc/incomeList", pc.GetIncomeList)
 
+	app.Post("/api/pc/pay", pc.Pay)
+
 	//mini program
 
 	app.Post("/api/mini/login", mini.MiniLogin)
