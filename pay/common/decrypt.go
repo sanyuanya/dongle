@@ -24,7 +24,7 @@ func Decrypt(ciphertext string) (string, error) {
 	hash := sha1.New()
 	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, pri, cipherData, nil)
 	if err != nil {
-		return "", fmt.Errorf("error from decryption: %s\n", err)
+		return "", fmt.Errorf("error from decryption: %s", err)
 	}
 	return string(plaintext), nil
 }

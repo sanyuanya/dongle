@@ -111,9 +111,6 @@ func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 	req.Header.Set("Authorization", authorization)
 	req.Header.Set("Wechatpay-Serial", serialNo)
 
-	fmt.Printf("请求头: %v\n", req.Header)
-	fmt.Printf("请求体: %s\n", string(payloadByte))
-
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -126,17 +123,15 @@ func Batches(body *BatchesRequest) (*BatchesResponse, error) {
 
 	defer resp.Body.Close()
 
-	// 打印响应详细信息
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("无法读取响应体: %v", err)
-	}
-	fmt.Printf("响应状态码: %d\n", resp.StatusCode)
-	fmt.Printf("响应头: %v\n", resp.Header)
-	fmt.Printf("响应体: %s\n", string(respBody))
-
 	if resp.StatusCode != http.StatusOK {
-
+		// 打印响应详细信息
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("无法读取响应体: %v", err)
+		}
+		fmt.Printf("响应状态码: %d\n", resp.StatusCode)
+		fmt.Printf("响应头: %v\n", resp.Header)
+		fmt.Printf("响应体: %s\n", string(respBody))
 		return nil, fmt.Errorf("无法发起商家转账: %v", resp.Status)
 	}
 	batchesResponse := &BatchesResponse{}

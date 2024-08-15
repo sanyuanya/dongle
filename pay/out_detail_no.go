@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -29,7 +30,13 @@ type OutDetailNoResponse struct {
 }
 
 func OutDetailNo(outBatchNo string, outDetailNo string) (*OutDetailNoResponse, error) {
-	url := fmt.Sprintf("https://api.mch.weixin.qq.com/v3/transfer/batches/out-batch-no/%s/details/out-detail-no/%s", outBatchNo, outDetailNo)
+
+	host := "https://api.mch.weixin.qq.com"
+
+	path := fmt.Sprintf("/v3/transfer/batches/out-batch-no/%s/details/out-detail-no/%s", outBatchNo, outDetailNo)
+
+	url := fmt.Sprintf("%s%s", host, path)
+
 	method := http.MethodGet
 	timestamp := fmt.Sprintf("%d", time.Now().Unix())
 
@@ -43,7 +50,7 @@ func OutDetailNo(outBatchNo string, outDetailNo string) (*OutDetailNoResponse, e
 		return nil, fmt.Errorf("无法读取私钥文件: %v", err)
 	}
 
-	authorization, err := common.Signature(method, url, timestamp, nonceStr, "", privateKey)
+	authorization, err := common.Signature(method, path, timestamp, nonceStr, "", privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("无法生成签名: %v", err)
 	}
@@ -70,7 +77,15 @@ func OutDetailNo(outBatchNo string, outDetailNo string) (*OutDetailNoResponse, e
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("通过商家明细单号查询明细单: %v", resp.Status)
+		// 打印响应详细信息
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("无法读取响应体: %v", err)
+		}
+		fmt.Printf("响应状态码: %d\n", resp.StatusCode)
+		fmt.Printf("响应头: %v\n", resp.Header)
+		fmt.Printf("响应体: %s\n", string(respBody))
+		return nil, fmt.Errorf("无法通过商家明细单号查询明细单: %v", resp.Status)
 	}
 	outDetailNoResponse := &OutDetailNoResponse{}
 

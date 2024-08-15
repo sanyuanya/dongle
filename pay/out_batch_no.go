@@ -4,8 +4,11 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
 	"time"
 
 	"github.com/sanyuanya/dongle/pay/common"
@@ -45,7 +48,29 @@ type TransferBatch struct {
 
 func OutBatchNo(outBatchNo string) (*OutBatchNoResponse, error) {
 
-	url := "https://api.mch.weixin.qq.com/v3/transfer/batches/out-batch-no/" + outBatchNo
+	host := "https://api.mch.weixin.qq.com"
+
+	path := "/v3/transfer/batches/out-batch-no"
+	u, err := url.Parse(host)
+
+	if err != nil {
+		return nil, fmt.Errorf("无法解析 URL: %v", err)
+	}
+
+	u.Path, err = url.JoinPath(u.Path, path, outBatchNo)
+	if err != nil {
+		return nil, fmt.Errorf("无法拼接 URL: %v", err)
+	}
+
+	query := url.Values{}
+
+	query.Add("need_query_detail", "true")
+	query.Add("offset", "0")
+	query.Add("limit", "100")
+	query.Add("detail_status", "ALL")
+
+	u.RawQuery = query.Encode()
+
 	method := http.MethodGet
 
 	timestamp := fmt.Sprintf("%d", time.Now().Unix())
@@ -55,17 +80,31 @@ func OutBatchNo(outBatchNo string) (*OutBatchNoResponse, error) {
 		return nil, fmt.Errorf("无法生成随机字符串: %v", err)
 	}
 
-	privateKey, err := common.ReadPrivateKey("apiclient_key.pem")
+	env := os.Getenv("ENVIRONMENT")
+
+	certPath := ""
+	switch env {
+	case "production":
+		certPath = "/cert"
+	default:
+		certPath = "/Users/sanyuanya/hjworkspace/go_dev/dongle_new/pay/cert"
+	}
+
+	privateFilePath := fmt.Sprintf("%s/apiclient_key.pem", certPath)
+	privateKey, err := common.ReadPrivateKey(privateFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("无法读取私钥文件: %v", err)
 	}
 
-	authorization, err := common.Signature(method, url, timestamp, nonceStr, "", privateKey)
+	signUrl := &url.URL{Path: fmt.Sprintf("%s/%s", path, outBatchNo), RawQuery: u.RawQuery}
+
+	authorization, err := common.Signature(method, signUrl.String(), timestamp, nonceStr, "", privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("无法生成签名: %v", err)
 	}
 
-	req, err := http.NewRequest(method, url, nil)
+	fmt.Println(u.String())
+	req, err := http.NewRequest(method, u.String(), nil)
 
 	if err != nil {
 		return nil, fmt.Errorf("无法创建请求: %v", err)
@@ -87,7 +126,15 @@ func OutBatchNo(outBatchNo string) (*OutBatchNoResponse, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("通过商家批次单号查询批次单: %v", resp.Status)
+		// 打印响应详细信息
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("无法读取响应体: %v", err)
+		}
+		fmt.Printf("响应状态码: %d\n", resp.StatusCode)
+		fmt.Printf("响应头: %v\n", resp.Header)
+		fmt.Printf("响应体: %s\n", string(respBody))
+		return nil, fmt.Errorf("无法通过商家批次单号查询批次单: %v", resp.Status)
 	}
 
 	outBatchNoResponse := &OutBatchNoResponse{}

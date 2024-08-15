@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/pay"
 	"github.com/sanyuanya/dongle/tools"
 )
 
-func Pay(c fiber.Ctx) error {
+func OutBatchNo(c fiber.Ctx) error {
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -36,19 +37,26 @@ func Pay(c fiber.Ctx) error {
 		}
 	}()
 
-	batchesRequest := &pay.BatchesRequest{}
-	err := c.Bind().Body(batchesRequest)
+	batchId := c.Params("batchId", "")
 
-	if err != nil {
-		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
+	if batchId == "" {
+		panic(tools.CustomError{Code: 40000, Message: "参数错误"})
 	}
 
-	fmt.Printf("batchesRequest: %#+v\n", batchesRequest)
-	resp, err := pay.Batches(batchesRequest)
-
+	outBatchNoResponse, err := pay.OutBatchNo(batchId)
 	if err != nil {
-		panic(fmt.Errorf("无法发起批量转账: %v", err))
+		panic(tools.CustomError{Code: 40001, Message: fmt.Sprintf("查询失败：%v", err)})
 	}
 
-	return c.JSON(resp)
+	err = data.UpdatePay(outBatchNoResponse.TransferBatch)
+
+	if err != nil {
+		panic(tools.CustomError{Code: 40002, Message: fmt.Sprintf("更新失败：%v", err)})
+	}
+
+	return c.JSON(tools.Response{
+		Code:    0,
+		Message: "success",
+		Result:  struct{}{},
+	})
 }

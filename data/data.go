@@ -28,5 +28,16 @@ func init() {
 	if err = db.Ping(); err != nil {
 		panic(err)
 	}
+}
 
+func Begin() (*sql.Tx, error) {
+	return db.Begin()
+}
+
+func Commit(tx *sql.Tx) error {
+	return tx.Commit()
+}
+
+func Rollback(tx *sql.Tx) error {
+	return tx.Rollback()
 }

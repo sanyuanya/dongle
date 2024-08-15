@@ -222,33 +222,6 @@ func UpdateWithdrawalBatchId(transferDetailList []*pay.TransferDetail, batchResp
 	return nil
 }
 
-func CreatePay(totalAmount int, totalNum int, batchResponse *pay.BatchesResponse) error {
-	baseSQL := `
-		INSERT
-		INTO
-			pay
-			(snowflake_id, name, total_amount, total_num, status, created_at, updated_at, batch_id)
-		VALUES
-			($1, $2, $3, $4, $5, $6, $7)
-	`
-
-	_, err := db.Exec(baseSQL,
-		batchResponse.OutBatchNo,
-		"分红奖励",
-		totalAmount,
-		totalNum,
-		batchResponse.BatchStatus,
-		time.Now(),
-		time.Now(),
-		batchResponse.BatchId)
-
-	if err != nil {
-		return fmt.Errorf("创建支付记录失败: %v", err)
-	}
-
-	return nil
-}
-
 func ComposeBatches(transferDetailList []*pay.TransferDetail) (*pay.BatchesRequest, error) {
 
 	totalAmount := 0
@@ -308,6 +281,25 @@ func GetWithdrawalBySnowflakeId(snowflakeId string) (*entity.Withdrawal, error) 
 			withdrawals
 		WHERE
 			snowflake_id=$1 AND deleted_at IS NULL
+	`
+	withdrawal := &entity.Withdrawal{}
+	err := db.QueryRow(baseSQL, snowflakeId).Scan(&withdrawal.UserId, &withdrawal.Integral)
+	if err != nil {
+		return nil, fmt.Errorf("查询提现失败: %v", err)
+	}
+
+	return withdrawal, nil
+}
+
+func GetWithdrawalBySnowflakeIdAndPaymentStatusIsFail(snowflakeId string) (*entity.Withdrawal, error) {
+
+	baseSQL := `
+		SELECT
+			user_id, integral
+		FROM
+			withdrawals
+		WHERE
+			snowflake_id=$1 AND deleted_at IS NULL AND payment_status != 'FAIL'
 	`
 	withdrawal := &entity.Withdrawal{}
 	err := db.QueryRow(baseSQL, snowflakeId).Scan(&withdrawal.UserId, &withdrawal.Integral)
@@ -399,4 +391,77 @@ func GetWithdrawalListByUserId(snowflakeId string, getWithdrawal *entity.GetWith
 	}
 
 	return withdrawalList, nil
+}
+
+func UpdateWithdrawalInfoBySnowflakeId(withdrawal *pay.OutDetailNoResponse) error {
+
+	baseSQL := `
+		UPDATE
+			withdrawals
+		SET
+			updated_at = $1,
+			detail_id = $2,
+			initiate_time = $3,
+			update_time = $4,
+			open_id = $5,
+			mch_id = $6
+			rejection = $7
+			payment_status = $8
+		WHERE
+			snowflake_id = $9
+	`
+
+	result, err := db.Exec(baseSQL, time.Now(),
+		withdrawal.DetailId,
+		withdrawal.InitiateTime,
+		withdrawal.UpdateTime,
+		withdrawal.OpenId,
+		withdrawal.Mchid,
+		withdrawal.FailReason,
+		withdrawal.DetailStatus,
+		withdrawal.OutDetailNo,
+	)
+
+	if err != nil {
+		return fmt.Errorf("更新提现记录失败: %v", err)
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("获取受影响行数失败: %v", err)
+	}
+
+	if affected == 0 {
+		return fmt.Errorf("未找到对应的提现记录")
+	}
+
+	return nil
+}
+
+func UpdateWithdrawalStatusBySnowflakeId(snowflakeId string, status string) error {
+
+	baseSQL := `
+		UPDATE
+			withdrawals
+		SET
+			life_cycle = $1
+		WHERE
+			snowflake_id = $2 AND deleted_at IS NULL AND life_cycle = 3
+	`
+
+	result, err := db.Exec(baseSQL, 4, snowflakeId)
+	if err != nil {
+		return fmt.Errorf("更新提现状态失败: %v", err)
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("获取受影响行数失败: %v", err)
+	}
+
+	if affected == 0 {
+		return fmt.Errorf("未找到对应的提现记录")
+	}
+
+	return nil
 }

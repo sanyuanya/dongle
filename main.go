@@ -82,6 +82,10 @@ func main() {
 
 	app.Get("/api/pc/incomeList", pc.GetIncomeList)
 
+	app.Get("/api/pc/batch/:batchId", pc.OutBatchNo)
+
+	app.Get("/api/pc/batch/:batchId/transfer/:transferId", pc.OutTransferNo)
+
 	app.Post("/api/pc/pay", pc.Pay)
 
 	//mini program

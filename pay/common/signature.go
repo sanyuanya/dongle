@@ -13,8 +13,6 @@ func Signature(method string, url string, timestamp string, nonceStr string, bod
 
 	signStr := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", method, url, timestamp, nonceStr, body)
 
-	fmt.Printf("signStr: %s\n", signStr)
-
 	// 计算 SHA256 哈希值
 	hashed := sha256.Sum256([]byte(signStr))
 
