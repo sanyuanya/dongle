@@ -14,7 +14,7 @@ func CreatePay(totalAmount int, totalNum int, batchResponse *pay.BatchesResponse
 			pay
 			(snowflake_id, name, total_amount, total_num, status, created_at, updated_at, batch_id)
 		VALUES
-			($1, $2, $3, $4, $5, $6, $7)
+			($1, $2, $3, $4, $5, $6, $7, $8)
 	`
 
 	_, err := db.Exec(baseSQL,
@@ -25,7 +25,8 @@ func CreatePay(totalAmount int, totalNum int, batchResponse *pay.BatchesResponse
 		batchResponse.BatchStatus,
 		time.Now(),
 		time.Now(),
-		batchResponse.BatchId)
+		batchResponse.BatchId,
+	)
 
 	if err != nil {
 		return fmt.Errorf("创建支付记录失败: %v", err)
