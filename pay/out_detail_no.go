@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/sanyuanya/dongle/pay/common"
@@ -45,7 +46,18 @@ func OutDetailNo(outBatchNo string, outDetailNo string) (*OutDetailNoResponse, e
 		return nil, fmt.Errorf("无法生成随机字符串: %v", err)
 	}
 
-	privateKey, err := common.ReadPrivateKey("apiclient_key.pem")
+	env := os.Getenv("ENVIRONMENT")
+
+	certPath := ""
+	switch env {
+	case "production":
+		certPath = "/cert"
+	default:
+		certPath = "/Users/sanyuanya/hjworkspace/go_dev/dongle_new/pay/cert"
+	}
+	privateFilePath := fmt.Sprintf("%s/apiclient_key.pem", certPath)
+
+	privateKey, err := common.ReadPrivateKey(privateFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("无法读取私钥文件: %v", err)
 	}

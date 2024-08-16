@@ -397,11 +397,11 @@ func UpdateWithdrawalInfoBySnowflakeId(tx *sql.Tx, withdrawal *pay.OutDetailNoRe
 			initiate_time = $3,
 			update_time = $4,
 			open_id = $5,
-			mch_id = $6
-			rejection = $7
+			mch_id = $6,
+			rejection = $7,
 			payment_status = $8
 		WHERE
-			snowflake_id = $9
+			snowflake_id = $9;
 	`
 
 	result, err := tx.Exec(baseSQL, time.Now(),

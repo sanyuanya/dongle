@@ -2,6 +2,7 @@ package pc
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -75,8 +76,25 @@ func WithdrawalList(c fiber.Ctx) error {
 	}
 
 	for _, withdrawal := range withdrawalList {
-		if withdrawal.PaymentStatus != "SUCCESS" && withdrawal.PaymentStatus != "FAIL" {
-			http.Get("http://localhost:3000/api/pc/batch/" + withdrawal.PayId + "/transfer/" + withdrawal.SnowflakeId)
+		if withdrawal.PaymentStatus != "SUCCESS" && withdrawal.PaymentStatus != "FAIL" && withdrawal.LifeCycle == 3 {
+			resp, err := http.Get("http://localhost:3000/api/pc/batch/" + withdrawal.PayId + "/transfer/" + withdrawal.SnowflakeId)
+			if err != nil {
+				data.Rollback(tx)
+				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取支付状态失败: %v", err)})
+			}
+
+			if resp.StatusCode != 200 {
+				body, err := io.ReadAll(resp.Body)
+
+				if err != nil {
+					data.Rollback(tx)
+					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取支付状态失败: %v body: %#+v", err, string(body))})
+				}
+				data.Rollback(tx)
+				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取支付状态失败: %v body: %#+v", err, string(body))})
+			}
+
+			defer resp.Body.Close()
 		}
 	}
 
