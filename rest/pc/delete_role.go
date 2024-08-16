@@ -4,12 +4,10 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/tools"
 )
 
-func GetPermissionList(c fiber.Ctx) error {
-
+func DeleteRole(c fiber.Ctx) error {
 	defer func() {
 		if err := recover(); err != nil {
 
@@ -41,24 +39,10 @@ func GetPermissionList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
 
-	tx, err := data.Transaction()
-	if err != nil {
-		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
-	}
-	permissionList, err := data.GetPermissionList(tx)
+	// 判断当前角色是否有用户在使用
+	// 如果有用户在使用，不允许删除
+	// 如果没有用户在使用，允许删除
+	// 如果有用户在使用，但是强制删除，那么删除用户的角色
+	return nil
 
-	if err != nil {
-		data.Rollback(tx)
-		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取权限列表失败: %v", err)})
-	}
-
-	data.Commit(tx)
-
-	return c.JSON(tools.Response{
-		Code:    0,
-		Message: "获取权限列表成功",
-		Result: map[string]any{
-			"permission_list": permissionList,
-		},
-	})
 }

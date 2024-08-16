@@ -8,8 +8,7 @@ import (
 	"github.com/sanyuanya/dongle/tools"
 )
 
-func GetPermissionList(c fiber.Ctx) error {
-
+func DeleteProduct(c fiber.Ctx) error {
 	defer func() {
 		if err := recover(); err != nil {
 
@@ -41,24 +40,26 @@ func GetPermissionList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
 
+	productId := c.Params("productId", "")
+
 	tx, err := data.Transaction()
+
 	if err != nil {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
 	}
-	permissionList, err := data.GetPermissionList(tx)
+
+	err = data.DeleteProduct(tx, productId)
 
 	if err != nil {
 		data.Rollback(tx)
-		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取权限列表失败: %v", err)})
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法删除商品: %v", err)})
 	}
 
 	data.Commit(tx)
-
 	return c.JSON(tools.Response{
 		Code:    0,
-		Message: "获取权限列表成功",
-		Result: map[string]any{
-			"permission_list": permissionList,
-		},
+		Message: "删除商品成功",
+		Result:  struct{}{},
 	})
+
 }

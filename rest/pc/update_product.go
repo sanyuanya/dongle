@@ -5,11 +5,11 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
+	"github.com/sanyuanya/dongle/entity"
 	"github.com/sanyuanya/dongle/tools"
 )
 
-func GetPermissionList(c fiber.Ctx) error {
-
+func UpdateProduct(c fiber.Ctx) error {
 	defer func() {
 		if err := recover(); err != nil {
 
@@ -41,24 +41,29 @@ func GetPermissionList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
 
+	payload := &entity.UpdateProductRequest{}
+	err = c.Bind().Body(payload)
+	if err != nil {
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
+	}
+
 	tx, err := data.Transaction()
 	if err != nil {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
 	}
-	permissionList, err := data.GetPermissionList(tx)
+
+	err = data.UpdateProduct(tx, payload, c.Params("productId", ""))
 
 	if err != nil {
 		data.Rollback(tx)
-		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取权限列表失败: %v", err)})
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法更新商品: %v", err)})
 	}
 
 	data.Commit(tx)
-
 	return c.JSON(tools.Response{
 		Code:    0,
-		Message: "获取权限列表成功",
-		Result: map[string]any{
-			"permission_list": permissionList,
-		},
+		Message: "更新成功",
+		Result:  struct{}{},
 	})
+
 }

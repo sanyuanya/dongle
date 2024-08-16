@@ -8,8 +8,7 @@ import (
 	"github.com/sanyuanya/dongle/tools"
 )
 
-func GetPermissionList(c fiber.Ctx) error {
-
+func GetRoleList(c fiber.Ctx) error {
 	defer func() {
 		if err := recover(); err != nil {
 
@@ -45,20 +44,22 @@ func GetPermissionList(c fiber.Ctx) error {
 	if err != nil {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
 	}
-	permissionList, err := data.GetPermissionList(tx)
+
+	roleList, err := data.GetRoleList(tx)
 
 	if err != nil {
 		data.Rollback(tx)
-		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取权限列表失败: %v", err)})
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取角色列表失败: %v", err)})
 	}
 
 	data.Commit(tx)
 
 	return c.JSON(tools.Response{
 		Code:    0,
-		Message: "获取权限列表成功",
+		Message: "获取角色列表成功",
 		Result: map[string]any{
-			"permission_list": permissionList,
+			"role_list": roleList,
 		},
 	})
+
 }

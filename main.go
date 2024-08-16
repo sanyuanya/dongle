@@ -39,9 +39,33 @@ func main() {
 
 	app.Get("/api/pc/batch/:batchId/transfer/:transferId", pc.OutTransferNo)
 
-	app.Post("/api/pc/user/index", pc.GetUserIndex)
-
 	app.Get("/api/pc/permission/list", pc.GetPermissionList)
+
+	app.Get("/api/pc/role/list", pc.GetRoleList)
+
+	app.Post("/api/pc/role/add", pc.AddRole)
+
+	app.Post("/api/pc/role/update", pc.UpdateRole)
+
+	app.Delete("/api/pc/role/delete/:roleId", pc.DeleteRole)
+
+	app.Post("/api/pc/admin/list", pc.GetAdminList)
+
+	app.Get("/api/pc/admin/add", pc.AddAdmin)
+
+	app.Get("/api/pc/admin/update", pc.UpdateAdmin)
+
+	app.Get("/api/pc/admin/delete/:adminId", pc.DeleteAdmin)
+
+	app.Get("/api/pc/product/list", pc.GetProductList)
+
+	app.Post("/api/pc/product/add", pc.AddProduct)
+
+	app.Post("/api/pc/product/update/:productId", pc.UpdateProduct)
+
+	app.Delete("/api/pc/product/delete/:productId", pc.DeleteProduct)
+
+	app.Get("/api/pc/download", pc.Download)
 
 	app.Post("/api/pc/pay", pc.Pay)
 
