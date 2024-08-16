@@ -8,10 +8,23 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// account varchar DEFAULT ”::character varying NOT NULL,
+//
+//	"password" varchar DEFAULT ''::character varying NOT NULL,
+//	nick varchar DEFAULT '系统管理员'::character varying NOT NULL,
+//	api_token varchar DEFAULT ''::character varying NOT NULL,
+//	created_at timestamp NOT NULL,
+//	updated_at timestamp NOT NULL,
+//	deleted_at timestamp NULL,
+//	snowflake_id varchar DEFAULT ''::character varying NOT NULL
+
+func InsertUser() {
+
+}
+
 func Login(tx *sql.Tx, auth *entity.LoginRequest) (string, error) {
 
 	// Check if the account exists
-
 	var snowflakeId string
 	var password string
 

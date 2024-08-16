@@ -86,6 +86,8 @@ func main() {
 
 	app.Get("/api/pc/batch/:batchId/transfer/:transferId", pc.OutTransferNo)
 
+	app.Post("/api/pc/user/index", pc.GetUserIndex)
+
 	app.Post("/api/pc/pay", pc.Pay)
 
 	//mini program

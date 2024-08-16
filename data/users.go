@@ -464,7 +464,7 @@ func UpdateUserApiToken(tx *sql.Tx, snowflakeId string, apiToken string) error {
 		SET api_token=$1, updated_at=$2
 		WHERE snowflake_id=$3
 	`
-	_, err := db.Exec(baseSQL, apiToken, time.Now(), snowflakeId)
+	_, err := tx.Exec(baseSQL, apiToken, time.Now(), snowflakeId)
 	if err != nil {
 		return err
 	}
