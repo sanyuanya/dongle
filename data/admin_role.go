@@ -60,3 +60,26 @@ func GetAdminRoleList(tx *sql.Tx, adminId string) ([]*entity.GetAdminRoleRespons
 
 	return adminRoleList, nil
 }
+
+func GetRoleUsed(tx *sql.Tx, roleId string) (string, error) {
+
+	baseSQL := `
+		SELECT 
+			admin_id 
+		FROM 
+			admin_role
+		WHERE role_id = $1
+	`
+	var adminId string
+
+	err := tx.QueryRow(baseSQL, roleId).Scan(&adminId)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil
+		}
+		return "", err
+	}
+
+	return adminId, nil
+}

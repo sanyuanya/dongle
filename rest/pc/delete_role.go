@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/tools"
 )
 
@@ -39,7 +40,41 @@ func DeleteRole(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
 
-	
-	return nil
+	tx, err := data.Transaction()
 
+	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	roleId := c.Params("roleId", "")
+	adminId, err := data.GetRoleUsed(tx, roleId)
+	if err != nil {
+		data.Rollback(tx)
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("查询角色失败: %v", err)})
+	}
+
+	if adminId != "" {
+		data.Rollback(tx)
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("删除角色失败，当前角色下存在用户，不允许删除: %v", err)})
+	}
+
+	err = data.DeleteRole(tx, roleId)
+	if err != nil {
+		data.Rollback(tx)
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("删除角色失败: %v", err)})
+	}
+
+	err = data.DeleteRolePermissionByRoleId(tx, roleId)
+	if err != nil {
+		data.Rollback(tx)
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("删除角色失败: %v", err)})
+	}
+
+	data.Commit(tx)
+
+	return c.JSON(tools.Response{
+		Code:    0,
+		Message: "删除角色成功",
+		Result:  struct{}{},
+	})
 }

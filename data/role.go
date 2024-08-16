@@ -2,6 +2,7 @@ package data
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/sanyuanya/dongle/entity"
@@ -19,7 +20,7 @@ func GetRoleList(tx *sql.Tx) ([]*entity.Role, error) {
 		FROM
 			roles
 		WHERE
-			deleted_at IS NULL
+			deleted_at IS NULL ORDER BY created_at DESC
 	`
 
 	rows, err := tx.Query(baseSQL)
@@ -142,4 +143,21 @@ func GetRoleByName(tx *sql.Tx, name string) (*entity.Role, error) {
 	}
 
 	return role, nil
+}
+
+func DeleteRole(tx *sql.Tx, roleId string) error {
+	baseSQL := `
+		UPDATE 
+			roles
+		SET
+			deleted_at=$1
+		WHERE snowflake_id=$2
+	`
+
+	_, err := tx.Exec(baseSQL, time.Now(), roleId)
+	if err != nil {
+		return fmt.Errorf("角色删除失败：%v", err)
+	}
+
+	return nil
 }
