@@ -2,6 +2,7 @@ package pc
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
@@ -71,6 +72,12 @@ func WithdrawalList(c fiber.Ctx) error {
 	if err != nil {
 		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取提现列表失败: %v", err)})
+	}
+
+	for _, withdrawal := range withdrawalList {
+		if withdrawal.PaymentStatus != "SUCCESS" && withdrawal.PaymentStatus != "FAIL" {
+			http.Get("http://localhost:3000/api/pc/batch/" + withdrawal.PayId + "/transfer/" + withdrawal.SnowflakeId)
+		}
 	}
 
 	total, err := data.WithdrawalListCount(tx, withdrawalPageListRequest)

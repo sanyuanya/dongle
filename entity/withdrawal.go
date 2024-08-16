@@ -27,6 +27,13 @@ type WithdrawalList struct {
 	Rejection        string `json:"rejection"`
 	CreatedAt        string `json:"created_at"`
 	UpdatedAt        string `json:"updated_at"`
+	DetailId         string `json:"detail_id"`
+	PayId            string `json:"pay_id"`
+	InitiateTime     string `json:"initiate_time"`
+	UpdateTime       string `json:"update_time"`
+	OpenId           string `json:"open_id"`
+	MchId            string `json:"mch_id"`
+	PaymentStatus    string `json:"payment_status"`
 }
 
 type GetWithdrawalListRequest struct {

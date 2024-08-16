@@ -58,8 +58,23 @@ func WithdrawalPageList(tx *sql.Tx, page *entity.WithdrawalPageListRequest) ([]*
 
 	baseSQL := `
 		SELECT
-			w.snowflake_id, w.user_id, w.integral, w.withdrawal_method, w.life_cycle, TO_CHAR(w.created_at, 'YYYY-MM-DD HH24:MI:SS') created_at, TO_CHAR(w.updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at, w.rejection,
-			u.nick, u.phone
+			w.snowflake_id, 
+			w.user_id, 
+			w.integral, 
+			w.withdrawal_method, 
+			w.life_cycle, 
+			TO_CHAR(w.created_at, 'YYYY-MM-DD HH24:MI:SS') created_at, 
+			TO_CHAR(w.updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at, 
+			w.rejection,
+			u.nick, 
+			u.phone,
+			w.detail_id,
+			w.pay_id,
+			w.initiate_time,
+			w.update_time,
+			w.open_id,
+			w.mch_id,
+			w.payment_status
 		FROM
 			withdrawals w
 		JOIN
@@ -114,6 +129,13 @@ func WithdrawalPageList(tx *sql.Tx, page *entity.WithdrawalPageListRequest) ([]*
 			&withdrawal.Rejection,
 			&withdrawal.Nick,
 			&withdrawal.Phone,
+			&withdrawal.DetailId,
+			&withdrawal.PayId,
+			&withdrawal.InitiateTime,
+			&withdrawal.UpdateTime,
+			&withdrawal.OpenId,
+			&withdrawal.MchId,
+			&withdrawal.PaymentStatus,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("扫描提现列表失败: %v", err)
