@@ -207,7 +207,7 @@ func UpdateWithdrawalBatchId(tx *sql.Tx, transferDetailList []*pay.TransferDetai
 		WHERE snowflake_id = $2
 	`
 	for _, transferDetail := range transferDetailList {
-		_, err := tx.Exec(baseSQL, batchResponse.BatchId, transferDetail.OutDetailNo)
+		_, err := tx.Exec(baseSQL, batchResponse.OutBatchNo, transferDetail.OutDetailNo)
 		if err != nil {
 			return fmt.Errorf("更新提现记录失败: %v", err)
 		}
@@ -401,7 +401,7 @@ func UpdateWithdrawalInfoBySnowflakeId(tx *sql.Tx, withdrawal *pay.OutDetailNoRe
 			rejection = $7,
 			payment_status = $8
 		WHERE
-			snowflake_id = $9;
+			snowflake_id = $9
 	`
 
 	result, err := tx.Exec(baseSQL, time.Now(),

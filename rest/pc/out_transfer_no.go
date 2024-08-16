@@ -63,7 +63,7 @@ func OutTransferNo(c fiber.Ctx) error {
 	}
 
 	// 如果支付失败，把提现金额退回到用户账户
-	if outTransferNoResponse.DetailStatus != "FAIL" {
+	if outTransferNoResponse.DetailStatus == "FAIL" {
 
 		withdrawal, err := data.GetWithdrawalBySnowflakeIdAndPaymentStatusIsFail(tx, outTransferNoResponse.OutDetailNo)
 		if err != nil {
