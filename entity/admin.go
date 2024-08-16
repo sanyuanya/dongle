@@ -49,3 +49,29 @@ type AddIncomeExpenseRequest struct {
 	UserId      int64  `json:"user_id"`
 	Batch       string `json:"batch"`
 }
+
+type GetAdminListRequest struct {
+	Page     int64  `json:"page,omitempty"`
+	PageSize int64  `json:"page_size,omitempty"`
+	Keyword  string `json:"keyword,omitempty"`
+}
+
+type GetAdminListResponse struct {
+	SnowflakeId string                  `json:"snowflake_id"`
+	Account     string                  `json:"account"`
+	Role        []*GetAdminRoleResponse `json:"role"`
+}
+
+type AddAdminRequest struct {
+	SnowflakeId string   `json:"snowflake_id"`
+	Account     string   `json:"account"`
+	Password    string   `json:"password"`
+	RoleList    []string `json:"role"`
+}
+
+type UpdateAdminRequest struct {
+	SnowflakeId string   `json:"snowflake_id"`
+	Account     string   `json:"account"`
+	Password    string   `json:"password"`
+	RoleList    []string `json:"role"`
+}

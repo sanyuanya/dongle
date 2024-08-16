@@ -70,14 +70,76 @@ func UpdateRole(tx *sql.Tx, payload *entity.UpdateRoleRequest) error {
 		UPDATE
 			roles
 		SET
-			name = ?,
-			updated_at = ?
+			name = $1,
+			updated_at = $2
 		WHERE
-			snowflake_id = ?
+			snowflake_id = $3
 	`, payload.Name, time.Now(), payload.SnowflakeId)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func GetRole(tx *sql.Tx, roleId string) (*entity.Role, error) {
+
+	baseSQL := `
+		SELECT
+			snowflake_id,
+			name,
+			created_at,
+			updated_at
+		FROM
+			roles
+		WHERE
+			snowflake_id = $1 AND deleted_at IS NULL
+	`
+
+	role := &entity.Role{}
+	err := tx.QueryRow(baseSQL, roleId).Scan(
+		&role.SnowflakeID,
+		&role.Name,
+		&role.CreatedAt,
+		&role.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return role, nil
+}
+
+func GetRoleByName(tx *sql.Tx, name string) (*entity.Role, error) {
+
+	baseSQL := `
+		SELECT
+			snowflake_id,
+			name,
+			created_at,
+			updated_at
+		FROM
+			roles
+		WHERE
+			name = $1 AND deleted_at IS NULL
+	`
+
+	role := &entity.Role{}
+	err := tx.QueryRow(baseSQL, name).Scan(
+		&role.SnowflakeID,
+		&role.Name,
+		&role.CreatedAt,
+		&role.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return role, nil
 }

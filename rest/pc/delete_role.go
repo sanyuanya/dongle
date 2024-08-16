@@ -39,10 +39,7 @@ func DeleteRole(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
 
-	// 判断当前角色是否有用户在使用
-	// 如果有用户在使用，不允许删除
-	// 如果没有用户在使用，允许删除
-	// 如果有用户在使用，但是强制删除，那么删除用户的角色
+	
 	return nil
 
 }

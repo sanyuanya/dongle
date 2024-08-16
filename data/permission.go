@@ -45,3 +45,37 @@ func GetPermissionList(tx *sql.Tx) ([]*entity.Permission, error) {
 
 	return permissions, nil
 }
+
+func GetPermission(tx *sql.Tx, snowflakeId string) (*entity.Permission, error) {
+
+	baseSQL := `
+		SELECT 
+			snowflake_id,
+			summary,
+			path,
+			created_at,
+			updated_at
+		FROM
+			permissions
+		WHERE
+			deleted_at IS NULL AND snowflake_id = $1
+	`
+
+	permission := &entity.Permission{}
+
+	err := tx.QueryRow(baseSQL, snowflakeId).Scan(
+		&permission.SnowflakeID,
+		&permission.Summary,
+		&permission.Path,
+		&permission.CreatedAt,
+		&permission.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return permission, nil
+}

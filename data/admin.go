@@ -3,24 +3,11 @@ package data
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/sanyuanya/dongle/entity"
 	"golang.org/x/crypto/bcrypt"
 )
-
-// account varchar DEFAULT ”::character varying NOT NULL,
-//
-//	"password" varchar DEFAULT ''::character varying NOT NULL,
-//	nick varchar DEFAULT '系统管理员'::character varying NOT NULL,
-//	api_token varchar DEFAULT ''::character varying NOT NULL,
-//	created_at timestamp NOT NULL,
-//	updated_at timestamp NOT NULL,
-//	deleted_at timestamp NULL,
-//	snowflake_id varchar DEFAULT ''::character varying NOT NULL
-
-func InsertUser() {
-
-}
 
 func Login(tx *sql.Tx, auth *entity.LoginRequest) (string, error) {
 
@@ -68,4 +55,89 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func DeleteAdmin(tx *sql.Tx, snowflakeId string) error {
+	_, err := tx.Exec(`UPDATE admins SET deleted_at=$1 WHERE snowflake_id=$2`, time.Now(), snowflakeId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func AddAdmin(tx *sql.Tx, admin *entity.AddAdminRequest) error {
+	hashPassword, err := HashPassword(admin.Password)
+
+	if err != nil {
+		return fmt.Errorf("密码 bcrypt 加密失败")
+	}
+
+	_, err = tx.Exec(`INSERT INTO admins (snowflake_id, account, password, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)`, admin.SnowflakeId, admin.Account, hashPassword, time.Now(), time.Now())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateAdmin(tx *sql.Tx, admin *entity.UpdateAdminRequest) error {
+	hashPassword, err := HashPassword(admin.Password)
+
+	if err != nil {
+		return fmt.Errorf("密码 bcrypt 加密失败")
+	}
+
+	_, err = tx.Exec(`UPDATE admins SET account=$1, password=$2, updated_at=$3 WHERE snowflake_id=$4`, admin.Account, hashPassword, time.Now(), admin.SnowflakeId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetAdminList(tx *sql.Tx, req *entity.GetAdminListRequest) ([]*entity.GetAdminListResponse, error) {
+
+	adminList := make([]*entity.GetAdminListResponse, 0)
+	baseSQL := `SELECT snowflake_id, account FROM admins WHERE deleted_at IS NULL AND is_hidden = 0 ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	rows, err := tx.Query(baseSQL, req.PageSize, req.PageSize*(req.Page-1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var admin entity.GetAdminListResponse
+		err := rows.Scan(&admin.SnowflakeId, &admin.Account)
+		if err != nil {
+			return nil, err
+		}
+		adminList = append(adminList, &admin)
+	}
+
+	return adminList, nil
+}
+
+func GetAdminTotal(tx *sql.Tx, req *entity.GetAdminListRequest) (int64, error) {
+	var total int64
+	err := tx.QueryRow(`SELECT COUNT(*) FROM admins WHERE deleted_at IS NULL AND is_hidden = 0`).Scan(&total)
+	if err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
+func GetAdminByAccount(tx *sql.Tx, account string) (string, error) {
+
+	baseSQL := `
+		SELECT 
+			snowflake_id
+		FROM 
+			admins
+		WHERE 
+			account = $1 AND deleted_at IS NULL
+	`
+	var snowflakeId string
+	err := tx.QueryRow(baseSQL, account).Scan(&snowflakeId)
+	if err != nil {
+		return "", fmt.Errorf("查询失败:%v", err)
+	}
+	return snowflakeId, nil
 }

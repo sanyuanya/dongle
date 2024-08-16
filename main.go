@@ -45,17 +45,17 @@ func main() {
 
 	app.Post("/api/pc/role/add", pc.AddRole)
 
-	app.Post("/api/pc/role/update", pc.UpdateRole)
+	app.Post("/api/pc/role/update/:roleId", pc.UpdateRole)
 
 	app.Delete("/api/pc/role/delete/:roleId", pc.DeleteRole)
 
-	app.Post("/api/pc/admin/list", pc.GetAdminList)
+	app.Get("/api/pc/admin/list", pc.GetAdminList)
 
-	app.Get("/api/pc/admin/add", pc.AddAdmin)
+	app.Post("/api/pc/admin/add", pc.AddAdmin)
 
-	app.Get("/api/pc/admin/update", pc.UpdateAdmin)
+	app.Post("/api/pc/admin/update/:adminId", pc.UpdateAdmin)
 
-	app.Get("/api/pc/admin/delete/:adminId", pc.DeleteAdmin)
+	app.Delete("/api/pc/admin/delete/:adminId", pc.DeleteAdmin)
 
 	app.Get("/api/pc/product/list", pc.GetProductList)
 

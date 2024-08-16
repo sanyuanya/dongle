@@ -47,6 +47,7 @@ func UpdateRole(c fiber.Ctx) error {
 	if err != nil {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
 	}
+	payload.SnowflakeId = c.Params("roleId", "")
 
 	tx, err := data.Transaction()
 
@@ -56,29 +57,43 @@ func UpdateRole(c fiber.Ctx) error {
 
 	err = data.UpdateRole(tx, payload)
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("更新角色失败: %v", err)})
 	}
 
 	// 同步角色权限 把原来的权限删除，再添加新的权限
 	err = data.DeleteRolePermission(tx, payload.SnowflakeId)
 	if err != nil {
-		tx.Rollback()
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("删除角色权限失败: %v", err)})
 	}
 
-	for _, permission := range payload.PermissionList {
+	for _, permissionId := range payload.PermissionList {
+
+		permission, err := data.GetPermission(tx, permissionId)
+
+		if err != nil {
+			data.Rollback(tx)
+			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("查询权限失败: %v", err)})
+		}
+
+		if permission == nil {
+			data.Rollback(tx)
+			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("权限不存在: %v", permissionId)})
+		}
+
 		err = data.AddRolePermission(tx, &entity.AddRolePermissionRequest{
 			SnowflakeId:  tools.SnowflakeUseCase.NextVal(),
 			RoleId:       payload.SnowflakeId,
-			PermissionId: permission,
+			PermissionId: permissionId,
 		})
 		if err != nil {
-			tx.Rollback()
+			data.Rollback(tx)
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("添加角色权限失败: %v", err)})
 		}
 	}
 
-	tx.Commit()
+	data.Commit(tx)
 
 	return c.JSON(tools.Response{
 		Code:    0,
