@@ -169,6 +169,12 @@ func IncomeListCount(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) (int
 		executeParams = append(executeParams, "%"+page.Keyword+"%")
 	}
 
+	if page.UserId != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND i.user_id = $%d", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, page.UserId)
+	}
+
 	var count int64
 	err := tx.QueryRow(baseSQL, executeParams...).Scan(&count)
 
@@ -183,13 +189,18 @@ func IncomePageList(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) ([]*e
 
 	baseSQL := `
 		SELECT 
-			i.snowflake_id, i.user_id, i.summary, i.integral, i.shipments, i.batch, TO_CHAR(i.created_at, 'YYYY-MM-DD HH24:MI:SS') created_at, TO_CHAR(i.updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at, u.nick, u.phone
+			i.snowflake_id, i.user_id, i.summary, i.integral, i.shipments, i.batch, TO_CHAR(i.created_at, 'YYYY-MM-DD HH24:MI:SS') created_at, TO_CHAR(i.updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at, u.nick, u.phone,
+		  i.product_integral, p.name
 		FROM 
 			income_expense i
 		JOIN 
 			users u
 		ON
 			i.user_id = u.snowflake_id AND u.deleted_at IS NULL
+		JOIN
+			product p
+		ON
+			i.product_id = p.snowflake_id AND p.deleted_at IS NULL
 		WHERE 
 			i.deleted_at IS NULL
 		`
@@ -240,6 +251,8 @@ func IncomePageList(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) ([]*e
 			&income.UpdatedAt,
 			&income.Nick,
 			&income.Phone,
+			&income.ProductIntegral,
+			&income.ProductName,
 		)
 		if err != nil {
 			return nil, err
