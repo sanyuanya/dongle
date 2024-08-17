@@ -126,8 +126,8 @@ func UpdateUserIntegralAndShipments(snowflakeId, integral, shipments int64) erro
 }
 
 func ImportUserInfo(importUserInfo *entity.ImportUserInfo) error {
-	baseSQL := "INSERT INTO users (nick, phone, province, city, shipments, integral, snowflake_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
-	_, err := db.Exec(baseSQL, importUserInfo.Nick, importUserInfo.Phone, importUserInfo.Province, importUserInfo.City, importUserInfo.Shipments, importUserInfo.Integral, importUserInfo.SnowflakeId, time.Now(), time.Now())
+	baseSQL := "INSERT INTO users (nick, phone, province, city, shipments, integral, snowflake_id, created_at, updated_at, is_white) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
+	_, err := db.Exec(baseSQL, importUserInfo.Nick, importUserInfo.Phone, importUserInfo.Province, importUserInfo.City, importUserInfo.Shipments, importUserInfo.Integral, importUserInfo.SnowflakeId, time.Now(), time.Now(), 1)
 	if err != nil {
 		return err
 	}
