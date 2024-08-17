@@ -15,13 +15,17 @@ func main() {
 	app := fiber.New()
 
 	app.Use(adaptor.HTTPMiddleware(middlewares.RecordLog))
+
 	// Define a route for the GET method on the root path '/'
 	// pc
+
 	app.Post("/api/pc/import", pc.ExcelImport)
 
 	app.Post("/api/pc/login", pc.PcLogin)
 
 	app.Get("/api/pc/userList", pc.UserList)
+
+	app.Get("/api/pc/exportUser", pc.ExportUser)
 
 	app.Post("/api/pc/addWhite", pc.SetUpWhite)
 

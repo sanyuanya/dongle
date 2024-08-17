@@ -12,6 +12,11 @@ type UserPageListRequest struct {
 	IsWhite  int64  `json:"is_white,omitempty"`
 }
 
+type ExportUserRequest struct {
+	Keyword string `json:"keyword"`
+	IsWhite int64  `json:"is_white"`
+}
+
 type UserPageListResponse struct {
 	SnowflakeId        string `json:"snowflake_id"`
 	Nick               string `json:"nick"`

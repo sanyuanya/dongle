@@ -168,6 +168,71 @@ func GetUserPageCount(tx *sql.Tx, page *entity.UserPageListRequest) (int64, erro
 	return count, nil
 }
 
+func GetUserList(tx *sql.Tx, page *entity.ExportUserRequest) ([]*entity.UserPageListResponse, error) {
+	baseSQL := `
+		SELECT 
+			snowflake_id, nick, avatar, phone, integral, shipments, province, city, district, id_card, company_name, job, alipay_account, is_white, withdrawable_points
+		FROM
+			users
+		WHERE
+			deleted_at IS NULL
+	`
+
+	executeParams := []interface{}{}
+	paramIndex := 1
+	// 判断是否有查询条件
+	if page.IsWhite != 0 {
+		baseSQL = baseSQL + fmt.Sprintf(" AND is_white=$%d", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, page.IsWhite)
+	}
+
+	if page.Keyword != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND (nick LIKE $%d OR phone LIKE $%d)", paramIndex, paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, "%"+page.Keyword+"%")
+	}
+
+	baseSQL = baseSQL + " ORDER BY created_at DESC"
+
+	rows, err := tx.Query(baseSQL, executeParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	userPageList := make([]*entity.UserPageListResponse, 0)
+	for rows.Next() {
+		user := &entity.UserPageListResponse{}
+		err := rows.Scan(
+			&user.SnowflakeId,
+			&user.Nick,
+			&user.Avatar,
+			&user.Phone,
+			&user.Integral,
+			&user.Shipments,
+			&user.Province,
+			&user.City,
+			&user.District,
+			&user.IDCard,
+			&user.CompanyName,
+			&user.Job,
+			&user.AlipayAccount,
+			&user.IsWhite,
+			&user.WithdrawablePoints,
+		)
+		if err != nil {
+			return nil, err
+		}
+		userPageList = append(userPageList, user)
+	}
+
+	if userPageList == nil {
+		userPageList = []*entity.UserPageListResponse{}
+	}
+	return userPageList, nil
+}
+
 func GetUserPageList(tx *sql.Tx, page *entity.UserPageListRequest) ([]*entity.UserPageListResponse, error) {
 
 	baseSQL := `
