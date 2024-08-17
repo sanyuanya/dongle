@@ -32,7 +32,7 @@ func GetRolePermissionList(tx *sql.Tx, roleId string) ([]string, error) {
 		FROM
 			role_permission
 		WHERE
-			role_id = $1
+			role_id = $1 AND deleted_at IS NULL
 	`
 
 	rows, err := tx.Query(baseSQL, roleId)
@@ -66,7 +66,7 @@ func DeleteRolePermission(tx *sql.Tx, snowflakeId string) error {
 		SET
 			deleted_at = $1
 		WHERE
-			snowflake_id = $2
+			snowflake_id = $2 AND deleted_at IS NULL
 	`, time.Now(), snowflakeId)
 	if err != nil {
 		return err
@@ -82,7 +82,7 @@ func DeleteRolePermissionByRoleId(tx *sql.Tx, roleId string) error {
 		SET
 			deleted_at = $1
 		WHERE
-			role_id = $2
+			role_id = $2 AND deleted_at IS NULL
 	`, time.Now(), roleId)
 	if err != nil {
 		return err

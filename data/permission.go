@@ -90,7 +90,7 @@ func GetPermissionMenu(tx *sql.Tx, permissionId string) (*entity.PermissionMenu,
 		FROM
 			permissions
 		WHERE
-			snowflake_id = $1
+			snowflake_id = $1 AND deleted_at IS NULL
 	`
 
 	permissionMenu := &entity.PermissionMenu{}
@@ -111,7 +111,6 @@ func GetPermissionMenu(tx *sql.Tx, permissionId string) (*entity.PermissionMenu,
 	return permissionMenu, nil
 }
 
-
 func GetPermissionListByRoleId(tx *sql.Tx, roleId string) ([]*entity.Permission, error) {
 	baseSQL := `
 		SELECT
@@ -125,10 +124,10 @@ func GetPermissionListByRoleId(tx *sql.Tx, roleId string) ([]*entity.Permission,
 		JOIN
 			permissions p
 		ON
-			rp.permission_id = p.snowflake_id
+			rp.permission_id = p.snowflake_id AND p.deleted_at IS NULL
 		WHERE
 			rp.role_id = $1
-			AND p.deleted_at IS NULL
+			AND rp.deleted_at IS NULL
 	`
 
 	rows, err := tx.Query(baseSQL, roleId)

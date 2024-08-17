@@ -39,7 +39,7 @@ func GetUserDetailBySnowflakeID(tx *sql.Tx, snowflakeId string) (*entity.UserDet
 		FROM
 			users
 		WHERE
-			snowflake_id=$1
+			snowflake_id=$1 AND deleted_at IS NULL
 	`
 	row := tx.QueryRow(baseSQL, snowflakeId)
 	userDetail := &entity.UserDetail{}
@@ -320,7 +320,7 @@ func UpdateUserAlipayAccountBySnowflakeId(tx *sql.Tx, snowflakeId string, alipay
 		UPDATE
 			users
 		SET alipay_account=$1, updated_at=$2
-		WHERE snowflake_id=$3
+		WHERE snowflake_id=$3 AND deleted_at IS NULL
 	`
 	_, err := tx.Exec(baseSQL, alipayAccount, time.Now(), snowflakeId)
 	if err != nil {
@@ -424,7 +424,7 @@ func UserInfoReplace(tx *sql.Tx, userInfoReplace *entity.UserInfoReplace, snowfl
 		UPDATE
 			users
 		SET nick=$1, phone=$2, province=$3, city=$4, shipments=$5, integral=$6, is_white=$7, updated_at=$8
-		WHERE snowflake_id=$9
+		WHERE snowflake_id=$9 AND deleted_at IS NULL
 	`
 	_, err := tx.Exec(baseSQL,
 		userInfoReplace.Nick,
@@ -448,7 +448,7 @@ func DeleteUser(tx *sql.Tx, snowflakeId string) error {
 		UPDATE
 			users
 		SET deleted_at=$1
-		WHERE snowflake_id=$2
+		WHERE snowflake_id=$2 AND deleted_at IS NULL
 	`
 	_, err := tx.Exec(baseSQL, time.Now(), snowflakeId)
 	if err != nil {
@@ -462,7 +462,7 @@ func UpdateUserApiToken(tx *sql.Tx, snowflakeId string, apiToken string) error {
 		UPDATE
 			users
 		SET api_token=$1, updated_at=$2
-		WHERE snowflake_id=$3
+		WHERE snowflake_id=$3 AND deleted_at IS NULL
 	`
 	_, err := tx.Exec(baseSQL, apiToken, time.Now(), snowflakeId)
 	if err != nil {
@@ -476,7 +476,7 @@ func DeductUserIntegralAndWithdrawablePointsBySnowflakeId(tx *sql.Tx, snowflakeI
 		UPDATE
 			users
 		SET integral=integral-$1, withdrawable_points=withdrawable_points-$1, updated_at=$2
-		WHERE snowflake_id=$3
+		WHERE snowflake_id=$3 AND deleted_at IS NULL
 	`
 	_, err := tx.Exec(baseSQL, integral, time.Now(), snowflakeId)
 	if err != nil {
@@ -490,7 +490,7 @@ func AddIntegralAndWithdrawablePointsBySnowflakeId(tx *sql.Tx, snowflakeId strin
 		UPDATE
 			users
 		SET integral=integral+$1, withdrawable_points=withdrawable_points+$1, updated_at=$2
-		WHERE snowflake_id=$3
+		WHERE snowflake_id=$3 AND deleted_at IS NULL
 	`
 	_, err := db.Exec(baseSQL, integral, time.Now(), snowflakeId)
 	if err != nil {
@@ -504,7 +504,7 @@ func UpdateUserDetail(tx *sql.Tx, payload *entity.UpdateUserDetailRequest) error
 		UPDATE
 			users
 		SET nick=$1, phone=$2, province=$3, city=$4, district=$5, company_name=$6, job=$7, is_white=$8, shipments=$9, integral=$10, withdrawable_points=$11, updated_at=$12
-		WHERE snowflake_id=$13
+		WHERE snowflake_id=$13 AND deleted_at IS NULL
 	`
 	result, err := tx.Exec(baseSQL, payload.Nick, payload.Phone, payload.Province, payload.City, payload.District, payload.CompanyName, payload.Job, payload.IsWhite, payload.Shipments, payload.Integral, payload.WithdrawablePoints, time.Now(), payload.SnowflakeId)
 	if err != nil {

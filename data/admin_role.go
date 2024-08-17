@@ -26,7 +26,7 @@ func DeleteAdminRole(tx *sql.Tx, adminId string) error {
 }
 
 func GetAdminRoleList(tx *sql.Tx, adminId string) ([]*entity.GetAdminRoleResponse, error) {
-	baseSQL := `SELECT admin_id, role_id, created_at, updated_at FROM admin_role WHERE admin_id=$1`
+	baseSQL := `SELECT admin_id, role_id, created_at, updated_at FROM admin_role WHERE admin_id=$1 AND deleted_at IS NULL`
 	rows, err := tx.Query(baseSQL, adminId)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func GetRoleUsed(tx *sql.Tx, roleId string) (string, error) {
 			admin_id 
 		FROM 
 			admin_role
-		WHERE role_id = $1
+		WHERE role_id = $1 AND deleted_at IS NULL
 	`
 	var adminId string
 

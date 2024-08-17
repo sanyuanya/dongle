@@ -43,7 +43,7 @@ func GetIncomeListBySnowflakeId(tx *sql.Tx, snowflakeId string, page *entity.Get
 		FROM 
 			income_expense
 		WHERE 
-			user_id = $1
+			user_id = $1 AND deleted_at IS NULL
 		`
 	paramIndex := 2
 	executeParams := []interface{}{snowflakeId}
@@ -99,7 +99,7 @@ func GetIncomeCountBySnowflakeId(tx *sql.Tx, snowflakeId string, page *entity.Ge
 		FROM
 			income_expense
 		WHERE
-			user_id = $1
+			user_id = $1 AND deleted_at IS NULL
 		`
 
 	paramIndex := 2
@@ -129,7 +129,7 @@ func UpdateIncomeExpense(tx *sql.Tx, new string, old string) error {
 		SET
 			user_id=$1
 		WHERE
-			user_id=$2
+			user_id=$2 AND deleted_at IS NULL
 			`
 	_, err := tx.Exec(baseSQL, new, old)
 
@@ -189,7 +189,7 @@ func IncomePageList(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) ([]*e
 		JOIN 
 			users u
 		ON
-			i.user_id = u.snowflake_id
+			i.user_id = u.snowflake_id AND u.deleted_at IS NULL
 		WHERE 
 			i.deleted_at IS NULL
 		`

@@ -20,7 +20,6 @@ func WithdrawalListCount(tx *sql.Tx, page *entity.WithdrawalPageListRequest) (in
 			users u
 		ON
 			w.user_id = u.snowflake_id
-		
 		WHERE w.deleted_at IS NULL
 	`
 
@@ -80,7 +79,7 @@ func WithdrawalPageList(tx *sql.Tx, page *entity.WithdrawalPageListRequest) ([]*
 		JOIN
 			users u
 		ON
-			w.user_id = u.snowflake_id
+			w.user_id = u.snowflake_id AND u.deleted_at IS NULL
 		
 		WHERE w.deleted_at IS NULL
 	`
@@ -180,7 +179,7 @@ func ApprovalWithdrawal(tx *sql.Tx, snowflakeId string, rejection string, lifeCy
 		UPDATE
 			withdrawals
 		SET life_cycle=$1, rejection=$2, updated_at=$3
-		WHERE snowflake_id = $4
+		WHERE snowflake_id = $4 AND deleted_at IS NULL
 	`
 
 	result, err := tx.Exec(baseSQL, lifeCycle, rejection, time.Now(), snowflakeId)
@@ -204,7 +203,7 @@ func UpdateWithdrawalBatchId(tx *sql.Tx, transferDetailList []*pay.TransferDetai
 		UPDATE
 			withdrawals
 		SET pay_id=$1
-		WHERE snowflake_id = $2
+		WHERE snowflake_id = $2 AND deleted_at IS NULL
 	`
 	for _, transferDetail := range transferDetailList {
 		_, err := tx.Exec(baseSQL, batchResponse.OutBatchNo, transferDetail.OutDetailNo)
@@ -245,7 +244,7 @@ func ComposeTransferDetail(tx *sql.Tx, snowflakeId string) (*pay.TransferDetail,
 		JOIN
 			users u
 		ON
-			w.user_id = u.snowflake_id
+			w.user_id = u.snowflake_id AND u.deleted_at IS NULL
 		WHERE	
 			w.life_cycle = 3 AND w.snowflake_id = $1 AND w.deleted_at IS NULL
 	`
@@ -401,7 +400,7 @@ func UpdateWithdrawalInfoBySnowflakeId(tx *sql.Tx, withdrawal *pay.OutDetailNoRe
 			rejection = $7,
 			payment_status = $8
 		WHERE
-			snowflake_id = $9
+			snowflake_id = $9 AND deleted_at IS NULL
 	`
 
 	result, err := tx.Exec(baseSQL, time.Now(),

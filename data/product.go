@@ -150,7 +150,7 @@ func AddProduct(tx *sql.Tx, product *entity.AddProductRequest) error {
 
 func UpdateProduct(tx *sql.Tx, product *entity.UpdateProductRequest, snowflakeId string) error {
 	result, err := tx.Exec(`
-		UPDATE product SET name = $1, integral = $2, updated_at = $3 WHERE snowflake_id = $4
+		UPDATE product SET name = $1, integral = $2, updated_at = $3 WHERE snowflake_id = $4 AND deleted_at IS NULL
 	`, product.Name, product.Integral, time.Now(), snowflakeId)
 
 	if err != nil {
@@ -171,7 +171,7 @@ func UpdateProduct(tx *sql.Tx, product *entity.UpdateProductRequest, snowflakeId
 
 func DeleteProduct(tx *sql.Tx, snowflakeId string) error {
 	result, err := tx.Exec(`
-		UPDATE product SET deleted_at = $1 WHERE snowflake_id = $2
+		UPDATE product SET deleted_at = $1 WHERE snowflake_id = $2 AND deleted_at IS NULL
 	`, time.Now(), snowflakeId)
 
 	if err != nil {

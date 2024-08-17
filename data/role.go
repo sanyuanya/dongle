@@ -74,7 +74,7 @@ func UpdateRole(tx *sql.Tx, payload *entity.UpdateRoleRequest) error {
 			name = $1,
 			updated_at = $2
 		WHERE
-			snowflake_id = $3
+			snowflake_id = $3 AND deleted_at IS NULL
 	`, payload.Name, time.Now(), payload.SnowflakeId)
 	if err != nil {
 		return err
@@ -151,7 +151,7 @@ func DeleteRole(tx *sql.Tx, roleId string) error {
 			roles
 		SET
 			deleted_at=$1
-		WHERE snowflake_id=$2
+		WHERE snowflake_id=$2 AND deleted_at IS NULL
 	`
 
 	_, err := tx.Exec(baseSQL, time.Now(), roleId)
