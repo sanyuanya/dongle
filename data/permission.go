@@ -79,3 +79,34 @@ func GetPermission(tx *sql.Tx, snowflakeId string) (*entity.Permission, error) {
 
 	return permission, nil
 }
+
+func GetPermissionMenu(tx *sql.Tx, permissionId string) (*entity.PermissionMenu, error) {
+	baseSQL := `
+		SELECT
+			snowflake_id,
+			summary,
+			path,
+			api_path
+		FROM
+			permissions
+		WHERE
+			snowflake_id = $1
+	`
+
+	permissionMenu := &entity.PermissionMenu{}
+
+	err := tx.QueryRow(baseSQL, permissionId).Scan(
+		&permissionMenu.SnowflakeID,
+		&permissionMenu.Summary,
+		&permissionMenu.Path,
+		&permissionMenu.ApiPath,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return permissionMenu, nil
+}

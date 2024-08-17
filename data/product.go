@@ -8,6 +8,50 @@ import (
 	"github.com/sanyuanya/dongle/entity"
 )
 
+func GetProductAll(tx *sql.Tx) ([]*entity.GetProductListResponse, error) {
+	rows, err := tx.Query(`
+		SELECT
+			snowflake_id,
+			name,
+			integral,
+			created_at,
+			updated_at
+		FROM	
+			product
+		WHERE
+			deleted_at IS NULL
+		ORDER BY created_at DESC
+	`)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var productList []*entity.GetProductListResponse
+
+	for rows.Next() {
+		product := &entity.GetProductListResponse{}
+		err := rows.Scan(&product.SnowflakeId,
+			&product.Name,
+			&product.Integral,
+			&product.CreatedAt,
+			&product.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		productList = append(productList, product)
+	}
+
+	if productList == nil {
+		productList = []*entity.GetProductListResponse{}
+	}
+
+	return productList, nil
+}
+
 func GetProductList(tx *sql.Tx, page *entity.GetProductListRequest) ([]*entity.GetProductListResponse, error) {
 
 	baseSQL := `

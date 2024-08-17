@@ -4,9 +4,6 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/adaptor"
-	"github.com/gofiber/fiber/v3/middleware/recover"
-	"github.com/sanyuanya/dongle/middlewares"
 	"github.com/sanyuanya/dongle/rest/mini"
 	"github.com/sanyuanya/dongle/rest/pc"
 )
@@ -14,9 +11,9 @@ import (
 func main() {
 	// Initialize a new Fiber app
 	app := fiber.New()
-	app.Use(recover.New())
+	// app.Use(recover.New())
 
-	app.Use(adaptor.HTTPMiddleware(middlewares.RecordLog))
+	// app.Use(adaptor.HTTPMiddleware(middlewares.RecordLog))
 	// Define a route for the GET method on the root path '/'
 	// pc
 	app.Post("/api/pc/import", pc.ExcelImport)
@@ -65,7 +62,7 @@ func main() {
 
 	app.Delete("/api/pc/product/delete/:productId", pc.DeleteProduct)
 
-	app.Get("/api/pc/download", pc.Download)
+	app.Get("/api/pc/excel/download", pc.Download)
 
 	app.Post("/api/pc/pay", pc.Pay)
 

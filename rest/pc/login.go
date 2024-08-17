@@ -72,11 +72,41 @@ func PcLogin(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50005, Message: fmt.Sprintf("设置token失败 : %v", err)})
 	}
 
+	adminRole, err := data.GetAdminRoleList(tx, snowflakeId)
+	if err != nil {
+		data.Rollback(tx)
+		panic(tools.CustomError{Code: 50007, Message: fmt.Sprintf("获取管理员角色失败: %v", err)})
+	}
+
+	permissionList := make([]string, 0)
+	// 循环角色查询权限
+	for _, role := range adminRole {
+		rolePermission, err := data.GetRolePermissionList(tx, role.RoleId)
+		if err != nil {
+			data.Rollback(tx)
+			panic(tools.CustomError{Code: 50008, Message: fmt.Sprintf("获取角色权限失败: %v", err)})
+		}
+		permissionList = append(permissionList, rolePermission...)
+	}
+
+	// 循环权限查询菜单
+	menuList := make([]*entity.PermissionMenu, 0)
+	for _, permission := range permissionList {
+		menu, err := data.GetPermissionMenu(tx, permission)
+		if err != nil {
+			data.Rollback(tx)
+			panic(tools.CustomError{Code: 50009, Message: fmt.Sprintf("获取权限菜单失败: %v", err)})
+		}
+		menuList = append(menuList, menu)
+	}
+
 	data.Commit(tx)
 	c.Response().Header.Set("Authorization", token)
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "登录成功",
-		Result:  struct{}{},
+		Result: map[string]any{
+			"menu_list": menuList,
+		},
 	})
 }

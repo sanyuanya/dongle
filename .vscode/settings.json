@@ -5,6 +5,7 @@
     "datacenterid",
     "HMACSHA",
     "mchid",
+    "Sqref",
     "unionid",
     "wechat",
     "WECHATPAY",
