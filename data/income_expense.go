@@ -39,9 +39,14 @@ func GetIncomeListBySnowflakeId(tx *sql.Tx, snowflakeId string, page *entity.Get
 
 	baseSQL := `
 		SELECT 
-			snowflake_id, user_id, summary, integral, shipments, batch, TO_CHAR(created_at, 'YYYY-MM-DD') created_at, TO_CHAR(updated_at, 'YYYY-MM-DD') updated_at
+			i.snowflake_id, i.user_id, i.summary, i.integral, i.shipments, i.batch, TO_CHAR(i.created_at, 'YYYY-MM-DD') created_at, TO_CHAR(i.updated_at, 'YYYY-MM-DD') updated_at,
+		  i.product_integral, p.name
 		FROM 
-			income_expense
+			income_expense i
+		JOIN
+			product p
+		ON
+			i.product_id = p.snowflake_id AND p.deleted_at IS NULL
 		WHERE 
 			user_id = $1 AND deleted_at IS NULL
 		`

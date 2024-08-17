@@ -7,14 +7,16 @@ type GetIncomeListRequest struct {
 }
 
 type GetIncomeListResponse struct {
-	SnowflakeId string `json:"snowflake_id"`
-	Summary     string `json:"summary"`
-	Integral    int64  `json:"integral"`
-	Shipments   int64  `json:"shipments"`
-	Batch       string `json:"batch"`
-	UserId      int64  `json:"user_id"`
-	CreatedAt   string `json:"created_at"`
-	UpdatedAt   string `json:"updated_at"`
+	SnowflakeId     string `json:"snowflake_id"`
+	Summary         string `json:"summary"`
+	Integral        int64  `json:"integral"`
+	Shipments       int64  `json:"shipments"`
+	Batch           string `json:"batch"`
+	UserId          int64  `json:"user_id"`
+	CreatedAt       string `json:"created_at"`
+	UpdatedAt       string `json:"updated_at"`
+	ProductName     string `json:"product_name"`
+	ProductIntegral int64  `json:"product_integral"`
 }
 
 type IncomePageListExpenseRequest struct {
