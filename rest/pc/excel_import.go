@@ -154,7 +154,7 @@ func ExcelImport(c fiber.Ctx) error {
 					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询手机号失败: %v", err)})
 				}
 
-				if snowflakeId != 0 {
+				if snowflakeId != "" {
 					err := data.UpdateUserIntegralAndShipments(snowflakeId, importUserInfo.Integral, importUserInfo.Shipments)
 					if err != nil {
 						data.Rollback(tx)

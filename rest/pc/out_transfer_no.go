@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
+	"github.com/sanyuanya/dongle/entity"
 	"github.com/sanyuanya/dongle/pay"
 	"github.com/sanyuanya/dongle/tools"
 )
@@ -83,6 +84,17 @@ func OutTransferNo(c fiber.Ctx) error {
 			return fmt.Errorf("增加用户积分失败: %v", err)
 		}
 
+		addIncomeExpenseRequest := new(entity.AddIncomeExpenseRequest)
+		addIncomeExpenseRequest.SnowflakeId = tools.SnowflakeUseCase.NextVal()
+		addIncomeExpenseRequest.Summary = "退回提现积分"
+		addIncomeExpenseRequest.Integral = withdrawal.Integral
+		addIncomeExpenseRequest.UserId = withdrawal.UserId
+
+		err = data.AddIncomeExpense(addIncomeExpenseRequest)
+		if err != nil {
+			data.Rollback(tx)
+			return fmt.Errorf("新增收支记录失败: %v", err)
+		}
 	}
 
 	data.Commit(tx)

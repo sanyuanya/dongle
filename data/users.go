@@ -94,23 +94,23 @@ func UpdateUserInfo(tx *sql.Tx, userInfo *entity.SetUserInfoRequest) error {
 	return nil
 }
 
-func FindPhoneNumberContext(phone string) (int64, error) {
+func FindPhoneNumberContext(phone string) (string, error) {
 
-	var snowflakeId int64
+	var snowflakeId string
 
 	baseQueryPhone := "SELECT snowflake_id FROM users WHERE phone = $1 AND deleted_at IS NULL"
 
 	if err := db.QueryRow(baseQueryPhone, phone).Scan(&snowflakeId); err != nil {
 		if err == sql.ErrNoRows {
-			return 0, nil
+			return "", nil
 		}
-		return 0, err
+		return "", err
 	}
 
 	return snowflakeId, nil
 }
 
-func UpdateUserIntegralAndShipments(snowflakeId, integral, shipments int64) error {
+func UpdateUserIntegralAndShipments(snowflakeId string, integral int64, shipments int64) error {
 	baseSQL := `
 		UPDATE
 			users
