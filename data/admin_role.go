@@ -2,7 +2,6 @@ package data
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/sanyuanya/dongle/entity"
@@ -18,18 +17,9 @@ func AddAdminRole(tx *sql.Tx, payload *entity.AddAdminRoleRequest) error {
 }
 
 func DeleteAdminRole(tx *sql.Tx, adminId string) error {
-	result, err := tx.Exec(`DELETE FROM admin_role WHERE admin_id=$1`, adminId)
+	_, err := tx.Exec(`DELETE FROM admin_role WHERE admin_id=$1`, adminId)
 	if err != nil {
 		return err
-	}
-
-	affected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("删除管理员角色失败: %v", err)
-	}
-
-	if affected == 0 {
-		return fmt.Errorf("未找到对应的管理员角色")
 	}
 
 	return nil

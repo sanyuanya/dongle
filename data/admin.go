@@ -15,7 +15,7 @@ func Login(tx *sql.Tx, auth *entity.LoginRequest) (string, error) {
 	var snowflakeId string
 	var password string
 
-	err := tx.QueryRow("SELECT snowflake_id, password FROM admins WHERE account=$1", auth.Account).Scan(&snowflakeId, &password)
+	err := tx.QueryRow("SELECT snowflake_id, password FROM admins WHERE account=$1 AND deleted_at IS NULL", auth.Account).Scan(&snowflakeId, &password)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", fmt.Errorf("账号不存在")
@@ -38,7 +38,7 @@ func Login(tx *sql.Tx, auth *entity.LoginRequest) (string, error) {
 }
 
 func SetApiToken(tx *sql.Tx, snowflakeId string, token string) error {
-	_, err := tx.Exec("UPDATE admins SET api_token=$1 WHERE snowflake_id=$2", token, snowflakeId)
+	_, err := tx.Exec("UPDATE admins SET api_token=$1 WHERE snowflake_id=$2 AND deleted_at IS NULL", token, snowflakeId)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func CheckPasswordHash(password, hash string) bool {
 }
 
 func DeleteAdmin(tx *sql.Tx, snowflakeId string) error {
-	_, err := tx.Exec(`UPDATE admins SET deleted_at=$1 WHERE snowflake_id=$2`, time.Now(), snowflakeId)
+	_, err := tx.Exec(`UPDATE admins SET deleted_at=$1 WHERE snowflake_id=$2 AND deleted_at IS NULL`, time.Now(), snowflakeId)
 	if err != nil {
 		return err
 	}
@@ -80,13 +80,7 @@ func AddAdmin(tx *sql.Tx, admin *entity.AddAdminRequest) error {
 }
 
 func UpdateAdmin(tx *sql.Tx, admin *entity.UpdateAdminRequest) error {
-	hashPassword, err := HashPassword(admin.Password)
-
-	if err != nil {
-		return fmt.Errorf("密码 bcrypt 加密失败")
-	}
-
-	_, err = tx.Exec(`UPDATE admins SET account=$1, password=$2, updated_at=$3 WHERE snowflake_id=$4`, admin.Account, hashPassword, time.Now(), admin.SnowflakeId)
+	_, err := tx.Exec(`UPDATE admins SET account=$1, updated_at=$2 WHERE snowflake_id=$3 AND deleted_at IS NULL`, admin.Account, time.Now(), admin.SnowflakeId)
 	if err != nil {
 		return err
 	}

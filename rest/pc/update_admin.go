@@ -57,14 +57,6 @@ func UpdateAdmin(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: "用户名不能包含空格"})
 	}
 
-	if len(payload.Password) < 6 {
-		panic(tools.CustomError{Code: 40000, Message: "密码长度不能小于 6 位"})
-	}
-
-	if re.MatchString(payload.Password) {
-		panic(tools.CustomError{Code: 40000, Message: "密码不能包含空格"})
-	}
-
 	tx, err := data.Transaction()
 	if err != nil {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
@@ -72,6 +64,7 @@ func UpdateAdmin(c fiber.Ctx) error {
 
 	err = data.UpdateAdmin(tx, payload)
 	if err != nil {
+		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50007, Message: fmt.Sprintf("更新管理员失败: %v", err)})
 	}
 

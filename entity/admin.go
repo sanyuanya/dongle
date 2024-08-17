@@ -74,6 +74,5 @@ type AddAdminRequest struct {
 type UpdateAdminRequest struct {
 	SnowflakeId string   `json:"snowflake_id"`
 	Account     string   `json:"account"`
-	Password    string   `json:"password"`
 	RoleList    []string `json:"role"`
 }

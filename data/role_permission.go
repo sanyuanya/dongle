@@ -30,7 +30,7 @@ func GetRolePermissionList(tx *sql.Tx, roleId string) ([]string, error) {
 		SELECT
 			permission_id
 		FROM
-			role_permissions
+			role_permission
 		WHERE
 			role_id = $1
 	`
