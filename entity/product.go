@@ -20,7 +20,7 @@ type UpdateProductRequest struct {
 type GetProductListResponse struct {
 	SnowflakeId string `json:"snowflake_id"`
 	Name        string `json:"name"`
-	Integral    uint64 `json:"integral"`
+	Integral    int64  `json:"integral"`
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
 }

@@ -189,3 +189,36 @@ func DeleteProduct(tx *sql.Tx, snowflakeId string) error {
 
 	return nil
 }
+
+func FindProductByName(tx *sql.Tx, name string) (*entity.GetProductListResponse, error) {
+	row := tx.QueryRow(`
+		SELECT
+			snowflake_id,
+			name,
+			integral,
+			created_at,
+			updated_at
+		FROM	
+			product
+		WHERE
+			name = $1
+			AND deleted_at IS NULL
+	`, name)
+
+	product := &entity.GetProductListResponse{}
+	err := row.Scan(&product.SnowflakeId,
+		&product.Name,
+		&product.Integral,
+		&product.CreatedAt,
+		&product.UpdatedAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return product, nil
+}

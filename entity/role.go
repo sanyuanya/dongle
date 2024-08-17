@@ -1,10 +1,11 @@
 package entity
 
 type Role struct {
-	SnowflakeID string `json:"snowflake_id"`
-	Name        string `json:"name"`
-	CreatedAt   string `json:"created_at"`
-	UpdatedAt   string `json:"updated_at"`
+	SnowflakeID    string        `json:"snowflake_id"`
+	Name           string        `json:"name"`
+	CreatedAt      string        `json:"created_at"`
+	UpdatedAt      string        `json:"updated_at"`
+	PermissionList []*Permission `json:"permission_list"`
 }
 
 type AddRoleRequest struct {

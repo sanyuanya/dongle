@@ -11,7 +11,6 @@ import (
 func main() {
 	// Initialize a new Fiber app
 	app := fiber.New()
-	// app.Use(recover.New())
 
 	// app.Use(adaptor.HTTPMiddleware(middlewares.RecordLog))
 	// Define a route for the GET method on the root path '/'

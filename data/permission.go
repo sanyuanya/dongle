@@ -110,3 +110,49 @@ func GetPermissionMenu(tx *sql.Tx, permissionId string) (*entity.PermissionMenu,
 
 	return permissionMenu, nil
 }
+
+
+func GetPermissionListByRoleId(tx *sql.Tx, roleId string) ([]*entity.Permission, error) {
+	baseSQL := `
+		SELECT
+			p.snowflake_id,
+			p.summary,
+			p.path,
+			p.created_at,
+			p.updated_at
+		FROM
+			role_permission rp
+		JOIN
+			permissions p
+		ON
+			rp.permission_id = p.snowflake_id
+		WHERE
+			rp.role_id = $1
+			AND p.deleted_at IS NULL
+	`
+
+	rows, err := tx.Query(baseSQL, roleId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	permissions := make([]*entity.Permission, 0)
+	for rows.Next() {
+
+		permission := &entity.Permission{}
+		err := rows.Scan(
+			&permission.SnowflakeID,
+			&permission.Summary,
+			&permission.Path,
+			&permission.CreatedAt,
+			&permission.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		permissions = append(permissions, permission)
+	}
+
+	return permissions, nil
+}

@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
@@ -54,6 +55,12 @@ func ExcelImport(c fiber.Ctx) error {
 
 	batch := tools.SnowflakeUseCase.NextVal()
 
+	_ = batch
+	tx, err := data.Transaction()
+	if err != nil {
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("开启事务失败: %v", err)})
+	}
+
 	for _, file := range multipart.File["file"] {
 
 		// Remove the temporary file
@@ -61,23 +68,27 @@ func ExcelImport(c fiber.Ctx) error {
 
 		src, err := file.Open()
 		if err != nil {
+			data.Rollback(tx)
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法打开文件: %v", err)})
 		}
 		defer src.Close()
 
 		err = os.MkdirAll("upload", os.ModePerm)
 		if err != nil {
+			data.Rollback(tx)
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法创建文件夹: %v", err)})
 		}
 
 		// Destination
 		dst, err := os.Create("upload/" + file.Filename)
 		if err != nil {
+			data.Rollback(tx)
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法创建文件: %v", err)})
 		}
 
 		// Copy
 		if _, err = io.Copy(dst, src); err != nil {
+			data.Rollback(tx)
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法复制文件: %v", err)})
 		}
 
@@ -86,84 +97,100 @@ func ExcelImport(c fiber.Ctx) error {
 
 		f, err := excelize.OpenFile("upload/" + file.Filename)
 		if err != nil {
+			data.Rollback(tx)
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法打开文件: %v", err)})
 		}
 		// 获取 Sheet1 上所有单元格
 		rows, err := f.GetRows("Sheet1")
 		if err != nil {
+			data.Rollback(tx)
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法获取行: %v", err)})
 		}
 
 		for rowIndex, row := range rows[1:] {
+			length := len(row)
+
+			if length <= 4 {
+				data.Rollback(tx)
+				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 列数错误", rowIndex+1)})
+			}
 
 			importUserInfo := new(entity.ImportUserInfo)
 
-			for colIndex, colCell := range row {
+			importUserInfo.Nick = row[0]
+			importUserInfo.Province = row[1]
+			importUserInfo.City = row[2]
+			importUserInfo.Phone = row[3]
+			importUserInfo.Integral = 0
 
-				if colIndex == 4 || colIndex == 5 {
-					// 判断是否为数字
-					if _, err := strconv.ParseInt(colCell, 10, 64); err != nil {
-						panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 格式错误: %v", rowIndex+1, colIndex+1, err)})
+			for colIndex, colCell := range row[4:] {
+
+				shipment, err := strconv.ParseInt(colCell, 10, 64)
+				if err != nil {
+					data.Rollback(tx)
+					panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, cell: %v 格式错误: %v", rowIndex+1, colIndex+1, colCell, err)})
+				}
+
+				productName := strings.TrimSpace(strings.ReplaceAll(rows[0][colIndex+4], "出货量", ""))
+				product, err := data.FindProductByName(tx, productName)
+				if err != nil {
+					data.Rollback(tx)
+					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询产品失败: %v", err)})
+				}
+
+				if product == nil {
+					data.Rollback(tx)
+					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 产品不存在", rowIndex+1, colIndex+5)})
+				}
+
+				// 统计用户积分
+				importUserInfo.Integral = shipment * product.Integral
+
+				// 查询手机号是否存在
+				snowflakeId, err := data.FindPhoneNumberContext(row[3])
+
+				if err != nil {
+					data.Rollback(tx)
+					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询手机号失败: %v", err)})
+				}
+
+				if snowflakeId != 0 {
+					err := data.UpdateUserIntegralAndShipments(snowflakeId, importUserInfo.Integral, importUserInfo.Shipments)
+					if err != nil {
+						data.Rollback(tx)
+						panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新用户积分和出货量失败: %v", err)})
+					}
+				} else {
+					// 新增用户
+					importUserInfo.SnowflakeId = tools.SnowflakeUseCase.NextVal()
+					err := data.ImportUserInfo(importUserInfo)
+
+					if err != nil {
+						data.Rollback(tx)
+						panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增用户失败: %v", err)})
 					}
 				}
 
-				importUserInfo.Nick = row[0]
-				importUserInfo.Province = row[1]
-				importUserInfo.City = row[2]
-				importUserInfo.Phone = row[3]
+				addIncomeExpenseRequest := new(entity.AddIncomeExpenseRequest)
+				addIncomeExpenseRequest.SnowflakeId = tools.SnowflakeUseCase.NextVal()
+				addIncomeExpenseRequest.Summary = "分红奖励"
+				addIncomeExpenseRequest.Integral = importUserInfo.Integral
+				addIncomeExpenseRequest.Shipments = importUserInfo.Shipments
+				addIncomeExpenseRequest.UserId = snowflakeId
+				addIncomeExpenseRequest.Batch = batch
+				addIncomeExpenseRequest.ProductId = product.SnowflakeId
+				addIncomeExpenseRequest.ProductIntegral = product.Integral
 
-				// 更新用户积分和出货量
-				importUserInfo.Shipments, err = strconv.ParseInt(row[4], 10, 64)
+				err = data.AddIncomeExpense(addIncomeExpenseRequest)
 				if err != nil {
-					panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 格式错误: %v", rowIndex+1, colIndex+1, err)})
-				}
-
-				importUserInfo.Integral, err = strconv.ParseInt(row[5], 10, 64)
-				if err != nil {
-					panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 格式错误: %v", rowIndex+1, colIndex+1, err)})
-				}
-			}
-
-			// 查询手机号是否存在
-			snowflakeId, err := data.FindPhoneNumberContext(row[3])
-
-			if err != nil {
-				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询手机号失败: %v", err)})
-			}
-
-			if snowflakeId != 0 {
-				err := data.UpdateUserIntegralAndShipments(snowflakeId, importUserInfo.Integral, importUserInfo.Shipments)
-				if err != nil {
-					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新用户积分和出货量失败: %v", err)})
-				}
-			} else {
-				// 新增用户
-				importUserInfo.SnowflakeId = tools.SnowflakeUseCase.NextVal()
-				err := data.ImportUserInfo(importUserInfo)
-
-				if err != nil {
-					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增用户失败: %v", err)})
+					data.Rollback(tx)
+					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增收支记录失败: %v", err)})
 				}
 			}
-
-			addIncomeExpenseRequest := new(entity.AddIncomeExpenseRequest)
-
-			addIncomeExpenseRequest.SnowflakeId = tools.SnowflakeUseCase.NextVal()
-			addIncomeExpenseRequest.Summary = "分红奖励"
-			addIncomeExpenseRequest.Integral = importUserInfo.Integral
-			addIncomeExpenseRequest.Shipments = importUserInfo.Shipments
-			addIncomeExpenseRequest.UserId = snowflakeId
-			addIncomeExpenseRequest.Batch = batch
-
-			err = data.AddIncomeExpense(addIncomeExpenseRequest)
-
-			if err != nil {
-				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增收支记录失败: %v", err)})
-			}
-
 		}
-
 	}
+
+	data.Commit(tx)
 	// Send a string response to the client
 	return c.JSON(tools.Response{
 		Code:    0,

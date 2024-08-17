@@ -52,6 +52,15 @@ func GetRoleList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取角色列表失败: %v", err)})
 	}
 
+	for _, role := range roleList {
+		permissionList, err := data.GetPermissionListByRoleId(tx, role.SnowflakeID)
+		if err != nil {
+			data.Rollback(tx)
+			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取角色权限失败: %v", err)})
+		}
+		role.PermissionList = permissionList
+	}
+
 	data.Commit(tx)
 
 	return c.JSON(tools.Response{

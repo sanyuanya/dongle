@@ -42,12 +42,14 @@ type ApprovalWithdrawalRequest struct {
 }
 
 type AddIncomeExpenseRequest struct {
-	SnowflakeId string `json:"snowflake_id"`
-	Summary     string `json:"summary"`
-	Integral    int64  `json:"integral"`
-	Shipments   int64  `json:"shipments"`
-	UserId      int64  `json:"user_id"`
-	Batch       string `json:"batch"`
+	SnowflakeId     string `json:"snowflake_id"`
+	Summary         string `json:"summary"`
+	Integral        int64  `json:"integral"`
+	Shipments       int64  `json:"shipments"`
+	UserId          int64  `json:"user_id"`
+	Batch           string `json:"batch"`
+	ProductId       string `json:"product_id"`
+	ProductIntegral int64  `json:"product_integral"`
 }
 
 type GetAdminListRequest struct {
