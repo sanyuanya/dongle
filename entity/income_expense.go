@@ -1,0 +1,39 @@
+package entity
+
+type GetIncomeListRequest struct {
+	Page     int64  `json:"page,omitempty"`
+	PageSize int64  `json:"page_size,omitempty"`
+	Date     string `json:"date,omitempty"`
+}
+
+type GetIncomeListResponse struct {
+	SnowflakeId string `json:"snowflake_id"`
+	Summary     string `json:"summary"`
+	Integral    int64  `json:"integral"`
+	Shipments   int64  `json:"shipments"`
+	Batch       string `json:"batch"`
+	UserId      int64  `json:"user_id"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
+}
+
+type IncomePageListExpenseRequest struct {
+	Page     int64  `json:"page,omitempty"`
+	PageSize int64  `json:"page_size,omitempty"`
+	Date     string `json:"date,omitempty"`
+	Keyword  string `json:"keyword,omitempty"`
+	UserId   string `json:"user_id,omitempty"`
+}
+
+type IncomePageListExpenseResponse struct {
+	SnowflakeId string `json:"snowflake_id"`
+	UserId      string `json:"user_id"`
+	Summary     string `json:"summary"`
+	Integral    int64  `json:"integral"`
+	Shipments   int64  `json:"shipments"`
+	Batch       string `json:"batch"`
+	Nick        string `json:"nick"`
+	Phone       string `json:"phone"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
+}

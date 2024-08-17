@@ -208,6 +208,12 @@ func IncomePageList(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) ([]*e
 		executeParams = append(executeParams, "%"+page.Keyword+"%")
 	}
 
+	if page.UserId != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND i.user_id = $%d", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, page.UserId)
+	}
+
 	baseSQL = baseSQL + fmt.Sprintf(" ORDER BY i.created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
 	executeParams = append(executeParams, page.PageSize, page.PageSize*(page.Page-1))
 

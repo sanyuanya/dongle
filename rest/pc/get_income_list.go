@@ -55,6 +55,7 @@ func GetIncomeList(c fiber.Ctx) error {
 
 	payload.Date = c.Query("date", "")
 	payload.Keyword = c.Query("keyword", "")
+	payload.UserId = c.Query("user_id", "")
 
 	tx, err := data.Transaction()
 	if err != nil {
