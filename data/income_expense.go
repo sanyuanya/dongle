@@ -83,6 +83,8 @@ func GetIncomeListBySnowflakeId(tx *sql.Tx, snowflakeId string, page *entity.Get
 			&income.Batch,
 			&income.CreatedAt,
 			&income.UpdatedAt,
+			&income.ProductIntegral,
+			&income.ProductName,
 		)
 		if err != nil {
 			return nil, err

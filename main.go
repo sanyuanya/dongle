@@ -90,6 +90,8 @@ func main() {
 
 	app.Get("/api/mini/incomeList", mini.GetIncomeList)
 
+	app.Get("/api/mini/productGroupList", mini.GetProductGroupList)
+
 	// Start the server on port 3000
 	log.Fatal(app.Listen(":3000"))
 }
