@@ -131,6 +131,11 @@ func ExcelImport(c fiber.Ctx) error {
 					panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, cell: %v 格式错误: %v", rowIndex+1, colIndex+1, colCell, err)})
 				}
 
+				if shipment <= 0 || shipment > 100000 {
+					data.Rollback(tx)
+					panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, cell: %v 不能为0、负数、或大于 10 万", rowIndex+1, colIndex+5, colCell)})
+				}
+
 				productName := strings.TrimSpace(strings.ReplaceAll(rows[0][colIndex+4], "出货量", ""))
 				product, err := data.FindProductByName(tx, productName)
 				if err != nil {
@@ -175,7 +180,7 @@ func ExcelImport(c fiber.Ctx) error {
 				addIncomeExpenseRequest.SnowflakeId = tools.SnowflakeUseCase.NextVal()
 				addIncomeExpenseRequest.Summary = "分红奖励"
 				addIncomeExpenseRequest.Integral = importUserInfo.Integral
-				addIncomeExpenseRequest.Shipments = importUserInfo.Shipments
+				addIncomeExpenseRequest.Shipments = shipment
 				addIncomeExpenseRequest.UserId = snowflakeId
 				addIncomeExpenseRequest.Batch = batch
 				addIncomeExpenseRequest.ProductId = product.SnowflakeId

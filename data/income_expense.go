@@ -156,6 +156,10 @@ func IncomeListCount(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) (int
 			users u
 		ON
 			i.user_id = u.snowflake_id AND u.deleted_at IS NULL
+		JOIN
+			product p
+		ON
+			i.product_id = p.snowflake_id
 		WHERE
 			i.deleted_at IS NULL
 		`
@@ -205,7 +209,7 @@ func IncomePageList(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) ([]*e
 		JOIN
 			product p
 		ON
-			i.product_id = p.snowflake_id AND p.deleted_at IS NULL
+			i.product_id = p.snowflake_id
 		WHERE 
 			i.deleted_at IS NULL
 		`
