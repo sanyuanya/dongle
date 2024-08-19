@@ -46,20 +46,20 @@ func GetIncomeListBySnowflakeId(tx *sql.Tx, snowflakeId string, page *entity.Get
 		JOIN
 			product p
 		ON
-			i.product_id = p.snowflake_id AND p.deleted_at IS NULL
+			i.product_id = p.snowflake_id
 		WHERE 
-			user_id = $1 AND deleted_at IS NULL
+			i.user_id = $1 AND i.deleted_at IS NULL
 		`
 	paramIndex := 2
 	executeParams := []interface{}{snowflakeId}
 
 	if page.Date != "" {
-		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at) = DATE($%d)", paramIndex)
+		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(i.created_at) = DATE($%d)", paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, page.Date)
 	}
 
-	baseSQL = baseSQL + fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
+	baseSQL = baseSQL + fmt.Sprintf(" ORDER BY i.created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
 	executeParams = append(executeParams, page.PageSize, page.PageSize*(page.Page-1))
 
 	rows, err := tx.Query(baseSQL, executeParams...)
@@ -102,16 +102,20 @@ func GetIncomeCountBySnowflakeId(tx *sql.Tx, snowflakeId string, page *entity.Ge
 		SELECT
 			COUNT(*)
 		FROM
-			income_expense
+			income_expense i
+		JOIN
+			product p
+		ON
+			i.product_id = p.snowflake_id
 		WHERE
-			user_id = $1 AND deleted_at IS NULL
+			i.user_id = $1 AND i.deleted_at IS NULL
 		`
 
 	paramIndex := 2
 	executeParams := []interface{}{snowflakeId}
 
 	if page.Date != "" {
-		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(created_at) = DATE($%d)", paramIndex)
+		baseSQL = baseSQL + fmt.Sprintf(" AND DATE(i.created_at) = DATE($%d)", paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, page.Date)
 	}
