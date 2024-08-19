@@ -41,3 +41,10 @@ type IncomePageListExpenseResponse struct {
 	ProductName     string `json:"product_name"`
 	ProductIntegral int64  `json:"product_integral"`
 }
+
+type GetProductGroupListResponse struct {
+	ProductName string `json:"product_name"`
+	Shipments   int64  `json:"shipments"`
+	Integral    int64  `json:"integral"`
+	Merge       int64  `json:"merge"`
+}
