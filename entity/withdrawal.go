@@ -56,3 +56,8 @@ type Withdrawal struct {
 	UserId   string `json:"user_id"`
 	Integral int64  `json:"integral"`
 }
+
+type Order struct {
+	PayId       string `json:"pay_id"`
+	SnowflakeId string `json:"snowflake_id"`
+}

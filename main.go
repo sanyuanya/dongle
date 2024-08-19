@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
+	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/middlewares"
 	"github.com/sanyuanya/dongle/rest/mini"
 	"github.com/sanyuanya/dongle/rest/pc"
@@ -13,6 +14,8 @@ import (
 func main() {
 	// Initialize a new Fiber app
 	app := fiber.New()
+
+	go data.StartTicker()
 
 	app.Use(adaptor.HTTPMiddleware(middlewares.RecordLog))
 

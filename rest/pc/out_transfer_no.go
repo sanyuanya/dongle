@@ -66,17 +66,17 @@ func OutTransferNo(c fiber.Ctx) error {
 	// 如果支付失败，把提现金额退回到用户账户
 	if outTransferNoResponse.DetailStatus == "FAIL" {
 
-		withdrawal, err := data.GetWithdrawalBySnowflakeIdAndPaymentStatusIsFail(tx, outTransferNoResponse.OutDetailNo)
+		withdrawal, err := data.GetWithdrawalBySnowflakeId(tx, outTransferNoResponse.OutDetailNo)
 		if err != nil {
 			data.Rollback(tx)
 			return fmt.Errorf("获取提现记录失败: %v", err)
 		}
 
-		err = data.UpdateWithdrawalStatusBySnowflakeId(tx, outTransferNoResponse.OutDetailNo, "FAIL")
-		if err != nil {
-			data.Rollback(tx)
-			return fmt.Errorf("更新提现状态失败: %v", err)
-		}
+		// err = data.UpdateWithdrawalStatusBySnowflakeId(tx, outTransferNoResponse.OutDetailNo, "FAIL")
+		// if err != nil {
+		// 	data.Rollback(tx)
+		// 	return fmt.Errorf("更新提现状态失败: %v", err)
+		// }
 
 		err = data.AddIntegralAndWithdrawablePointsBySnowflakeId(tx, withdrawal.UserId, withdrawal.Integral)
 		if err != nil {

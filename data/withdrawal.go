@@ -283,23 +283,33 @@ func GetWithdrawalBySnowflakeId(tx *sql.Tx, snowflakeId string) (*entity.Withdra
 	return withdrawal, nil
 }
 
-func GetWithdrawalBySnowflakeIdAndPaymentStatusIsFail(tx *sql.Tx, snowflakeId string) (*entity.Withdrawal, error) {
+func GetWithdrawalByPaymentStatusIsFailAndPaymentStatusIsSuccess() ([]*entity.Order, error) {
 
 	baseSQL := `
 		SELECT
-			user_id, integral
+			pay_id, snowflake_id
 		FROM
 			withdrawals
 		WHERE
-			snowflake_id=$1 AND deleted_at IS NULL AND payment_status != 'FAIL'
+			deleted_at IS NULL AND payment_status NOT IN ('FAIL', 'SUCCESS') AND life_cycle = 3
 	`
-	withdrawal := &entity.Withdrawal{}
-	err := tx.QueryRow(baseSQL, snowflakeId).Scan(&withdrawal.UserId, &withdrawal.Integral)
+	rows, err := db.Query(baseSQL)
 	if err != nil {
-		return nil, fmt.Errorf("查询提现失败: %v", err)
+		return nil, fmt.Errorf("查询提现列表失败: %v", err)
 	}
 
-	return withdrawal, nil
+	var withdrawalList []*entity.Order
+
+	for rows.Next() {
+		withdrawal := &entity.Order{}
+		err := rows.Scan(&withdrawal.PayId, &withdrawal.SnowflakeId)
+		if err != nil {
+			return nil, fmt.Errorf("扫描提现列表失败: %v", err)
+		}
+		withdrawalList = append(withdrawalList, withdrawal)
+	}
+
+	return withdrawalList, nil
 }
 
 func GetWithdrawalCountByUserId(tx *sql.Tx, snowflakeId string, getWithdrawal *entity.GetWithdrawalListRequest) (int64, error) {
