@@ -35,9 +35,15 @@ func GetProductGroupList(c fiber.Ctx) error {
 		}
 	}()
 
-	snowflakeId, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
+	_, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
 	if err != nil {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
+	}
+
+	userId := c.Query("user_id", "")
+
+	if userId == "" {
+		panic(tools.CustomError{Code: 50003, Message: "用户ID不能为空"})
 	}
 
 	tx, err := data.Transaction()
@@ -45,14 +51,24 @@ func GetProductGroupList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
 	}
 
-	productGroupList, err := data.GetProductGroupList(tx, snowflakeId)
+	productGroupList, err := data.GetProductGroupList(tx, userId)
 	if err != nil {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取产品组列表失败: %v", err)})
+	}
+
+	var totalIntegral int64
+	// 计算总积分
+	for _, item := range productGroupList {
+		totalIntegral += item.Merge
 	}
 
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",
-		Result:  productGroupList,
+		Result: map[string]any{
+			"product_group_list": productGroupList,
+			"total":              len(productGroupList),
+			"total_integral":     totalIntegral,
+		},
 	})
 }
