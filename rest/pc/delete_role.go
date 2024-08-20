@@ -41,13 +41,13 @@ func DeleteRole(c fiber.Ctx) error {
 	}
 
 	roleId := c.Params("roleId", "")
-	adminId, err := data.GetRoleUsed(tx, roleId)
 
 	tx, err := data.Transaction()
 	if err != nil {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
 	}
 
+	adminId, err := data.GetRoleUsed(tx, roleId)
 	if err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("查询角色失败: %v", err)})
