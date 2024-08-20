@@ -51,7 +51,7 @@ func AddRole(c fiber.Ctx) error {
 
 	re := regexp.MustCompile(`\s`)
 	if re.MatchString(payload.Name) {
-		panic(tools.CustomError{Code: 40000, Message: "角色名称不能包含空格"})
+		panic(tools.CustomError{Code: 40000, Message: "角色名称不能包含空白字符"})
 	}
 
 	tx, err := data.Transaction()
