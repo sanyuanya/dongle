@@ -51,10 +51,20 @@ func GetProductGroupList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取产品组列表失败: %v", err)})
 	}
 
+	var totalIntegral int64
+	// 计算总积分
+	for _, item := range productGroupList {
+		totalIntegral += item.Merge
+	}
+
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "获取产品组列表成功",
-		Result:  productGroupList,
+		Result: map[string]any{
+			"productGroupList": productGroupList,
+			"total":            len(productGroupList),
+			"total_integral":   totalIntegral,
+		},
 	})
 
 }
