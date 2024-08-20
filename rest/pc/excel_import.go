@@ -175,6 +175,8 @@ func ExcelImport(c fiber.Ctx) error {
 					tx.Rollback()
 					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增用户失败: %v", err)})
 				}
+
+				snowflakeId = importUserInfo.SnowflakeId
 			}
 
 			addIncomeExpenseRequest := new(entity.AddIncomeExpenseRequest)

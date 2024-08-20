@@ -52,9 +52,12 @@ func GetProductGroupList(c fiber.Ctx) error {
 	}
 
 	var totalIntegral int64
+
+	var totalShipment int64
 	// 计算总积分
 	for _, item := range productGroupList {
 		totalIntegral += item.Merge
+		totalShipment += item.Shipments
 	}
 
 	return c.JSON(tools.Response{
@@ -64,6 +67,7 @@ func GetProductGroupList(c fiber.Ctx) error {
 			"productGroupList": productGroupList,
 			"total":            len(productGroupList),
 			"total_integral":   totalIntegral,
+			"total_shipments":  totalShipment,
 		},
 	})
 
