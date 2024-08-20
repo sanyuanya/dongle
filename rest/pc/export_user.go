@@ -40,13 +40,14 @@ func ExportUser(c fiber.Ctx) error {
 		}
 	}()
 
-	_, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
-	if err != nil {
-		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
-	}
+	// _, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
+	// if err != nil {
+	// 	panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
+	// }
 
 	exportUserRequest := &entity.ExportUserRequest{}
 
+	var err error
 	if exportUserRequest.IsWhite, err = strconv.ParseInt(c.Query("is_white", "0"), 10, 64); err != nil {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("is_white 参数错误: %v", err)})
 	}
