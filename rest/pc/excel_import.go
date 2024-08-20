@@ -104,7 +104,7 @@ func ExcelImport(c fiber.Ctx) error {
 		length := len(row)
 
 		if length <= 4 {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 列数错误", rowIndex+1)})
 		}
 
@@ -116,7 +116,7 @@ func ExcelImport(c fiber.Ctx) error {
 		importUserInfo.Phone = row[3]
 
 		if len(importUserInfo.Phone) != 11 {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 手机号错误", rowIndex+1)})
 		}
 
@@ -124,7 +124,7 @@ func ExcelImport(c fiber.Ctx) error {
 
 			shipment, err := strconv.ParseInt(colCell, 10, 64)
 			if err != nil {
-				data.Rollback(tx)
+				tx.Rollback()
 				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, cell: %v 格式错误: %v", rowIndex+1, colIndex+1, colCell, err)})
 			}
 
@@ -140,12 +140,12 @@ func ExcelImport(c fiber.Ctx) error {
 			productName := strings.TrimSpace(strings.ReplaceAll(rows[0][colIndex+4], "出货量", ""))
 			product, err := data.FindProductByName(tx, productName)
 			if err != nil {
-				data.Rollback(tx)
+				tx.Rollback()
 				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询产品失败: %v", err)})
 			}
 
 			if product == nil {
-				data.Rollback(tx)
+				tx.Rollback()
 				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 产品不存在", rowIndex+1, colIndex+5)})
 			}
 
@@ -156,14 +156,14 @@ func ExcelImport(c fiber.Ctx) error {
 			snowflakeId, err := data.FindPhoneNumberContext(tx, row[3])
 
 			if err != nil {
-				data.Rollback(tx)
+				tx.Rollback()
 				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询手机号失败: %v", err)})
 			}
 
 			if snowflakeId != "" {
 				err := data.UpdateUserIntegralAndShipments(tx, snowflakeId, importUserInfo.Integral, importUserInfo.Shipments)
 				if err != nil {
-					data.Rollback(tx)
+					tx.Rollback()
 					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新用户积分和出货量失败: %v", err)})
 				}
 			} else {
@@ -172,7 +172,7 @@ func ExcelImport(c fiber.Ctx) error {
 				err := data.ImportUserInfo(tx, importUserInfo)
 
 				if err != nil {
-					data.Rollback(tx)
+					tx.Rollback()
 					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增用户失败: %v", err)})
 				}
 			}
@@ -189,14 +189,13 @@ func ExcelImport(c fiber.Ctx) error {
 
 			err = data.AddIncomeExpense(tx, addIncomeExpenseRequest)
 			if err != nil {
-				data.Rollback(tx)
+				tx.Rollback()
 				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增收支记录失败: %v", err)})
 			}
 		}
 	}
 
-	// data.Commit(tx)
-	data.Rollback(tx)
+	tx.Commit()
 	// Send a string response to the client
 	return c.JSON(tools.Response{
 		Code:    0,

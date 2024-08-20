@@ -335,28 +335,28 @@ func IsWhite(tx *sql.Tx, snowflakeId string) error {
 	return nil
 }
 
-func IsWithdrawablePoints(snowflakeId, integral int64) (bool, error) {
-	baseSQL := `
-		SELECT 
-			integral
-		FROM
-			users
-		WHERE
-			snowflake_id=$1 AND deleted_at IS NULL
-	`
-	var userIntegral int64
-	err := db.QueryRow(baseSQL, snowflakeId).Scan(&userIntegral)
-	if err != nil {
-		return false, fmt.Errorf("查询用户积分失败: %v", err)
-	}
+// func IsWithdrawablePoints(snowflakeId, integral int64) (bool, error) {
+// 	baseSQL := `
+// 		SELECT
+// 			integral
+// 		FROM
+// 			users
+// 		WHERE
+// 			snowflake_id=$1 AND deleted_at IS NULL
+// 	`
+// 	var userIntegral int64
+// 	err := db.QueryRow(baseSQL, snowflakeId).Scan(&userIntegral)
+// 	if err != nil {
+// 		return false, fmt.Errorf("查询用户积分失败: %v", err)
+// 	}
 
-	if userIntegral < integral {
-		return false, fmt.Errorf("积分不足: 当前积分 %d", integral)
-	}
+// 	if userIntegral < integral {
+// 		return false, fmt.Errorf("积分不足: 当前积分 %d", integral)
+// 	}
 
-	return true, nil
+// 	return true, nil
 
-}
+// }
 
 func IsIntegralWithdraw(tx *sql.Tx, snowflakeId string, integral int64) error {
 	baseSQL := `

@@ -90,7 +90,7 @@ func OutTransferNo(c fiber.Ctx) error {
 		addIncomeExpenseRequest.Integral = withdrawal.Integral
 		addIncomeExpenseRequest.UserId = withdrawal.UserId
 
-		err = data.AddIncomeExpense(addIncomeExpenseRequest)
+		err = data.AddIncomeExpense(tx, addIncomeExpenseRequest)
 		if err != nil {
 			data.Rollback(tx)
 			return fmt.Errorf("新增收支记录失败: %v", err)
