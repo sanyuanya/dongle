@@ -468,7 +468,7 @@ func UserInfoReplace(tx *sql.Tx, newUser *entity.UserInfoReplace) error {
 	baseSQL := `
 		UPDATE
 			users
-		SET nick=$1, phone=$2, avatar=$3, updated_at=$4, 
+		SET nick=$1, phone=$2, avatar=$3, updated_at=$4
 		WHERE snowflake_id=$5 AND deleted_at IS NULL
 	`
 	_, err := tx.Exec(baseSQL,

@@ -39,6 +39,8 @@ func UpdateUserInfo(c fiber.Ctx) error {
 		}
 	}()
 
+	token := c.Get("Authorization", "")
+
 	snowflakeId, err := tools.ValidateUserToken(c.Get("Authorization"), "user")
 	if err != nil {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
@@ -133,6 +135,21 @@ func UpdateUserInfo(c fiber.Ctx) error {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("删除用户信息失败: %v", err)})
 		}
+
+		token, err = tools.GenerateToken(userInfoReplace.SnowflakeId, "user")
+		if err != nil {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 50004, Message: fmt.Sprintf("生成token失败: %v", err)})
+		}
+
+		// 保存一下 token 方便测试
+		err = data.UpdateUserApiToken(tx, userInfoReplace.SnowflakeId, token)
+
+		if err != nil {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 50005, Message: fmt.Sprintf("更新token失败: %v", err)})
+		}
+
 	} else {
 		err = data.UpdateUserBySnowflakeId(tx, userInfo)
 		if err != nil {
@@ -142,9 +159,12 @@ func UpdateUserInfo(c fiber.Ctx) error {
 	}
 
 	tx.Commit()
+
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "成功",
-		Result:  struct{}{},
+		Result: map[string]any{
+			"token": token,
+		},
 	})
 }
