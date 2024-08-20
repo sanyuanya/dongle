@@ -75,6 +75,22 @@ func Download(c fiber.Ctx) error {
 
 	f.SetActiveSheet(1)
 
+	styleId, err := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{
+			Bold: true,
+		},
+		Alignment: &excelize.Alignment{
+			Horizontal: "center",
+			Vertical:   "center",
+		},
+	})
+	if err != nil {
+		fmt.Println(err)
+		return c.Status(fiber.StatusInternalServerError).SendString("创建样式失败")
+	}
+
+	f.SetRowStyle("Sheet1", 1, 1, styleId)
+
 	if err := f.SaveAs("客户导入模版.xlsx"); err != nil {
 		fmt.Println(err)
 		return c.Status(fiber.StatusInternalServerError).SendString("保存文件失败")

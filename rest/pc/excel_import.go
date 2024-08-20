@@ -55,7 +55,6 @@ func ExcelImport(c fiber.Ctx) error {
 
 	batch := tools.SnowflakeUseCase.NextVal()
 
-	_ = batch
 	tx, err := data.Transaction()
 	if err != nil {
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("开启事务失败: %v", err)})
@@ -127,8 +126,6 @@ func ExcelImport(c fiber.Ctx) error {
 				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 手机号错误", rowIndex+1)})
 			}
 
-			importUserInfo.Integral = 0
-
 			for colIndex, colCell := range row[4:] {
 
 				shipment, err := strconv.ParseInt(colCell, 10, 64)
@@ -139,7 +136,7 @@ func ExcelImport(c fiber.Ctx) error {
 
 				if shipment < 0 || shipment > 100000 {
 					data.Rollback(tx)
-					panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, cell: %v 不能为0、负数、或大于 10 万", rowIndex+1, colIndex+5, colCell)})
+					panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, cell: %v 不能为负数、或大于 10 万", rowIndex+1, colIndex+5, colCell)})
 				}
 
 				if shipment == 0 {
