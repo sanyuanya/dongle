@@ -54,27 +54,27 @@ func PcLogin(c fiber.Ctx) error {
 	snowflakeId, err := data.Login(tx, loginRequest)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("登录失败: %v", err)})
 	}
 
 	token, err := tools.GenerateToken(snowflakeId, "admin")
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50004, Message: fmt.Sprintf("生成token失败: %v", err)})
 	}
 
 	err = data.SetApiToken(tx, snowflakeId, token)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50005, Message: fmt.Sprintf("设置token失败 : %v", err)})
 	}
 
 	adminRole, err := data.GetAdminRoleList(tx, snowflakeId)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50007, Message: fmt.Sprintf("获取管理员角色失败: %v", err)})
 	}
 
@@ -83,7 +83,7 @@ func PcLogin(c fiber.Ctx) error {
 	for _, role := range adminRole {
 		rolePermission, err := data.GetRolePermissionList(tx, role.RoleId)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50008, Message: fmt.Sprintf("获取角色权限失败: %v", err)})
 		}
 		permissionList = append(permissionList, rolePermission...)
@@ -94,13 +94,13 @@ func PcLogin(c fiber.Ctx) error {
 	for _, permission := range permissionList {
 		menu, err := data.GetPermissionMenu(tx, permission)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50009, Message: fmt.Sprintf("获取权限菜单失败: %v", err)})
 		}
 		menuList = append(menuList, menu)
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 	c.Response().Header.Set("Authorization", token)
 	return c.JSON(tools.Response{
 		Code:    0,

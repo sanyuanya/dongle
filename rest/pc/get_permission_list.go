@@ -48,11 +48,11 @@ func GetPermissionList(c fiber.Ctx) error {
 	permissionList, err := data.GetPermissionList(tx)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取权限列表失败: %v", err)})
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 
 	return c.JSON(tools.Response{
 		Code:    0,

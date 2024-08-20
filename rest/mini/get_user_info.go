@@ -49,12 +49,11 @@ func GetUserInfo(c fiber.Ctx) error {
 
 	userDetail, err := data.GetUserDetailBySnowflakeID(tx, snowflakeId)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取用户信息失败: %v", err)})
 	}
 
-	data.Commit(tx)
-
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",

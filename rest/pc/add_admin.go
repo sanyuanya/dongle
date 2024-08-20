@@ -73,19 +73,19 @@ func AddAdmin(c fiber.Ctx) error {
 	existed, err := data.GetAdminByAccount(tx, payload.Account)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("检查账号是否存在：%v", err)})
 	}
 
 	if existed != "" {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 40000, Message: "账号已存在，请勿重复设置"})
 	}
 
 	payload.SnowflakeId = tools.SnowflakeUseCase.NextVal()
 	err = data.AddAdmin(tx, payload)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("添加管理员失败: %v", err)})
 	}
 
@@ -116,8 +116,7 @@ func AddAdmin(c fiber.Ctx) error {
 		}
 	}
 
-	data.Commit(tx)
-
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "添加用户成功",

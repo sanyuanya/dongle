@@ -61,7 +61,7 @@ func GetAdminList(c fiber.Ctx) error {
 	adminList, err := data.GetAdminList(tx, payload)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取管理员列表失败: %v", err)})
 	}
 
@@ -69,7 +69,7 @@ func GetAdminList(c fiber.Ctx) error {
 	for _, admin := range adminList {
 		roleList, err := data.GetAdminRoleList(tx, admin.SnowflakeId)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取管理员角色失败: %v", err)})
 		}
 		admin.Role = roleList
@@ -77,11 +77,11 @@ func GetAdminList(c fiber.Ctx) error {
 
 	adminTotal, err := data.GetAdminTotal(tx, payload)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取管理员总数失败: %v", err)})
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 
 	return c.JSON(tools.Response{
 		Code:    0,

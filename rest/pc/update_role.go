@@ -57,14 +57,14 @@ func UpdateRole(c fiber.Ctx) error {
 
 	err = data.UpdateRole(tx, payload)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("更新角色失败: %v", err)})
 	}
 
 	// 同步角色权限 把原来的权限删除，再添加新的权限
 	err = data.DeleteRolePermission(tx, payload.SnowflakeId)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("删除角色权限失败: %v", err)})
 	}
 
@@ -73,12 +73,12 @@ func UpdateRole(c fiber.Ctx) error {
 		permission, err := data.GetPermission(tx, permissionId)
 
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("查询权限失败: %v", err)})
 		}
 
 		if permission == nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("权限不存在: %v", permissionId)})
 		}
 
@@ -88,12 +88,12 @@ func UpdateRole(c fiber.Ctx) error {
 			PermissionId: permissionId,
 		})
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("添加角色权限失败: %v", err)})
 		}
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 
 	return c.JSON(tools.Response{
 		Code:    0,

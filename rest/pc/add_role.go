@@ -2,7 +2,6 @@ package pc
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 
 	"github.com/gofiber/fiber/v3"
@@ -63,12 +62,12 @@ func AddRole(c fiber.Ctx) error {
 
 	role, err := data.GetRoleByName(tx, payload.Name)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("查询角色失败: %v", err)})
 	}
 
 	if role != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50006, Message: "角色已存在，请勿重复设置"})
 	}
 
@@ -76,22 +75,20 @@ func AddRole(c fiber.Ctx) error {
 	err = data.AddRole(tx, payload)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("添加角色失败: %v", err)})
 	}
 
 	for _, permissionId := range payload.PermissionList {
 
 		permission, err := data.GetPermission(tx, permissionId)
-
-		log.Printf("%#+v", permission)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("查询权限失败: %v", err)})
 		}
 
 		if permission == nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("权限不存在: %v", permissionId)})
 		}
 
@@ -102,12 +99,12 @@ func AddRole(c fiber.Ctx) error {
 		})
 
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("添加角色权限失败: %v", err)})
 		}
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 
 	return c.JSON(tools.Response{
 		Code:    0,

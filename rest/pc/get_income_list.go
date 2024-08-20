@@ -65,18 +65,18 @@ func GetIncomeList(c fiber.Ctx) error {
 	incomeList, err := data.IncomePageList(tx, payload)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取收入列表失败: %v", err)})
 	}
 
 	total, err := data.IncomeListCount(tx, payload)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取收入总数失败: %v", err)})
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",

@@ -36,22 +36,17 @@ func Download(c fiber.Ctx) error {
 		}
 	}()
 
-	tx, err := data.Transaction()
-	if err != nil {
-		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
-	}
-
 	// 查询所有的产品信息
-	product, err := data.GetProductAll(tx)
+	product, err := data.GetProductAll()
 	if err != nil {
-		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取产品列表失败: %v", err)})
 	}
+
 	// 生成excel
 	f := excelize.NewFile()
 	defer func() {
 		if err := f.Close(); err != nil {
-			fmt.Println(err)
+			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("生成Excel发生错误: %v", err)})
 		}
 	}()
 
@@ -85,14 +80,12 @@ func Download(c fiber.Ctx) error {
 		},
 	})
 	if err != nil {
-		fmt.Println(err)
-		return c.Status(fiber.StatusInternalServerError).SendString("创建样式失败")
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("创建样式失败: %v", err)})
 	}
 
 	f.SetRowStyle("Sheet1", 1, 1, styleId)
 
 	if err := f.SaveAs("客户导入模版.xlsx"); err != nil {
-		fmt.Println(err)
 		return c.Status(fiber.StatusInternalServerError).SendString("保存文件失败")
 	}
 	// 设置响应头，以确保浏览器正确识别文件类型

@@ -40,14 +40,13 @@ func ExportUser(c fiber.Ctx) error {
 		}
 	}()
 
-	// _, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
-	// if err != nil {
-	// 	panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
-	// }
+	_, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
+	if err != nil {
+		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
+	}
 
 	exportUserRequest := &entity.ExportUserRequest{}
 
-	var err error
 	if exportUserRequest.IsWhite, err = strconv.ParseInt(c.Query("is_white", "0"), 10, 64); err != nil {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("is_white 参数错误: %v", err)})
 	}
@@ -61,15 +60,16 @@ func ExportUser(c fiber.Ctx) error {
 
 	userList, err := data.GetUserList(tx, exportUserRequest)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取用户列表失败: %v", err)})
 	}
+
+	tx.Commit()
 
 	// 生成excel
 	f := excelize.NewFile()
 	defer func() {
 		if err := f.Close(); err != nil {
-			data.Rollback(tx)
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("生成Excel发生错误: %v", err)})
 		}
 	}()
@@ -99,7 +99,6 @@ func ExportUser(c fiber.Ctx) error {
 		},
 	})
 	if err != nil {
-		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("创建样式失败: %v", err)})
 	}
 
@@ -126,7 +125,6 @@ func ExportUser(c fiber.Ctx) error {
 	fileName := fmt.Sprintf("客户信息%s.xlsx", time.Now().Format("2006-01-02-150405"))
 
 	if err := f.SaveAs(fileName); err != nil {
-		data.Rollback(tx)
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("保存文件失败: %v", err)})
 	}
 	// 设置响应头，以确保浏览器正确识别文件类型

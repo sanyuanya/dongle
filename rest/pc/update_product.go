@@ -55,11 +55,11 @@ func UpdateProduct(c fiber.Ctx) error {
 	err = data.UpdateProduct(tx, payload, c.Params("productId", ""))
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法更新商品: %v", err)})
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "更新成功",

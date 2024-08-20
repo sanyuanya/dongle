@@ -62,17 +62,17 @@ func GetProductList(c fiber.Ctx) error {
 
 	productList, err := data.GetProductList(tx, payload)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取商品列表失败: %v", err)})
 	}
 
 	productTotal, err := data.GetProductTotal(tx, payload)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取商品总数失败: %v", err)})
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 
 	return c.JSON(tools.Response{
 		Code:    0,

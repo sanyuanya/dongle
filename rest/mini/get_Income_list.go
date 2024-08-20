@@ -63,17 +63,17 @@ func GetIncomeList(c fiber.Ctx) error {
 
 	incomeList, err := data.GetIncomeListBySnowflakeId(tx, snowflakeId, payload)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取收支列表失败: %v", err)})
 	}
 
 	total, err := data.GetIncomeCountBySnowflakeId(tx, snowflakeId, payload)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取收支列表数量失败: %v", err)})
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "获取收支列表成功",

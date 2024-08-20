@@ -59,7 +59,7 @@ func OutTransferNo(c fiber.Ctx) error {
 	// 更新提现记录
 	err = data.UpdateWithdrawalInfoBySnowflakeId(tx, outTransferNoResponse)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 40003, Message: fmt.Sprintf("更新失败：%v", err)})
 	}
 
@@ -68,19 +68,19 @@ func OutTransferNo(c fiber.Ctx) error {
 
 		withdrawal, err := data.GetWithdrawalBySnowflakeId(tx, outTransferNoResponse.OutDetailNo)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			return fmt.Errorf("获取提现记录失败: %v", err)
 		}
 
 		// err = data.UpdateWithdrawalStatusBySnowflakeId(tx, outTransferNoResponse.OutDetailNo, "FAIL")
 		// if err != nil {
-		// 	data.Rollback(tx)
+		// 	tx.Rollback()
 		// 	return fmt.Errorf("更新提现状态失败: %v", err)
 		// }
 
 		err = data.AddIntegralAndWithdrawablePointsBySnowflakeId(tx, withdrawal.UserId, withdrawal.Integral)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			return fmt.Errorf("增加用户积分失败: %v", err)
 		}
 
@@ -92,12 +92,12 @@ func OutTransferNo(c fiber.Ctx) error {
 
 		err = data.AddIncomeExpense(tx, addIncomeExpenseRequest)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			return fmt.Errorf("新增收支记录失败: %v", err)
 		}
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",

@@ -57,7 +57,7 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 	err = data.IsWhite(tx, snowflakeId)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
@@ -65,7 +65,7 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 	err = data.IsIntegralWithdraw(tx, snowflakeId, applyForWithdrawal.Integral)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
@@ -73,15 +73,17 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 	userDetail, err := data.GetUserDetailBySnowflakeID(tx, snowflakeId)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
 	if userDetail.WithdrawablePoints < applyForWithdrawal.Integral {
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", "当前提现积分大于可提现积分")})
 	}
 
 	if applyForWithdrawal.Integral <= 0 {
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", "提现积分必须大于0")})
 	}
 
@@ -91,14 +93,14 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 	err = data.ApplyForWithdrawal(tx, applyForWithdrawal)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
 	// 扣除用户积分和可提现积分
 	err = data.DeductUserIntegralAndWithdrawablePointsBySnowflakeId(tx, snowflakeId, applyForWithdrawal.Integral)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 	}
 
@@ -109,12 +111,11 @@ func ApplyForWithdrawal(c fiber.Ctx) error {
 			applyForWithdrawal.AlipayAccount,
 		)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法申请提现: %v", err)})
 		}
 	}
-
-	data.Commit(tx)
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "申请提现成功",

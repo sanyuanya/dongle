@@ -56,11 +56,11 @@ func OutBatchNo(c fiber.Ctx) error {
 	err = data.UpdatePay(tx, outBatchNoResponse.TransferBatch)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 40002, Message: fmt.Sprintf("更新失败：%v", err)})
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",

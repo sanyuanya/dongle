@@ -129,7 +129,7 @@ func ExcelImport(c fiber.Ctx) error {
 			}
 
 			if shipment < 0 || shipment > 100000 {
-				data.Rollback(tx)
+				tx.Rollback()
 				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, cell: %v 不能为负数、或大于 10 万", rowIndex+1, colIndex+5, colCell)})
 			}
 

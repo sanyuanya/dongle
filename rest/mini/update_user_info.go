@@ -60,13 +60,14 @@ func UpdateUserInfo(c fiber.Ctx) error {
 	accessToken, expiresIn, err := data.FindAccessTokenByAppId(tx)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取appId失败: %v", err)})
 	}
 
 	if expiresIn-30 <= time.Now().Unix() {
 		getAccessTokenResp, err := wechat.GetAccessToken()
 		if err != nil {
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取access_token失败: %v", err)})
 		}
 
@@ -74,7 +75,7 @@ func UpdateUserInfo(c fiber.Ctx) error {
 		expiresIn = time.Now().Unix() + getAccessTokenResp.ExpiresIn
 		err = data.UpdateAccessTokenAndExpiresIn(tx, accessToken, expiresIn)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新access_token失败: %v", err)})
 		}
 	}
@@ -82,10 +83,12 @@ func UpdateUserInfo(c fiber.Ctx) error {
 	getPhoneNumberResp, err := wechat.GetPhoneNumber(payload.Code, accessToken)
 
 	if err != nil {
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取用户手机号失败: %v", err)})
 	}
 
 	if getPhoneNumberResp.Errcode != 0 {
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取用户手机号失败: %v", getPhoneNumberResp.Errmsg)})
 	}
 
@@ -99,7 +102,7 @@ func UpdateUserInfo(c fiber.Ctx) error {
 	// 查询 手机号是否已经存在了
 	userInfoReplace, err := data.FindUserByPhone(tx, userInfo.Phone)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询用户失败: %v", err)})
 	}
 
@@ -110,7 +113,7 @@ func UpdateUserInfo(c fiber.Ctx) error {
 
 		err = data.UserInfoReplace(tx, userInfoReplace, userInfo.SnowflakeId)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("替换用户信息失败: %v", err)})
 		}
 
@@ -119,25 +122,25 @@ func UpdateUserInfo(c fiber.Ctx) error {
 		err := data.UpdateIncomeExpense(tx, userInfoReplace.SnowflakeId, userInfo.SnowflakeId)
 
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("替换用户收支明细信息失败: %v", err)})
 		}
 
 		// 删除原来的用户信息
 		err = data.DeleteUser(tx, snowflakeId)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("删除用户信息失败: %v", err)})
 		}
 	} else {
 		err = data.UpdateUserBySnowflakeId(tx, userInfo)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("修改用户信息失败: %v", err)})
 		}
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "成功",

@@ -58,11 +58,11 @@ func SetUserInfo(c fiber.Ctx) error {
 
 	err = data.UpdateUserInfo(tx, payload)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新用户信息失败: %v", err)})
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",

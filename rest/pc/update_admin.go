@@ -64,7 +64,7 @@ func UpdateAdmin(c fiber.Ctx) error {
 
 	err = data.UpdateAdmin(tx, payload)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50007, Message: fmt.Sprintf("更新管理员失败: %v", err)})
 	}
 
@@ -72,7 +72,7 @@ func UpdateAdmin(c fiber.Ctx) error {
 	err = data.DeleteAdminRole(tx, payload.SnowflakeId)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50008, Message: fmt.Sprintf("删除原有角色失败: %v", err)})
 	}
 
@@ -82,12 +82,12 @@ func UpdateAdmin(c fiber.Ctx) error {
 		// 查询角色是否存在
 		role, err := data.GetRole(tx, roleId)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50008, Message: fmt.Sprintf("查询角色失败: %v", err)})
 		}
 
 		if role == nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50008, Message: fmt.Sprintf("角色不存在: %v", roleId)})
 		}
 
@@ -99,12 +99,12 @@ func UpdateAdmin(c fiber.Ctx) error {
 
 		err = data.AddAdminRole(tx, addAdminRoleRequest)
 		if err != nil {
-			data.Rollback(tx)
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50009, Message: fmt.Sprintf("添加用户角色失败: %v", err)})
 		}
 	}
-	data.Commit(tx)
 
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    20000,
 		Message: "更新用户成功",

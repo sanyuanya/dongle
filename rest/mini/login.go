@@ -62,9 +62,7 @@ func MiniLogin(c fiber.Ctx) error {
 	snowflakeId, err := data.FindOpenId(tx, code2SessionResp.OpenID)
 
 	if err != nil {
-		if err = data.Rollback(tx); err != nil {
-			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("回滚事务失败: %v", err)})
-		}
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("openid查询失败: %v", err)})
 	}
 
@@ -79,26 +77,20 @@ func MiniLogin(c fiber.Ctx) error {
 
 		err := data.RegisterUser(tx, registerUserRequest)
 		if err != nil {
-			if err = data.Rollback(tx); err != nil {
-				panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("回滚事务失败: %v", err)})
-			}
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("openid注册失败: %v", err)})
 		}
 	} else {
 		err := data.UpdateSessionKey(tx, code2SessionResp.OpenID, code2SessionResp.SessionKey)
 		if err != nil {
-			if err = data.Rollback(tx); err != nil {
-				panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("回滚事务失败: %v", err)})
-			}
+			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("openid更新失败: %v", err)})
 		}
 	}
 
 	token, err := tools.GenerateToken(snowflakeId, "user")
 	if err != nil {
-		if err = data.Rollback(tx); err != nil {
-			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("回滚事务失败: %v", err)})
-		}
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50004, Message: fmt.Sprintf("生成token失败: %v", err)})
 	}
 
@@ -106,17 +98,13 @@ func MiniLogin(c fiber.Ctx) error {
 	err = data.UpdateUserApiToken(tx, snowflakeId, token)
 
 	if err != nil {
-		if err = data.Rollback(tx); err != nil {
-			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("回滚事务失败: %v", err)})
-		}
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50005, Message: fmt.Sprintf("更新token失败: %v", err)})
 	}
 
 	c.Response().Header.Set("Authorization", token)
 
-	if err = data.Commit(tx); err != nil {
-		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("提交事务失败: %v", err)})
-	}
+	tx.Commit()
 
 	return c.JSON(tools.Response{
 		Code:    0,

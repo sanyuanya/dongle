@@ -66,17 +66,17 @@ func UserList(c fiber.Ctx) error {
 
 	userList, err := data.GetUserPageList(tx, userPageListRequest)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取用户列表失败: %v", err)})
 	}
 
 	userTotal, err := data.GetUserPageCount(tx, userPageListRequest)
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取用户总数失败: %v", err)})
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 
 	return c.JSON(tools.Response{
 		Code:    0,

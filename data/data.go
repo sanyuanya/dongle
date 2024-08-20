@@ -34,11 +34,3 @@ func init() {
 func Transaction() (*sql.Tx, error) {
 	return db.Begin()
 }
-
-func Commit(tx *sql.Tx) error {
-	return tx.Commit()
-}
-
-func Rollback(tx *sql.Tx) error {
-	return tx.Rollback()
-}

@@ -69,18 +69,18 @@ func WithdrawalList(c fiber.Ctx) error {
 	withdrawalList, err := data.WithdrawalPageList(tx, withdrawalPageListRequest)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取提现列表失败: %v", err)})
 	}
 
 	total, err := data.WithdrawalListCount(tx, withdrawalPageListRequest)
 
 	if err != nil {
-		data.Rollback(tx)
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取提现总数失败: %v", err)})
 	}
 
-	data.Commit(tx)
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "success",

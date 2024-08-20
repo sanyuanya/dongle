@@ -8,8 +8,8 @@ import (
 	"github.com/sanyuanya/dongle/entity"
 )
 
-func GetProductAll(tx *sql.Tx) ([]*entity.GetProductListResponse, error) {
-	rows, err := tx.Query(`
+func GetProductAll() ([]*entity.GetProductListResponse, error) {
+	rows, err := db.Query(`
 		SELECT
 			snowflake_id,
 			name,
