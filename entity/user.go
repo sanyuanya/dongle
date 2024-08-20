@@ -76,6 +76,7 @@ type UpdateUserInfoRequest struct {
 	Nick   string `json:"nick"`
 	Avatar string `json:"avatar"`
 	Code   string `json:"code"`
+	OpenId string `json:"open_id"`
 }
 
 type UserInfoReplace struct {
@@ -88,6 +89,7 @@ type UserInfoReplace struct {
 	Shipments   int64  `json:"shipments"`
 	Integral    int64  `json:"integral"`
 	IsWhite     int64  `json:"is_white"`
+	OpenId      string `json:"open_id"`
 }
 
 type UpdateUserDetailRequest struct {
