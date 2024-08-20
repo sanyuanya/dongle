@@ -22,6 +22,8 @@ func main() {
 	// Define a route for the GET method on the root path '/'
 	// pc
 
+	app.Get("/api/pc/productGroupList", pc.GetProductGroupList)
+
 	app.Post("/api/pc/import", pc.ExcelImport)
 
 	app.Post("/api/pc/login", pc.PcLogin)
