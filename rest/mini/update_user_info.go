@@ -110,15 +110,16 @@ func UpdateUserInfo(c fiber.Ctx) error {
 
 		userInfoReplace.Nick = userInfo.Nick
 		userInfoReplace.Avatar = userInfo.Avatar
+		userInfoReplace.Phone = userInfo.Phone
+		userInfoReplace.Avatar = userInfo.Avatar
 
-		err = data.UserInfoReplace(tx, userInfoReplace, userInfo.SnowflakeId)
+		err = data.UserInfoReplace(tx, userInfoReplace)
 		if err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("替换用户信息失败: %v", err)})
 		}
 
 		// 替换导入的用户信息
-
 		err := data.UpdateIncomeExpense(tx, userInfoReplace.SnowflakeId, userInfo.SnowflakeId)
 
 		if err != nil {

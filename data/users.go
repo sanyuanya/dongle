@@ -65,6 +65,9 @@ func GetUserDetailBySnowflakeID(tx *sql.Tx, snowflakeId string) (*entity.UserDet
 		&userDetail.WithdrawablePoints,
 	)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return userDetail, nil
@@ -461,23 +464,19 @@ func FindUserByPhone(tx *sql.Tx, phone string) (*entity.UserInfoReplace, error) 
 	return userInfoReplace, nil
 }
 
-func UserInfoReplace(tx *sql.Tx, userInfoReplace *entity.UserInfoReplace, snowflakeId string) error {
+func UserInfoReplace(tx *sql.Tx, newUser *entity.UserInfoReplace) error {
 	baseSQL := `
 		UPDATE
 			users
-		SET nick=$1, phone=$2, province=$3, city=$4, shipments=$5, integral=$6, is_white=$7, updated_at=$8
-		WHERE snowflake_id=$9 AND deleted_at IS NULL
+		SET nick=$1, phone=$2, avatar=$3, updated_at=$4, 
+		WHERE snowflake_id=$5 AND deleted_at IS NULL
 	`
 	_, err := tx.Exec(baseSQL,
-		userInfoReplace.Nick,
-		userInfoReplace.Phone,
-		userInfoReplace.Province,
-		userInfoReplace.City,
-		userInfoReplace.Shipments,
-		userInfoReplace.Integral,
-		userInfoReplace.IsWhite,
+		newUser.Nick,
+		newUser.Phone,
+		newUser.Avatar,
 		time.Now(),
-		snowflakeId,
+		newUser.SnowflakeId,
 	)
 	if err != nil {
 		return err

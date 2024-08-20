@@ -53,6 +53,10 @@ func GetUserInfo(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取用户信息失败: %v", err)})
 	}
 
+	if userDetail == nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("未找到当前用户: %v", err)})
+	}
 	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
