@@ -12,7 +12,7 @@ type GetIncomeListResponse struct {
 	Integral        int64  `json:"integral"`
 	Shipments       int64  `json:"shipments"`
 	Batch           string `json:"batch"`
-	UserId          int64  `json:"user_id"`
+	UserId          string `json:"user_id"`
 	CreatedAt       string `json:"created_at"`
 	UpdatedAt       string `json:"updated_at"`
 	ProductName     string `json:"product_name"`
@@ -47,4 +47,10 @@ type GetProductGroupListResponse struct {
 	Shipments   int64  `json:"shipments"`
 	Integral    int64  `json:"integral"`
 	Merge       int64  `json:"merge"`
+}
+
+type UpdateIncomeRequest struct {
+	SnowflakeId string `json:"snowflake_id"`
+	Shipments   int64  `json:"shipments"`
+	Integral    int64  `json:"integral"`
 }

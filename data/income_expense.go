@@ -331,3 +331,63 @@ func GetProductGroupList(tx *sql.Tx, snowflakeId string) ([]*entity.GetProductGr
 	return productGroupList, nil
 
 }
+
+func GetIncomeBySnowflakeId(tx *sql.Tx, snowflakeId string) (*entity.GetIncomeListResponse, error) {
+
+	baseSQL := `
+		SELECT 
+			i.snowflake_id, i.user_id, i.summary, i.integral, i.shipments, i.batch, TO_CHAR(i.created_at, 'YYYY-MM-DD HH24:MI:SS') created_at, TO_CHAR(i.updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at,
+		  i.product_integral, p.name
+		FROM 
+			income_expense i
+		JOIN
+			product p
+		ON
+			i.product_id = p.snowflake_id
+		WHERE 
+			i.snowflake_id = $1 AND i.deleted_at IS NULL
+		`
+
+	income := new(entity.GetIncomeListResponse)
+
+	err := tx.QueryRow(baseSQL, snowflakeId).Scan(
+		&income.SnowflakeId,
+		&income.UserId,
+		&income.Summary,
+		&income.Integral,
+		&income.Shipments,
+		&income.Batch,
+		&income.CreatedAt,
+		&income.UpdatedAt,
+		&income.ProductIntegral,
+		&income.ProductName,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return income, nil
+}
+
+func UpdateIncomeBySnowflakeId(tx *sql.Tx, modify *entity.UpdateIncomeRequest) error {
+
+	baseSQL := `
+		UPDATE
+			income_expense
+		SET
+			shipments=$1, integral=$2
+		WHERE
+			snowflake_id=$3 AND deleted_at IS NULL
+		`
+	_, err := tx.Exec(baseSQL, modify.Shipments, modify.Integral, modify.SnowflakeId)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

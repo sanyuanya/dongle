@@ -565,3 +565,17 @@ func UpdateUserDetail(tx *sql.Tx, payload *entity.UpdateUserDetailRequest) error
 
 	return nil
 }
+
+func UpdateUserIntegral(tx *sql.Tx, snowflakeId string, integral int64) error {
+	baseSQL := `
+		UPDATE
+			users
+		SET integral=integral+$1, updated_at=$2
+		WHERE snowflake_id=$3 AND deleted_at IS NULL
+	`
+	_, err := tx.Exec(baseSQL, integral, time.Now(), snowflakeId)
+	if err != nil {
+		return err
+	}
+	return nil
+}

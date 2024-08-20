@@ -53,7 +53,7 @@ func AddProduct(c fiber.Ctx) error {
 	}
 
 	if payload.Integral <= 0 {
-		panic(tools.CustomError{Code: 40000, Message: "产品积分不能小于0"})
+		panic(tools.CustomError{Code: 40000, Message: "产品积分不能小于或等于0"})
 	}
 
 	re := regexp.MustCompile(`\s`)
