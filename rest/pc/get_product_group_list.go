@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
+	"github.com/sanyuanya/dongle/entity"
 	"github.com/sanyuanya/dongle/tools"
 )
 
@@ -66,6 +67,13 @@ func GetProductGroupList(c fiber.Ctx) error {
 		totalShipment += item.Shipments
 
 	}
+
+	productGroupList = append(productGroupList, &entity.GetProductGroupListResponse{
+		ProductName: "合计",
+		Merge:       totalIntegral,
+		Shipments:   totalShipment,
+		Integral:    0,
+	})
 
 	return c.JSON(tools.Response{
 		Code:    0,

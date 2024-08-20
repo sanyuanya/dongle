@@ -89,9 +89,12 @@ func UpdateIncome(c fiber.Ctx) error {
 
 	// 需要更新用户的积分 如果出货量增加则增加积分 如果出货量减少则减少积分
 	if payload.Shipments > income.Shipments {
-		err = data.UpdateUserIntegral(tx, income.UserId, payload.Integral)
+		addIntegral := payload.Integral - income.Integral
+		err = data.UpdateUserIntegral(tx, income.UserId, addIntegral)
 	} else {
-		err = data.UpdateUserIntegral(tx, income.UserId, -payload.Integral)
+		subIntegral := income.Integral - payload.Integral
+
+		err = data.UpdateUserIntegral(tx, income.UserId, -subIntegral)
 	}
 
 	if err != nil {
@@ -106,7 +109,7 @@ func UpdateIncome(c fiber.Ctx) error {
 	}
 
 	return c.JSON(tools.Response{
-		Code:    20000,
+		Code:    0,
 		Message: "更新收入记录成功",
 		Result:  struct{}{},
 	})
