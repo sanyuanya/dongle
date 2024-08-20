@@ -40,7 +40,7 @@ func main() {
 
 	app.Post("/api/pc/updateUserInfo", pc.UpdateUserInfo)
 
-	app.Get("/api/pc/income/list", pc.GetIncomeList)
+	app.Get("/api/pc/incomeList", pc.GetIncomeList)
 
 	app.Post("/api/pc/income/update", pc.UpdateIncome)
 

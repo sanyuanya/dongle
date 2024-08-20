@@ -114,7 +114,7 @@ func UpdateUserIntegralAndShipments(tx *sql.Tx, snowflakeId string, integral int
 	baseSQL := `
 		UPDATE
 			users
-		SET integral=integral+$1, shipments=shipments+$2, updated_at=$3
+		SET integral=integral+$1, shipments=shipments+$2, updated_at=$3, is_white=1
 		WHERE snowflake_id=$4 AND deleted_at IS NULL
 	`
 	_, err := tx.Exec(baseSQL, integral, shipments, time.Now(), snowflakeId)
