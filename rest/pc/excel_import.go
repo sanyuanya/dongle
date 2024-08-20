@@ -121,6 +121,12 @@ func ExcelImport(c fiber.Ctx) error {
 			importUserInfo.Province = row[1]
 			importUserInfo.City = row[2]
 			importUserInfo.Phone = row[3]
+
+			if len(importUserInfo.Phone) != 11 {
+				data.Rollback(tx)
+				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 手机号错误", rowIndex+1)})
+			}
+
 			importUserInfo.Integral = 0
 
 			for colIndex, colCell := range row[4:] {
@@ -131,9 +137,13 @@ func ExcelImport(c fiber.Ctx) error {
 					panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, cell: %v 格式错误: %v", rowIndex+1, colIndex+1, colCell, err)})
 				}
 
-				if shipment <= 0 || shipment > 100000 {
+				if shipment < 0 || shipment > 100000 {
 					data.Rollback(tx)
 					panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, cell: %v 不能为0、负数、或大于 10 万", rowIndex+1, colIndex+5, colCell)})
+				}
+
+				if shipment == 0 {
+					continue
 				}
 
 				productName := strings.TrimSpace(strings.ReplaceAll(rows[0][colIndex+4], "出货量", ""))

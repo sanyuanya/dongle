@@ -51,4 +51,10 @@ func GetProductGroupList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取产品组列表失败: %v", err)})
 	}
 
+	return c.JSON(tools.Response{
+		Code:    0,
+		Message: "获取产品组列表成功",
+		Result:  productGroupList,
+	})
+
 }
