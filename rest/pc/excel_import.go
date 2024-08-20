@@ -125,12 +125,12 @@ func ExcelImport(c fiber.Ctx) error {
 			shipment, err := strconv.ParseInt(colCell, 10, 64)
 			if err != nil {
 				tx.Rollback()
-				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, cell: %v 格式错误: %v", rowIndex+1, colIndex+1, colCell, err)})
+				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 单元格: %v 格式错误", rowIndex+2, colIndex+4, colCell)})
 			}
 
 			if shipment < 0 || shipment > 100000 {
 				tx.Rollback()
-				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, cell: %v 不能为负数、或大于 10 万", rowIndex+1, colIndex+5, colCell)})
+				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 单元格: %v 不能为负数、或大于 10 万", rowIndex+1, colIndex+5, colCell)})
 			}
 
 			if shipment == 0 {
