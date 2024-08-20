@@ -153,7 +153,7 @@ func ExcelImport(c fiber.Ctx) error {
 			importUserInfo.Integral = shipment * product.Integral
 
 			// 查询手机号是否存在
-			snowflakeId, err := data.FindPhoneNumberContext(row[3])
+			snowflakeId, err := data.FindPhoneNumberContext(tx, row[3])
 
 			if err != nil {
 				data.Rollback(tx)
@@ -161,7 +161,7 @@ func ExcelImport(c fiber.Ctx) error {
 			}
 
 			if snowflakeId != "" {
-				err := data.UpdateUserIntegralAndShipments(snowflakeId, importUserInfo.Integral, importUserInfo.Shipments)
+				err := data.UpdateUserIntegralAndShipments(tx, snowflakeId, importUserInfo.Integral, importUserInfo.Shipments)
 				if err != nil {
 					data.Rollback(tx)
 					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新用户积分和出货量失败: %v", err)})
@@ -169,7 +169,7 @@ func ExcelImport(c fiber.Ctx) error {
 			} else {
 				// 新增用户
 				importUserInfo.SnowflakeId = tools.SnowflakeUseCase.NextVal()
-				err := data.ImportUserInfo(importUserInfo)
+				err := data.ImportUserInfo(tx, importUserInfo)
 
 				if err != nil {
 					data.Rollback(tx)
@@ -187,7 +187,7 @@ func ExcelImport(c fiber.Ctx) error {
 			addIncomeExpenseRequest.ProductId = product.SnowflakeId
 			addIncomeExpenseRequest.ProductIntegral = product.Integral
 
-			err = data.AddIncomeExpense(addIncomeExpenseRequest)
+			err = data.AddIncomeExpense(tx, addIncomeExpenseRequest)
 			if err != nil {
 				data.Rollback(tx)
 				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增收支记录失败: %v", err)})
@@ -195,7 +195,8 @@ func ExcelImport(c fiber.Ctx) error {
 		}
 	}
 
-	data.Commit(tx)
+	// data.Commit(tx)
+	data.Rollback(tx)
 	// Send a string response to the client
 	return c.JSON(tools.Response{
 		Code:    0,
