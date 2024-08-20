@@ -48,6 +48,14 @@ func UpdateUserInfo(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
 	}
 
+	if payload.WithdrawablePoints < 0 {
+		panic(tools.CustomError{Code: 40000, Message: "可提现积分不能小于0"})
+	}
+
+	if payload.WithdrawablePoints > payload.Integral {
+		panic(tools.CustomError{Code: 40000, Message: "可提现积分不能大于总积分"})
+	}
+
 	tx, err := data.Transaction()
 	if err != nil {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})

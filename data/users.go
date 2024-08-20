@@ -545,10 +545,10 @@ func UpdateUserDetail(tx *sql.Tx, payload *entity.UpdateUserDetailRequest) error
 	baseSQL := `
 		UPDATE
 			users
-		SET nick=$1, phone=$2, province=$3, city=$4, district=$5, company_name=$6, job=$7, is_white=$8, shipments=$9, integral=$10, withdrawable_points=$11, updated_at=$12
-		WHERE snowflake_id=$13 AND deleted_at IS NULL
+		SET nick=$1, phone=$2, province=$3, city=$4, district=$5, company_name=$6, job=$7, is_white=$8, withdrawable_points=$9, updated_at=$10
+		WHERE snowflake_id=$11 AND deleted_at IS NULL
 	`
-	result, err := tx.Exec(baseSQL, payload.Nick, payload.Phone, payload.Province, payload.City, payload.District, payload.CompanyName, payload.Job, payload.IsWhite, payload.Shipments, payload.Integral, payload.WithdrawablePoints, time.Now(), payload.SnowflakeId)
+	result, err := tx.Exec(baseSQL, payload.Nick, payload.Phone, payload.Province, payload.City, payload.District, payload.CompanyName, payload.Job, payload.IsWhite, payload.WithdrawablePoints, time.Now(), payload.SnowflakeId)
 	if err != nil {
 		return err
 	}
