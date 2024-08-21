@@ -256,7 +256,7 @@ func ComposeTransferDetail(tx *sql.Tx, snowflakeId string) (*pay.TransferDetail,
 		&transferDetail.UserName)
 
 	transferDetail.OutDetailNo = snowflakeId
-	transferDetail.TransferRemark = "提现"
+	transferDetail.TransferRemark = "分红奖励"
 
 	if err != nil {
 		return nil, fmt.Errorf("查询提现列表失败: %v", err)
