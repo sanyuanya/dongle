@@ -140,11 +140,11 @@ func ImportUserInfo(tx *sql.Tx, importUserInfo *entity.ImportUserInfo) error {
 func GetUserPageCount(tx *sql.Tx, page *entity.UserPageListRequest) (int64, error) {
 	baseSQL := `
 		SELECT 
-			COUNT(1)
+			COUNT(*)
 		FROM
 			users
 		WHERE
-			deleted_at IS NULL
+			deleted_at IS NULL AND phone != ''
 	`
 
 	executeParams := []interface{}{}
@@ -244,7 +244,7 @@ func GetUserPageList(tx *sql.Tx, page *entity.UserPageListRequest) ([]*entity.Us
 		FROM
 			users
 		WHERE
-			deleted_at IS NULL
+			deleted_at IS NULL AND phone != ''
 	`
 
 	executeParams := []interface{}{}
