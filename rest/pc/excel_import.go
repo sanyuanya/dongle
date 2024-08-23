@@ -56,6 +56,46 @@ func ExcelImport(c fiber.Ctx) error {
 
 	batch := tools.SnowflakeUseCase.NextVal()
 
+	values := multipart.Value
+
+	startTime := values["start_time"]
+	endTime := values["end_time"]
+
+	if len(startTime) == 0 || len(endTime) == 0 {
+		panic(tools.CustomError{Code: 40000, Message: "开始时间和结束时间不能为空"})
+	}
+
+	beginTime, err := tools.ValidateTimestamp(startTime[0])
+
+	if err != nil {
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("开始时间格式错误: %v", err)})
+	}
+
+	finishTime, err := tools.ValidateTimestamp(endTime[0])
+
+	if err != nil {
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("结束时间格式错误: %v", err)})
+	}
+
+	if beginTime.After(finishTime) {
+		panic(tools.CustomError{Code: 40000, Message: "开始时间不能晚于结束时间"})
+	}
+
+	if finishTime.After(time.Now()) {
+		panic(tools.CustomError{Code: 40000, Message: "结束时间不能晚于当前时间"})
+	}
+
+	// 查询当前日期是否已经导入
+	exist, err := data.CheckImportedAt(beginTime, finishTime)
+
+	if err != nil {
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询导入日期失败: %v", err)})
+	}
+
+	if exist {
+		panic(tools.CustomError{Code: 40000, Message: "当前日期已经导入, 请勿重复导入"})
+	}
+
 	file := multipart.File["file"][0]
 
 	// Remove the temporary file
@@ -117,6 +157,12 @@ func ExcelImport(c fiber.Ctx) error {
 		importUserInfo := new(entity.ImportUserInfo)
 
 		importUserInfo.ImportdAt, err = time.Parse(layout, row[0])
+
+		if importUserInfo.ImportdAt.Before(beginTime) || importUserInfo.ImportdAt.After(finishTime) {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期超出范围", rowIndex+1)})
+		}
+
 		if err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期格式错误", rowIndex+1)})

@@ -392,3 +392,28 @@ func UpdateIncomeBySnowflakeId(tx *sql.Tx, modify *entity.UpdateIncomeRequest) e
 
 	return nil
 }
+
+func CheckImportedAt(beginTime, finishTime time.Time) (bool, error) {
+
+	baseSQL := `
+		SELECT
+			COUNT(*)
+		FROM
+			income_expense
+		WHERE
+			importd_at BETWEEN $1 AND $2
+		`
+
+	var count int64
+	err := db.QueryRow(baseSQL, beginTime, finishTime).Scan(&count)
+
+	if err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
