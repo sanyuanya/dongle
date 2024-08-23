@@ -157,7 +157,7 @@ func GetUserPageCount(tx *sql.Tx, page *entity.UserPageListRequest) (int64, erro
 	}
 
 	if page.Keyword != "" {
-		baseSQL = baseSQL + fmt.Sprintf(" AND (nick LIKE $%d OR phone LIKE $%d)", paramIndex, paramIndex)
+		baseSQL = baseSQL + fmt.Sprintf(" AND (nick LIKE $%d OR phone LIKE $%d OR city LIKE $%d)", paramIndex, paramIndex, paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, "%"+page.Keyword+"%")
 	}
@@ -257,7 +257,7 @@ func GetUserPageList(tx *sql.Tx, page *entity.UserPageListRequest) ([]*entity.Us
 	}
 
 	if page.Keyword != "" {
-		baseSQL = baseSQL + fmt.Sprintf(" AND (nick LIKE $%d OR phone LIKE $%d)", paramIndex, paramIndex)
+		baseSQL = baseSQL + fmt.Sprintf(" AND (nick LIKE $%d OR phone LIKE $%d OR city LIKE $%d)", paramIndex, paramIndex, paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, "%"+page.Keyword+"%")
 	}
