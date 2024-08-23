@@ -51,6 +51,7 @@ func Download(c fiber.Ctx) error {
 	}()
 
 	fileHeader := []string{
+		"日期",
 		"姓名",
 		"省份",
 		"地市",
@@ -61,11 +62,12 @@ func Download(c fiber.Ctx) error {
 		fileHeader = append(fileHeader, fmt.Sprintf("%s 出货量", v.Name))
 	}
 
+	maxCol := len(fileHeader)
 	for i, v := range fileHeader {
 		f.SetCellValue("Sheet1", fmt.Sprintf("%c%d", 'A'+i, 1), v)
 	}
 
-	f.SetColWidth("Sheet1", "A", "G", 20)
+	f.SetColWidth("Sheet1", "A", fmt.Sprintf("%c", 'A'+maxCol), 20)
 	f.SetRowHeight("Sheet1", 1, 30)
 
 	f.SetActiveSheet(1)
@@ -84,6 +86,24 @@ func Download(c fiber.Ctx) error {
 	}
 
 	f.SetRowStyle("Sheet1", 1, 1, styleId)
+
+	err = f.SetDocProps(&excelize.DocProperties{
+		Title:          "客户导入模版",
+		Creator:        "Dongle",
+		Category:       "客户导入",
+		ContentStatus:  "Reviewed",
+		Description:    "客户导入模版",
+		Identifier:     "xlsx",
+		Keywords:       "客户导入",
+		LastModifiedBy: "Dongle",
+		Revision:       "1",
+		Subject:        "客户导入",
+		Version:        "1.0",
+	})
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("设置文件属性失败")
+	}
 
 	if err := f.SaveAs("客户导入模版.xlsx"); err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("保存文件失败")
