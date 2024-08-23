@@ -3,6 +3,7 @@ package pc
 import (
 	"fmt"
 	"regexp"
+	"unicode"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
@@ -61,6 +62,11 @@ func AddAdmin(c fiber.Ctx) error {
 
 	if re.MatchString(payload.Password) {
 		panic(tools.CustomError{Code: 40000, Message: "密码不能包含空格"})
+	}
+
+	// 密码必须包含数字和字母 大写字母 小写字母
+	if !isValidPassword(payload.Password) {
+		panic(tools.CustomError{Code: 40000, Message: "密码必须包含数字和字母,其中至少有一个大写字母和小写字母"})
 	}
 
 	tx, err := data.Transaction()
@@ -123,4 +129,19 @@ func AddAdmin(c fiber.Ctx) error {
 		Result:  struct{}{},
 	})
 
+}
+
+func isValidPassword(password string) bool {
+	var hasUpper, hasLower, hasDigit bool
+	for _, char := range password {
+		switch {
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsLower(char):
+			hasLower = true
+		case unicode.IsDigit(char):
+			hasDigit = true
+		}
+	}
+	return hasUpper && hasLower && hasDigit
 }
