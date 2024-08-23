@@ -31,22 +31,22 @@ func GetOperationLogList(tx *sql.Tx, body *entity.GetOperationLogListRequest) ([
 			o.updated_at,
 			u.nick,
 			u.phone,
-			p.product_name
+			p.name
 		FROM operation_log o
 		JOIN income_expense ie ON o.income_expense_id = ie.snowflake_id
-		JOIN user u ON o.user_id = u.snowflake_id
+		JOIN users u ON o.user_id = u.snowflake_id
 		JOIN product p ON ie.product_id = p.snowflake_id
 		WHERE o.deleted_at IS NULL
 	`
 	paramIndex := 1
 	executeParams := []interface{}{}
 	if body.UserId != "" {
-		sql += fmt.Sprintf(" AND user_id = $%d", paramIndex)
+		sql += fmt.Sprintf(" AND o.user_id = $%d", paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, body.UserId)
 	}
 
-	sql += fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
+	sql += fmt.Sprintf(" ORDER BY o.created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
 
 	executeParams = append(executeParams, body.PageSize, (body.Page-1)*body.PageSize)
 
