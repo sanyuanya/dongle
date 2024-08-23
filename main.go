@@ -76,6 +76,7 @@ func main() {
 
 	app.Get("/api/pc/excel/download", pc.Download)
 
+	app.Get("/api/pc/operationLog/list", pc.GetOperationLogList)
 	app.Post("/api/pc/pay", pc.Pay)
 
 	//mini program

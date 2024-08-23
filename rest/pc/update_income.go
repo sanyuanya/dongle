@@ -36,7 +36,7 @@ func UpdateIncome(c fiber.Ctx) error {
 		}
 	}()
 
-	_, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
+	operationId, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
 	if err != nil {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
@@ -100,6 +100,21 @@ func UpdateIncome(c fiber.Ctx) error {
 	if err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("更新用户积分失败: %v", err)})
+	}
+
+	err = data.AddOperationLog(tx, &entity.AddOperationLogRequest{
+		SnowflakeId:             tools.SnowflakeUseCase.NextVal(),
+		OperationId:             operationId,
+		IncomeExpenseId:         income.SnowflakeId,
+		UserId:                  income.UserId,
+		BeforeUpdatingShipments: income.Shipments,
+		AfterUpdatingShipments:  payload.Shipments,
+		Summary:                 "更新客户出货量",
+	})
+
+	if err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("添加操作日志失败: %v", err)})
 	}
 
 	err = tx.Commit()
