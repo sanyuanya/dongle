@@ -1,5 +1,7 @@
 package entity
 
+import "time"
+
 type LoginRequest struct {
 	Account  string `json:"account"`
 	Password string `json:"password"`
@@ -47,14 +49,15 @@ type ApprovalWithdrawalRequest struct {
 }
 
 type AddIncomeExpenseRequest struct {
-	SnowflakeId     string `json:"snowflake_id"`
-	Summary         string `json:"summary"`
-	Integral        int64  `json:"integral"`
-	Shipments       int64  `json:"shipments"`
-	UserId          string `json:"user_id"`
-	Batch           string `json:"batch"`
-	ProductId       string `json:"product_id"`
-	ProductIntegral int64  `json:"product_integral"`
+	SnowflakeId     string    `json:"snowflake_id"`
+	Summary         string    `json:"summary"`
+	Integral        int64     `json:"integral"`
+	Shipments       int64     `json:"shipments"`
+	UserId          string    `json:"user_id"`
+	Batch           string    `json:"batch"`
+	ProductId       string    `json:"product_id"`
+	ProductIntegral int64     `json:"product_integral"`
+	ImportdAt       time.Time `json:"importd_at"`
 }
 
 type GetAdminListRequest struct {

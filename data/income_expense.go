@@ -12,8 +12,8 @@ func AddIncomeExpense(tx *sql.Tx, addIncomeExpenseRequest *entity.AddIncomeExpen
 
 	baseSQL := `
 		INSERT INTO 
-			income_expense (snowflake_id, summary, integral, shipments, user_id, batch, created_at, updated_at, product_id, product_integral)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			income_expense (snowflake_id, summary, integral, shipments, user_id, batch, created_at, updated_at, product_id, product_integral, importd_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		`
 	_, err := tx.Exec(baseSQL,
 		addIncomeExpenseRequest.SnowflakeId,
@@ -26,6 +26,7 @@ func AddIncomeExpense(tx *sql.Tx, addIncomeExpenseRequest *entity.AddIncomeExpen
 		time.Now(),
 		addIncomeExpenseRequest.ProductId,
 		addIncomeExpenseRequest.ProductIntegral,
+		addIncomeExpenseRequest.ImportdAt,
 	)
 
 	if err != nil {

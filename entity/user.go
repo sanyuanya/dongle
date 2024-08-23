@@ -1,5 +1,7 @@
 package entity
 
+import "time"
+
 type RegisterRequest struct {
 	Code   string `json:"code"`
 	JsCode string `json:"js_code"`
@@ -53,13 +55,14 @@ type UserDetail struct {
 }
 
 type ImportUserInfo struct {
-	Nick        string `json:"nick"`
-	Phone       string `json:"phone"`
-	Province    string `json:"province"`
-	City        string `json:"city"`
-	Shipments   int64  `json:"shipments"`
-	Integral    int64  `json:"integral"`
-	SnowflakeId string `json:"snowflake_id"`
+	Nick        string    `json:"nick"`
+	Phone       string    `json:"phone"`
+	Province    string    `json:"province"`
+	City        string    `json:"city"`
+	Shipments   int64     `json:"shipments"`
+	Integral    int64     `json:"integral"`
+	SnowflakeId string    `json:"snowflake_id"`
+	ImportdAt   time.Time `json:"importd_at"`
 }
 
 type MiniLoginRequest struct {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
@@ -95,11 +96,16 @@ func ExcelImport(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法获取行: %v", err)})
 	}
 
+	if rows[0][0] != "日期" || rows[0][1] != "姓名" || rows[0][2] != "省份" || rows[0][3] != "地市" || rows[0][4] != "手机号" {
+		panic(tools.CustomError{Code: 40000, Message: "表头错误"})
+	}
+
 	tx, err := data.Transaction()
 	if err != nil {
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("开启事务失败: %v", err)})
 	}
 
+	layout := "2006/01/02"
 	for rowIndex, row := range rows[1:] {
 		length := len(row)
 
@@ -110,34 +116,39 @@ func ExcelImport(c fiber.Ctx) error {
 
 		importUserInfo := new(entity.ImportUserInfo)
 
-		importUserInfo.Nick = row[0]
-		importUserInfo.Province = row[1]
-		importUserInfo.City = row[2]
-		importUserInfo.Phone = row[3]
+		importUserInfo.ImportdAt, err = time.Parse(layout, row[0])
+		if err != nil {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期格式错误", rowIndex+1)})
+		}
+		importUserInfo.Nick = row[1]
+		importUserInfo.Province = row[2]
+		importUserInfo.City = row[3]
+		importUserInfo.Phone = row[4]
 
 		if len(importUserInfo.Phone) != 11 {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 手机号错误", rowIndex+1)})
 		}
 
-		for colIndex, colCell := range row[4:] {
+		for colIndex, colCell := range row[5:] {
 
 			shipment, err := strconv.ParseInt(colCell, 10, 64)
 			if err != nil {
 				tx.Rollback()
-				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 单元格: %v 格式错误", rowIndex+2, colIndex+4, colCell)})
+				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 单元格: %v 格式错误", rowIndex+2, colIndex+5, colCell)})
 			}
 
 			if shipment < 0 || shipment > 100000 {
 				tx.Rollback()
-				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 单元格: %v 不能为负数、或大于 10 万", rowIndex+1, colIndex+5, colCell)})
+				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 单元格: %v 不能为负数、或大于 10 万", rowIndex+2, colIndex+5, colCell)})
 			}
 
 			if shipment == 0 {
 				continue
 			}
 
-			productName := strings.TrimSpace(strings.ReplaceAll(rows[0][colIndex+4], "出货量", ""))
+			productName := strings.TrimSpace(strings.ReplaceAll(rows[0][colIndex+5], "出货量", ""))
 			product, err := data.FindProductByName(tx, productName)
 			if err != nil {
 				tx.Rollback()
@@ -188,6 +199,7 @@ func ExcelImport(c fiber.Ctx) error {
 			addIncomeExpenseRequest.Batch = batch
 			addIncomeExpenseRequest.ProductId = product.SnowflakeId
 			addIncomeExpenseRequest.ProductIntegral = product.Integral
+			addIncomeExpenseRequest.ImportdAt = importUserInfo.ImportdAt
 
 			err = data.AddIncomeExpense(tx, addIncomeExpenseRequest)
 			if err != nil {
