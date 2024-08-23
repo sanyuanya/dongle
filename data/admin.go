@@ -131,6 +131,10 @@ func GetAdminByAccount(tx *sql.Tx, account string) (string, error) {
 	var snowflakeId string
 	err := tx.QueryRow(baseSQL, account).Scan(&snowflakeId)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil
+		}
+
 		return "", fmt.Errorf("查询失败:%v", err)
 	}
 	return snowflakeId, nil
