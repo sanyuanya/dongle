@@ -26,7 +26,7 @@ func DeleteAdminRole(tx *sql.Tx, adminId string) error {
 }
 
 func GetAdminRoleList(tx *sql.Tx, adminId string) ([]*entity.GetAdminRoleResponse, error) {
-	baseSQL := `SELECT admin_id, role_id, created_at, updated_at FROM admin_role WHERE admin_id=$1 AND deleted_at IS NULL`
+	baseSQL := `SELECT a.admin_id, a.role_id, a.created_at, a.updated_at, r.name FROM admin_role a JOIN roles r ON a.role_id = r.snowflake_id WHERE a.admin_id=$1 AND a.deleted_at IS NULL`
 	rows, err := tx.Query(baseSQL, adminId)
 	if err != nil {
 		return nil, err
@@ -41,6 +41,7 @@ func GetAdminRoleList(tx *sql.Tx, adminId string) ([]*entity.GetAdminRoleRespons
 			&adminRole.RoleId,
 			&adminRole.CreatedAt,
 			&adminRole.UpdatedAt,
+			&adminRole.RoleName,
 		)
 		if err != nil {
 			return nil, err

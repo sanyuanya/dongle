@@ -11,4 +11,5 @@ type GetAdminRoleResponse struct {
 	RoleId    string `json:"role_id"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
+	RoleName  string `json:"role_name"`
 }
