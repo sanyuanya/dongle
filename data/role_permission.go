@@ -66,7 +66,7 @@ func DeleteRolePermission(tx *sql.Tx, snowflakeId string) error {
 		SET
 			deleted_at = $1
 		WHERE
-			snowflake_id = $2 AND deleted_at IS NULL
+			role_id = $2 AND deleted_at IS NULL
 	`, time.Now(), snowflakeId)
 	if err != nil {
 		return err
