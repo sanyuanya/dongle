@@ -114,7 +114,7 @@ func UpdateAdmin(c fiber.Ctx) error {
 
 	tx.Commit()
 	return c.JSON(tools.Response{
-		Code:    20000,
+		Code:    0,
 		Message: "更新用户成功",
 		Result:  struct{}{},
 	})
