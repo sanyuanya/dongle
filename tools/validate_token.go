@@ -29,10 +29,6 @@ func ValidateUserToken(authorization string, identity string) (string, error) {
 	if role != identity {
 		return "", fmt.Errorf("未经授权")
 	}
-	// snowflakeId, err := strconv.ParseInt(snowflakeIdStr, 10, 64)
-	// if err != nil {
-	// 	return 0, fmt.Errorf("无法将 snowflake_id 转换为 int64: %v", err)
-	// }
 
 	return snowflakeId, nil
 }

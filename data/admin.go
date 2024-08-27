@@ -139,3 +139,15 @@ func GetAdminByAccount(tx *sql.Tx, account string) (string, error) {
 	}
 	return snowflakeId, nil
 }
+
+func FindBySnowflakeIdNotFoundAndAccount(tx *sql.Tx, snowflakeId string, account string) error {
+	var count int
+	err := tx.QueryRow(`SELECT COUNT(*) FROM admins WHERE account=$1 AND snowflake_id!=$2 AND deleted_at IS NULL`, account, snowflakeId).Scan(&count)
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return fmt.Errorf("账号已存在")
+	}
+	return nil
+}

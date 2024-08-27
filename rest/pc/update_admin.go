@@ -62,6 +62,14 @@ func UpdateAdmin(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
 	}
 
+	// 查询用户是否存在
+	err = data.FindBySnowflakeIdNotFoundAndAccount(tx, payload.SnowflakeId, payload.Account)
+
+	if err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("用户已存在: %v", err)})
+	}
+
 	err = data.UpdateAdmin(tx, payload)
 	if err != nil {
 		tx.Rollback()

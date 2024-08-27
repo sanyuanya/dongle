@@ -161,3 +161,33 @@ func DeleteRole(tx *sql.Tx, roleId string) error {
 
 	return nil
 }
+
+func FindBySnowflakeIdNotFoundAndRoleName(tx *sql.Tx, snowflakeId, name string) error {
+	baseSQL := `
+		SELECT
+			snowflake_id,
+			name,
+			created_at,
+			updated_at
+		FROM
+			roles
+		WHERE
+			snowflake_id != $1 AND name = $2 AND deleted_at IS NULL
+	`
+
+	role := &entity.Role{}
+	err := tx.QueryRow(baseSQL, snowflakeId, name).Scan(
+		&role.SnowflakeID,
+		&role.Name,
+		&role.CreatedAt,
+		&role.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil
+		}
+		return err
+	}
+
+	return nil
+}
