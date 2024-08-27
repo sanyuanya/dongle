@@ -55,11 +55,16 @@ func UpdateRole(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
 	}
 
-	err = data.FindBySnowflakeIdNotFoundAndRoleName(tx, payload.SnowflakeId, payload.Name)
+	used, err := data.FindBySnowflakeIdNotFoundAndRoleName(tx, payload.SnowflakeId, payload.Name)
 
 	if err != nil {
 		tx.Rollback()
-		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("角色已存在: %v", err)})
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("角色查询失败: %v", err)})
+	}
+
+	if used != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("角色已存在: %v", payload.Name)})
 	}
 
 	err = data.UpdateRole(tx, payload)

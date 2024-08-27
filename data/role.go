@@ -162,7 +162,7 @@ func DeleteRole(tx *sql.Tx, roleId string) error {
 	return nil
 }
 
-func FindBySnowflakeIdNotFoundAndRoleName(tx *sql.Tx, snowflakeId, name string) error {
+func FindBySnowflakeIdNotFoundAndRoleName(tx *sql.Tx, snowflakeId, name string) (*entity.Role, error) {
 	baseSQL := `
 		SELECT
 			snowflake_id,
@@ -184,10 +184,10 @@ func FindBySnowflakeIdNotFoundAndRoleName(tx *sql.Tx, snowflakeId, name string) 
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil
+			return nil, nil
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	return role, nil
 }
