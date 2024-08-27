@@ -162,6 +162,12 @@ func GetUserPageCount(tx *sql.Tx, page *entity.UserPageListRequest) (int64, erro
 		executeParams = append(executeParams, "%"+page.Keyword+"%")
 	}
 
+	if page.City != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND city LIKE $%d", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, "%"+page.City+"%")
+	}
+
 	var count int64
 	err := tx.QueryRow(baseSQL, executeParams...).Scan(&count)
 	if err != nil {
@@ -260,6 +266,12 @@ func GetUserPageList(tx *sql.Tx, page *entity.UserPageListRequest) ([]*entity.Us
 		baseSQL = baseSQL + fmt.Sprintf(" AND (nick LIKE $%d OR phone LIKE $%d OR city LIKE $%d)", paramIndex, paramIndex, paramIndex)
 		paramIndex++
 		executeParams = append(executeParams, "%"+page.Keyword+"%")
+	}
+
+	if page.City != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND city LIKE $%d", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, "%"+page.City+"%")
 	}
 
 	baseSQL = baseSQL + fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)

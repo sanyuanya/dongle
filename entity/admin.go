@@ -12,6 +12,7 @@ type UserPageListRequest struct {
 	PageSize int64  `json:"page_size,omitempty"`
 	Keyword  string `json:"keyword,omitempty"`
 	IsWhite  int64  `json:"is_white,omitempty"`
+	City     string `json:"city,omitempty"`
 }
 
 type ExportUserRequest struct {

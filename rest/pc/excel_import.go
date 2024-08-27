@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/log"
 	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/entity"
 	"github.com/sanyuanya/dongle/tools"
@@ -145,7 +146,7 @@ func ExcelImport(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("开启事务失败: %v", err)})
 	}
 
-	layout := "2006/01/02"
+	layout := "2006-01-02"
 	for rowIndex, row := range rows[1:] {
 		length := len(row)
 
@@ -158,14 +159,15 @@ func ExcelImport(c fiber.Ctx) error {
 
 		importUserInfo.ImportdAt, err = time.Parse(layout, row[0])
 
-		if importUserInfo.ImportdAt.Before(beginTime) || importUserInfo.ImportdAt.After(finishTime) {
-			tx.Rollback()
-			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期超出范围", rowIndex+1)})
-		}
+		// if importUserInfo.ImportdAt.Before(beginTime) || importUserInfo.ImportdAt.After(finishTime) {
+		// 	tx.Rollback()
+		// 	panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期超出范围", rowIndex+1)})
+		// }
 
 		if err != nil {
 			tx.Rollback()
-			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期格式错误", rowIndex+1)})
+			log.Info("err: ", err)
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期格式错误, 格式为: 年-月-日 例如 2024-08-07", rowIndex+1)})
 		}
 		importUserInfo.Nick = row[1]
 		importUserInfo.Province = row[2]
@@ -210,7 +212,7 @@ func ExcelImport(c fiber.Ctx) error {
 			importUserInfo.Integral = shipment * product.Integral
 
 			// 查询手机号是否存在
-			snowflakeId, err := data.FindPhoneNumberContext(tx, row[3])
+			snowflakeId, err := data.FindPhoneNumberContext(tx, row[4])
 
 			if err != nil {
 				tx.Rollback()

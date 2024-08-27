@@ -57,7 +57,9 @@ func UserList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("is_white 参数错误: %v", err)})
 	}
 
-	userPageListRequest.Keyword = c.Query("keyword")
+	userPageListRequest.Keyword = c.Query("keyword", "")
+
+	userPageListRequest.City = c.Query("city", "")
 
 	tx, err := data.Transaction()
 	if err != nil {
