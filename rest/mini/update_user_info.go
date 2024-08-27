@@ -116,7 +116,6 @@ func UpdateUserInfo(c fiber.Ctx) error {
 		userInfoReplace.Avatar = userInfo.Avatar
 		userInfoReplace.OpenId = payload.OpenId
 
-		fmt.Printf("userInfoReplace: %v\n", userInfoReplace)
 		err = data.UserInfoReplace(tx, userInfoReplace)
 		if err != nil {
 			tx.Rollback()

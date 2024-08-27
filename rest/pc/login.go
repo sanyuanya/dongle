@@ -58,20 +58,6 @@ func PcLogin(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("登录失败: %v", err)})
 	}
 
-	token, err := tools.GenerateToken(snowflakeId, "admin")
-
-	if err != nil {
-		tx.Rollback()
-		panic(tools.CustomError{Code: 50004, Message: fmt.Sprintf("生成token失败: %v", err)})
-	}
-
-	err = data.SetApiToken(tx, snowflakeId, token)
-
-	if err != nil {
-		tx.Rollback()
-		panic(tools.CustomError{Code: 50005, Message: fmt.Sprintf("设置token失败 : %v", err)})
-	}
-
 	adminRole, err := data.GetAdminRoleList(tx, snowflakeId)
 	if err != nil {
 		tx.Rollback()
@@ -98,6 +84,20 @@ func PcLogin(c fiber.Ctx) error {
 			panic(tools.CustomError{Code: 50009, Message: fmt.Sprintf("获取权限菜单失败: %v", err)})
 		}
 		menuList = append(menuList, menu)
+	}
+
+	token, err := tools.GenerateToken(snowflakeId, "admin")
+
+	if err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50004, Message: fmt.Sprintf("生成token失败: %v", err)})
+	}
+
+	err = data.SetApiToken(tx, snowflakeId, token)
+
+	if err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50005, Message: fmt.Sprintf("设置token失败 : %v", err)})
 	}
 
 	tx.Commit()
