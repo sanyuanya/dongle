@@ -56,10 +56,11 @@ func GetRoleUsed(tx *sql.Tx, roleId string) (string, error) {
 
 	baseSQL := `
 		SELECT 
-			admin_id 
+			ar.admin_id 
 		FROM 
-			admin_role
-		WHERE role_id = $1 AND deleted_at IS NULL
+			admin_role ar
+		JOIN admins a ON ar.admin_id = a.snowflake_id AND a.deleted_at IS NULL	
+		WHERE ar.role_id = $1 AND ar.deleted_at IS NULL
 	`
 	var adminId string
 

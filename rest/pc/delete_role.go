@@ -55,7 +55,7 @@ func DeleteRole(c fiber.Ctx) error {
 
 	if adminId != "" {
 		tx.Rollback()
-		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("删除角色失败，当前角色下存在用户，不允许删除: %v", err)})
+		panic(tools.CustomError{Code: 50006, Message: "删除角色失败,当前角色下存在用户,不允许删除"})
 	}
 
 	err = data.DeleteRole(tx, roleId)
