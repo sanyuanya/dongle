@@ -206,10 +206,10 @@ func IncomePageList(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) ([]*e
 	baseSQL := `
 		SELECT 
 			i.snowflake_id, i.user_id, i.summary, i.integral, i.shipments, i.batch, TO_CHAR(i.created_at, 'YYYY-MM-DD HH24:MI:SS') created_at, TO_CHAR(i.updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at, u.nick, u.phone,
-		  i.product_integral, p.name
+		  i.product_integral, p.name, TO_CHAR(i.importd_at, 'YYYY-MM-DD')
 		FROM 
 			income_expense i
-		JOIN 
+		JOIN
 			users u
 		ON
 			i.user_id = u.snowflake_id AND u.deleted_at IS NULL
@@ -269,6 +269,7 @@ func IncomePageList(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) ([]*e
 			&income.Phone,
 			&income.ProductIntegral,
 			&income.ProductName,
+			&income.ImportdAt,
 		)
 		if err != nil {
 			return nil, err

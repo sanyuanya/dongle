@@ -51,7 +51,7 @@ func Download(c fiber.Ctx) error {
 	}()
 
 	fileHeader := []string{
-		"日期",
+		"日期 (格式：年-月-日，正确示例：2021-01-01，错误示例：2021-1-1、2021/1/1。错误格式将导致导入失败)",
 		"姓名",
 		"省份",
 		"地市",
@@ -67,8 +67,8 @@ func Download(c fiber.Ctx) error {
 		f.SetCellValue("Sheet1", fmt.Sprintf("%c%d", 'A'+i, 1), v)
 	}
 
-	f.SetColWidth("Sheet1", "A", fmt.Sprintf("%c", 'A'+maxCol), 20)
-	f.SetRowHeight("Sheet1", 1, 30)
+	f.SetColWidth("Sheet1", "A", fmt.Sprintf("%c", 'A'+maxCol), 40)
+	f.SetRowHeight("Sheet1", 1, 50)
 
 	f.SetActiveSheet(1)
 
@@ -79,6 +79,7 @@ func Download(c fiber.Ctx) error {
 		Alignment: &excelize.Alignment{
 			Horizontal: "center",
 			Vertical:   "center",
+			WrapText:   true,
 		},
 	})
 	if err != nil {

@@ -40,6 +40,7 @@ type IncomePageListExpenseResponse struct {
 	UpdatedAt       string `json:"updated_at"`
 	ProductName     string `json:"product_name"`
 	ProductIntegral int64  `json:"product_integral"`
+	ImportdAt       string `json:"importd_at"`
 }
 
 type GetProductGroupListResponse struct {
