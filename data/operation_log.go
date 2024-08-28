@@ -27,15 +27,17 @@ func GetOperationLogList(tx *sql.Tx, body *entity.GetOperationLogListRequest) ([
 			o.before_updating_shipments, 
 			o.after_updating_shipments, 
 			o.summary, 
-			o.created_at, 
-			o.updated_at,
+			TO_CHAR(o.created_at, 'YYYY-MM-DD HH24:MI:SS') created_at,
+			TO_CHAR(o.updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at, 
 			u.nick,
 			u.phone,
-			p.name
+			p.name,
+			a.account
 		FROM operation_log o
 		JOIN income_expense ie ON o.income_expense_id = ie.snowflake_id
 		JOIN users u ON o.user_id = u.snowflake_id
 		JOIN product p ON ie.product_id = p.snowflake_id
+		JOIN admins a ON o.operation_id = a.snowflake_id
 		WHERE o.deleted_at IS NULL
 	`
 	paramIndex := 1
@@ -61,7 +63,7 @@ func GetOperationLogList(tx *sql.Tx, body *entity.GetOperationLogListRequest) ([
 	for rows.Next() {
 		item := new(entity.OperationLog)
 
-		err = rows.Scan(&item.SnowflakeId, &item.OperationId, &item.IncomeExpenseId, &item.UserId, &item.BeforeUpdatingShipments, &item.AfterUpdatingShipments, &item.Summary, &item.CreatedAt, &item.UpdatedAt, &item.UserName, &item.Phone, &item.ProductName)
+		err = rows.Scan(&item.SnowflakeId, &item.OperationId, &item.IncomeExpenseId, &item.UserId, &item.BeforeUpdatingShipments, &item.AfterUpdatingShipments, &item.Summary, &item.CreatedAt, &item.UpdatedAt, &item.UserName, &item.Phone, &item.ProductName, &item.AdminAccount)
 		if err != nil {
 			return nil, err
 		}

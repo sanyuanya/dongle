@@ -13,6 +13,7 @@ type OperationLog struct {
 	ProductName             string `json:"product_name"`
 	CreatedAt               string `json:"created_at"`
 	UpdatedAt               string `json:"updated_at"`
+	AdminAccount            string `json:"admin_account"`
 }
 
 type AddOperationLogRequest struct {
