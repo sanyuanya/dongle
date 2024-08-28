@@ -62,9 +62,10 @@ type AddIncomeExpenseRequest struct {
 }
 
 type GetAdminListRequest struct {
-	Page     int64  `json:"page,omitempty"`
-	PageSize int64  `json:"page_size,omitempty"`
-	Keyword  string `json:"keyword,omitempty"`
+	Page              int64  `json:"page,omitempty"`
+	PageSize          int64  `json:"page_size,omitempty"`
+	Keyword           string `json:"keyword,omitempty"`
+	HiddenSnowflakeId string `json:"hidden_snowflake_id,omitempty"`
 }
 
 type GetAdminListResponse struct {

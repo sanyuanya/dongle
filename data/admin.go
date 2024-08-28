@@ -90,8 +90,8 @@ func UpdateAdmin(tx *sql.Tx, admin *entity.UpdateAdminRequest) error {
 func GetAdminList(tx *sql.Tx, req *entity.GetAdminListRequest) ([]*entity.GetAdminListResponse, error) {
 
 	adminList := make([]*entity.GetAdminListResponse, 0)
-	baseSQL := `SELECT snowflake_id, account FROM admins WHERE deleted_at IS NULL AND is_hidden = 0 ORDER BY created_at DESC LIMIT $1 OFFSET $2`
-	rows, err := tx.Query(baseSQL, req.PageSize, req.PageSize*(req.Page-1))
+	baseSQL := `SELECT snowflake_id, account FROM admins WHERE deleted_at IS NULL AND is_hidden = 0 AND snowflake_id != $3 ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	rows, err := tx.Query(baseSQL, req.PageSize, req.PageSize*(req.Page-1), req.HiddenSnowflakeId)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func GetAdminList(tx *sql.Tx, req *entity.GetAdminListRequest) ([]*entity.GetAdm
 
 func GetAdminTotal(tx *sql.Tx, req *entity.GetAdminListRequest) (int64, error) {
 	var total int64
-	err := tx.QueryRow(`SELECT COUNT(*) FROM admins WHERE deleted_at IS NULL AND is_hidden = 0`).Scan(&total)
+	err := tx.QueryRow(`SELECT COUNT(*) FROM admins WHERE deleted_at IS NULL AND is_hidden = 0 AND snowflake_id != $1`, req.HiddenSnowflakeId).Scan(&total)
 	if err != nil {
 		return 0, err
 	}

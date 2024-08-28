@@ -38,7 +38,7 @@ func GetAdminList(c fiber.Ctx) error {
 		}
 	}()
 
-	_, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
+	snowflakeId, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
 	if err != nil {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
@@ -52,6 +52,8 @@ func GetAdminList(c fiber.Ctx) error {
 	if payload.PageSize, err = strconv.ParseInt(c.Query("page_size", "10"), 10, 64); err != nil {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("page_size 参数错误: %v", err)})
 	}
+
+	payload.HiddenSnowflakeId = snowflakeId
 
 	tx, err := data.Transaction()
 	if err != nil {
