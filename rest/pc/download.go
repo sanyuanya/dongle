@@ -74,6 +74,16 @@ func Download(c fiber.Ctx) error {
 
 	f.SetActiveSheet(1)
 
+	textStyle, err := f.NewStyle(&excelize.Style{
+		NumFmt: 49,
+	})
+
+	if err != nil {
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("创建样式失败: %v", err)})
+	}
+
+	f.SetColStyle("Sheet1", "A", textStyle)
+
 	styleId, err := f.NewStyle(&excelize.Style{
 		Font: &excelize.Font{
 			Bold: true,
