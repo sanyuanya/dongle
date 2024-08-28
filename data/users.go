@@ -184,7 +184,7 @@ func GetUserList(tx *sql.Tx, page *entity.ExportUserRequest) ([]*entity.UserPage
 		FROM
 			users
 		WHERE
-			deleted_at IS NULL
+			deleted_at IS NULL AND phone != ''
 	`
 
 	executeParams := []interface{}{}
