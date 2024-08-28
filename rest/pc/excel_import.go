@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/log"
 	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/entity"
 	"github.com/sanyuanya/dongle/tools"
@@ -137,7 +136,7 @@ func ExcelImport(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法获取行: %v", err)})
 	}
 
-	if rows[0][0] != "日期" || rows[0][1] != "姓名" || rows[0][2] != "省份" || rows[0][3] != "地市" || rows[0][4] != "手机号" {
+	if rows[0][0] != "日期" || rows[0][1] != "姓名" || rows[0][2] != "省份" || rows[0][3] != "地市" || rows[0][4] != "手机号" || rows[0][5] != "可提现积分" {
 		panic(tools.CustomError{Code: 40000, Message: "表头错误"})
 	}
 
@@ -150,7 +149,7 @@ func ExcelImport(c fiber.Ctx) error {
 	for rowIndex, row := range rows[1:] {
 		length := len(row)
 
-		if length <= 4 {
+		if length <= 5 {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 列数错误", rowIndex+1)})
 		}
@@ -166,20 +165,26 @@ func ExcelImport(c fiber.Ctx) error {
 
 		if err != nil {
 			tx.Rollback()
-			log.Info("err: ", err)
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期格式错误, 格式为: 年-月-日 例如 2024-08-07", rowIndex+1)})
 		}
+
 		importUserInfo.Nick = row[1]
 		importUserInfo.Province = row[2]
 		importUserInfo.City = row[3]
 		importUserInfo.Phone = row[4]
+
+		importUserInfo.WithdrawablePoints, err = strconv.ParseInt(row[5], 10, 64)
+		if err != nil {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 可提现积分格式错误", rowIndex+1)})
+		}
 
 		if len(importUserInfo.Phone) != 11 {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 手机号错误", rowIndex+1)})
 		}
 
-		for colIndex, colCell := range row[5:] {
+		for colIndex, colCell := range row[6:] {
 
 			shipment, err := strconv.ParseInt(colCell, 10, 64)
 			if err != nil {
@@ -220,7 +225,7 @@ func ExcelImport(c fiber.Ctx) error {
 			}
 
 			if snowflakeId != "" {
-				err := data.UpdateUserIntegralAndShipments(tx, snowflakeId, importUserInfo.Integral, importUserInfo.Shipments)
+				err := data.UpdateUserIntegralAndShipments(tx, snowflakeId, importUserInfo.Integral, importUserInfo.Shipments, importUserInfo.WithdrawablePoints)
 				if err != nil {
 					tx.Rollback()
 					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新用户积分和出货量失败: %v", err)})

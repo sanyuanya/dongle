@@ -113,14 +113,14 @@ func FindPhoneNumberContext(tx *sql.Tx, phone string) (string, error) {
 	return snowflakeId, nil
 }
 
-func UpdateUserIntegralAndShipments(tx *sql.Tx, snowflakeId string, integral int64, shipments int64) error {
+func UpdateUserIntegralAndShipments(tx *sql.Tx, snowflakeId string, integral, shipments, withdrawable_points int64) error {
 	baseSQL := `
 		UPDATE
 			users
-		SET integral=integral+$1, shipments=shipments+$2, updated_at=$3, is_white=1
-		WHERE snowflake_id=$4 AND deleted_at IS NULL
+		SET integral=integral+$1, shipments=shipments+$2, updated_at=$3, is_white=1, withdrawable_points=withdrawable_points+$4
+		WHERE snowflake_id=$5 AND deleted_at IS NULL
 	`
-	_, err := tx.Exec(baseSQL, integral, shipments, time.Now(), snowflakeId)
+	_, err := tx.Exec(baseSQL, integral, shipments, time.Now(), withdrawable_points, snowflakeId)
 
 	if err != nil {
 		return err
@@ -129,8 +129,8 @@ func UpdateUserIntegralAndShipments(tx *sql.Tx, snowflakeId string, integral int
 }
 
 func ImportUserInfo(tx *sql.Tx, importUserInfo *entity.ImportUserInfo) error {
-	baseSQL := "INSERT INTO users (nick, phone, province, city, shipments, integral, snowflake_id, created_at, updated_at, is_white) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
-	_, err := tx.Exec(baseSQL, importUserInfo.Nick, importUserInfo.Phone, importUserInfo.Province, importUserInfo.City, importUserInfo.Shipments, importUserInfo.Integral, importUserInfo.SnowflakeId, time.Now(), time.Now(), 1)
+	baseSQL := "INSERT INTO users (nick, phone, province, city, shipments, integral, snowflake_id, created_at, updated_at, is_white, withdrawable_points) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
+	_, err := tx.Exec(baseSQL, importUserInfo.Nick, importUserInfo.Phone, importUserInfo.Province, importUserInfo.City, importUserInfo.Shipments, importUserInfo.Integral, importUserInfo.SnowflakeId, time.Now(), time.Now(), 1, importUserInfo.WithdrawablePoints)
 	if err != nil {
 		return err
 	}

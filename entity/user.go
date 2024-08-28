@@ -55,14 +55,15 @@ type UserDetail struct {
 }
 
 type ImportUserInfo struct {
-	Nick        string    `json:"nick"`
-	Phone       string    `json:"phone"`
-	Province    string    `json:"province"`
-	City        string    `json:"city"`
-	Shipments   int64     `json:"shipments"`
-	Integral    int64     `json:"integral"`
-	SnowflakeId string    `json:"snowflake_id"`
-	ImportdAt   time.Time `json:"importd_at"`
+	Nick               string    `json:"nick"`
+	Phone              string    `json:"phone"`
+	Province           string    `json:"province"`
+	City               string    `json:"city"`
+	Shipments          int64     `json:"shipments"`
+	Integral           int64     `json:"integral"`
+	SnowflakeId        string    `json:"snowflake_id"`
+	ImportdAt          time.Time `json:"importd_at"`
+	WithdrawablePoints int64     `json:"withdrawable_points"`
 }
 
 type MiniLoginRequest struct {

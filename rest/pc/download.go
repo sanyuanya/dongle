@@ -56,6 +56,7 @@ func Download(c fiber.Ctx) error {
 		"省份",
 		"地市",
 		"手机号",
+		"可提现积分",
 	}
 
 	for _, v := range product {
