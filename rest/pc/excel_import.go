@@ -181,10 +181,14 @@ func ExcelImport(c fiber.Ctx) error {
 
 		for colIndex, colCell := range row[5 : length-1] {
 
+			if colCell == "" {
+				continue
+			}
+
 			shipment, err := strconv.ParseInt(colCell, 10, 64)
 			if err != nil {
 				tx.Rollback()
-				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 单元格: %v 格式错误", rowIndex+2, colIndex+5, colCell)})
+				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 单元格: %v 格式错误, 无法转换为数字", rowIndex+2, colIndex+5, colCell)})
 			}
 
 			if shipment < 0 || shipment > 100000 {
