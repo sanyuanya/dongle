@@ -20,7 +20,7 @@ func GetRoleList(tx *sql.Tx) ([]*entity.Role, error) {
 		FROM
 			roles
 		WHERE
-			deleted_at IS NULL ORDER BY created_at DESC
+			deleted_at IS NULL AND is_hidden = 0 ORDER BY created_at DESC
 	`
 
 	rows, err := tx.Query(baseSQL)
