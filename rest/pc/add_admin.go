@@ -66,7 +66,13 @@ func AddAdmin(c fiber.Ctx) error {
 
 	// 密码必须包含数字和字母 大写字母 小写字母
 	if !isValidPassword(payload.Password) {
-		panic(tools.CustomError{Code: 40000, Message: "密码必须包含数字和字母,其中至少有一个大写字母和小写字母"})
+		panic(tools.CustomError{Code: 40000, Message: "密码必须包含数字和字母,其中至少有一个大写字母和小写字母,不能包含中文"})
+	}
+
+	for _, char := range payload.Account {
+		if unicode.Is(unicode.Han, char) {
+			panic(tools.CustomError{Code: 40000, Message: "用户名不能包含中文"})
+		}
 	}
 
 	tx, err := data.Transaction()
@@ -132,7 +138,7 @@ func AddAdmin(c fiber.Ctx) error {
 }
 
 func isValidPassword(password string) bool {
-	var hasUpper, hasLower, hasDigit bool
+	var hasUpper, hasLower, hasDigit, hasChinese bool
 	for _, char := range password {
 		switch {
 		case unicode.IsUpper(char):
@@ -141,7 +147,9 @@ func isValidPassword(password string) bool {
 			hasLower = true
 		case unicode.IsDigit(char):
 			hasDigit = true
+		case unicode.Is(unicode.Han, char):
+			hasChinese = true
 		}
 	}
-	return hasUpper && hasLower && hasDigit
+	return hasUpper && hasLower && hasDigit && !hasChinese
 }

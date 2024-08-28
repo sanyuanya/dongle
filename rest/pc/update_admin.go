@@ -3,6 +3,7 @@ package pc
 import (
 	"fmt"
 	"regexp"
+	"unicode"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
@@ -55,6 +56,12 @@ func UpdateAdmin(c fiber.Ctx) error {
 	re := regexp.MustCompile(`\s`)
 	if re.MatchString(payload.Account) {
 		panic(tools.CustomError{Code: 40000, Message: "用户名不能包含空格"})
+	}
+
+	for _, char := range payload.Account {
+		if unicode.Is(unicode.Han, char) {
+			panic(tools.CustomError{Code: 40000, Message: "用户名不能包含中文"})
+		}
 	}
 
 	tx, err := data.Transaction()
