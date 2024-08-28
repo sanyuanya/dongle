@@ -158,11 +158,6 @@ func ExcelImport(c fiber.Ctx) error {
 
 		importUserInfo.ImportdAt, err = time.Parse(layout, row[0])
 
-		// if importUserInfo.ImportdAt.Before(beginTime) || importUserInfo.ImportdAt.After(finishTime) {
-		// 	tx.Rollback()
-		// 	panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期超出范围", rowIndex+1)})
-		// }
-
 		if err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期格式错误, 格式为: 年-月-日 例如 2024-08-07", rowIndex+1)})
@@ -173,7 +168,7 @@ func ExcelImport(c fiber.Ctx) error {
 		importUserInfo.City = row[3]
 		importUserInfo.Phone = row[4]
 
-		importUserInfo.WithdrawablePoints, err = strconv.ParseInt(row[5], 10, 64)
+		importUserInfo.WithdrawablePoints, err = strconv.ParseInt(row[length-1], 10, 64)
 		if err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 可提现积分格式错误", rowIndex+1)})
@@ -184,7 +179,7 @@ func ExcelImport(c fiber.Ctx) error {
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 手机号错误", rowIndex+1)})
 		}
 
-		for colIndex, colCell := range row[6:] {
+		for colIndex, colCell := range row[5 : length-1] {
 
 			shipment, err := strconv.ParseInt(colCell, 10, 64)
 			if err != nil {

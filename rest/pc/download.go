@@ -56,12 +56,13 @@ func Download(c fiber.Ctx) error {
 		"省份",
 		"地市",
 		"手机号",
-		"可提现积分",
 	}
 
 	for _, v := range product {
 		fileHeader = append(fileHeader, fmt.Sprintf("%s 出货量", v.Name))
 	}
+
+	fileHeader = append(fileHeader, "可提现积分")
 
 	maxCol := len(fileHeader)
 	for i, v := range fileHeader {
