@@ -216,15 +216,15 @@ func ExcelImport(c fiber.Ctx) error {
 			importUserInfo.Integral = shipment * product.Integral
 
 			// 查询手机号是否存在
-			snowflakeId, err := data.FindPhoneNumberContext(tx, row[4])
+			importUserInfo.SnowflakeId, err = data.FindPhoneNumberContext(tx, row[4])
 
 			if err != nil {
 				tx.Rollback()
 				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询手机号失败: %v", err)})
 			}
 
-			if snowflakeId != "" {
-				err := data.UpdateUserIntegralAndShipments(tx, snowflakeId, importUserInfo.Integral, importUserInfo.Shipments, importUserInfo.WithdrawablePoints)
+			if importUserInfo.SnowflakeId != "" {
+				err := data.UpdateUserIntegralAndShipments(tx, importUserInfo.SnowflakeId, importUserInfo.Integral, importUserInfo.Shipments)
 				if err != nil {
 					tx.Rollback()
 					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新用户积分和出货量失败: %v", err)})
@@ -238,8 +238,6 @@ func ExcelImport(c fiber.Ctx) error {
 					tx.Rollback()
 					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增用户失败: %v", err)})
 				}
-
-				snowflakeId = importUserInfo.SnowflakeId
 			}
 
 			addIncomeExpenseRequest := new(entity.AddIncomeExpenseRequest)
@@ -247,7 +245,7 @@ func ExcelImport(c fiber.Ctx) error {
 			addIncomeExpenseRequest.Summary = "分红奖励"
 			addIncomeExpenseRequest.Integral = importUserInfo.Integral
 			addIncomeExpenseRequest.Shipments = shipment
-			addIncomeExpenseRequest.UserId = snowflakeId
+			addIncomeExpenseRequest.UserId = importUserInfo.SnowflakeId
 			addIncomeExpenseRequest.Batch = batch
 			addIncomeExpenseRequest.ProductId = product.SnowflakeId
 			addIncomeExpenseRequest.ProductIntegral = product.Integral
@@ -259,6 +257,13 @@ func ExcelImport(c fiber.Ctx) error {
 				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增收支记录失败: %v", err)})
 			}
 		}
+
+		err = data.UpdateUserWithdrawablePoints(tx, importUserInfo.SnowflakeId, importUserInfo.WithdrawablePoints)
+		if err != nil {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新用户可提现积分失败: %v", err)})
+		}
+
 	}
 
 	tx.Commit()

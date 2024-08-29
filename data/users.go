@@ -113,14 +113,29 @@ func FindPhoneNumberContext(tx *sql.Tx, phone string) (string, error) {
 	return snowflakeId, nil
 }
 
-func UpdateUserIntegralAndShipments(tx *sql.Tx, snowflakeId string, integral, shipments, withdrawable_points int64) error {
+func UpdateUserIntegralAndShipments(tx *sql.Tx, snowflakeId string, integral, shipments int64) error {
 	baseSQL := `
 		UPDATE
 			users
-		SET integral=integral+$1, shipments=shipments+$2, updated_at=$3, is_white=1, withdrawable_points=withdrawable_points+$4
-		WHERE snowflake_id=$5 AND deleted_at IS NULL
+		SET integral=integral+$1, shipments=shipments+$2, updated_at=$3, is_white=1
+		WHERE snowflake_id=$4 AND deleted_at IS NULL
 	`
-	_, err := tx.Exec(baseSQL, integral, shipments, time.Now(), withdrawable_points, snowflakeId)
+	_, err := tx.Exec(baseSQL, integral, shipments, time.Now(), snowflakeId)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateUserWithdrawablePoints(tx *sql.Tx, snowflakeId string, withdrawablePoints int64) error {
+	baseSQL := `
+		UPDATE
+			users
+		SET withdrawable_points=$1, updated_at=$2
+		WHERE snowflake_id=$3 AND deleted_at IS NULL
+	`
+	_, err := tx.Exec(baseSQL, withdrawablePoints, time.Now(), snowflakeId)
 
 	if err != nil {
 		return err
