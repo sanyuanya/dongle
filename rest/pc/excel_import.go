@@ -133,7 +133,7 @@ func ExcelImport(c fiber.Ctx) error {
 	// 获取 Sheet1 上所有单元格
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
-		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法获取行: %v", err)})
+		panic(tools.CustomError{Code: 40000, Message: "无法获取行"})
 	}
 
 	if rows[0][1] != "姓名" || rows[0][2] != "省份" || rows[0][3] != "地市" || rows[0][4] != "手机号" {

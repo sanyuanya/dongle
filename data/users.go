@@ -144,8 +144,8 @@ func UpdateUserWithdrawablePoints(tx *sql.Tx, snowflakeId string, withdrawablePo
 }
 
 func ImportUserInfo(tx *sql.Tx, importUserInfo *entity.ImportUserInfo) error {
-	baseSQL := "INSERT INTO users (nick, phone, province, city, shipments, integral, snowflake_id, created_at, updated_at, is_white, withdrawable_points) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
-	_, err := tx.Exec(baseSQL, importUserInfo.Nick, importUserInfo.Phone, importUserInfo.Province, importUserInfo.City, importUserInfo.Shipments, importUserInfo.Integral, importUserInfo.SnowflakeId, time.Now(), time.Now(), 1, importUserInfo.WithdrawablePoints)
+	baseSQL := "INSERT INTO users (nick, phone, province, city, shipments, integral, snowflake_id, created_at, updated_at, is_white) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
+	_, err := tx.Exec(baseSQL, importUserInfo.Nick, importUserInfo.Phone, importUserInfo.Province, importUserInfo.City, importUserInfo.Shipments, importUserInfo.Integral, importUserInfo.SnowflakeId, time.Now(), time.Now(), 1)
 	if err != nil {
 		return err
 	}
