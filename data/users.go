@@ -132,7 +132,7 @@ func UpdateUserWithdrawablePoints(tx *sql.Tx, snowflakeId string, withdrawablePo
 	baseSQL := `
 		UPDATE
 			users
-		SET withdrawable_points=$1, updated_at=$2
+		SET withdrawable_points=withdrawable_points+$1, updated_at=$2
 		WHERE snowflake_id=$3 AND deleted_at IS NULL
 	`
 	_, err := tx.Exec(baseSQL, withdrawablePoints, time.Now(), snowflakeId)

@@ -167,7 +167,6 @@ func ExcelImport(c fiber.Ctx) error {
 		importUserInfo.Province = row[2]
 		importUserInfo.City = row[3]
 		importUserInfo.Phone = row[4]
-
 		importUserInfo.WithdrawablePoints, err = strconv.ParseInt(row[length-1], 10, 64)
 		if err != nil {
 			tx.Rollback()
@@ -177,6 +176,13 @@ func ExcelImport(c fiber.Ctx) error {
 		if len(importUserInfo.Phone) != 11 {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 手机号错误", rowIndex+1)})
+		}
+
+		importUserInfo.SnowflakeId, err = data.FindPhoneNumberContext(tx, row[4])
+
+		if err != nil {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询手机号失败: %v", err)})
 		}
 
 		for colIndex, colCell := range row[5 : length-1] {
@@ -256,6 +262,11 @@ func ExcelImport(c fiber.Ctx) error {
 				tx.Rollback()
 				panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("新增收支记录失败: %v", err)})
 			}
+		}
+
+		if importUserInfo.SnowflakeId == "" {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("第 %d 行, 数据有误", rowIndex+1)})
 		}
 
 		err = data.UpdateUserWithdrawablePoints(tx, importUserInfo.SnowflakeId, importUserInfo.WithdrawablePoints)
