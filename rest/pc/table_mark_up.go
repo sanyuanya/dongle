@@ -56,7 +56,9 @@ func TableMarkUp(c fiber.Ctx) error {
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "查询成功",
-		Result:  tableMarkUpResponse,
+		Result: map[string]any{
+			"tableMarkUp": tableMarkUpResponse,
+		},
 	})
 
 }
