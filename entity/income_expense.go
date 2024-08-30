@@ -55,3 +55,11 @@ type UpdateIncomeRequest struct {
 	Shipments   int64  `json:"shipments"`
 	Integral    int64  `json:"integral"`
 }
+
+type TableMarkUp struct {
+	Year     int64  `json:"year"`
+	Month    int64  `json:"month"`
+	Day      int64  `json:"day"`
+	Path     string `json:"path"`
+	FileName string `json:"file_name"`
+}

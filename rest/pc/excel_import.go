@@ -1,6 +1,7 @@
 package pc
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/entity"
 	"github.com/sanyuanya/dongle/tools"
@@ -56,50 +58,10 @@ func ExcelImport(c fiber.Ctx) error {
 
 	batch := tools.SnowflakeUseCase.NextVal()
 
-	values := multipart.Value
-
-	startTime := values["start_time"]
-	endTime := values["end_time"]
-
-	if len(startTime) == 0 || len(endTime) == 0 {
-		panic(tools.CustomError{Code: 40000, Message: "开始时间和结束时间不能为空"})
-	}
-
-	beginTime, err := tools.ValidateTimestamp(startTime[0])
-
-	if err != nil {
-		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("开始时间格式错误: %v, 正确格式为13位的毫秒时间戳.", startTime[0])})
-	}
-
-	finishTime, err := tools.ValidateTimestamp(endTime[0])
-
-	if err != nil {
-		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("结束时间格式错误: %v,正确格式为13位的毫秒时间戳.", endTime[0])})
-	}
-
-	if beginTime.After(finishTime) {
-		panic(tools.CustomError{Code: 40000, Message: "开始时间不能晚于结束时间"})
-	}
-
-	if finishTime.After(time.Now()) {
-		panic(tools.CustomError{Code: 40000, Message: "结束时间不能晚于当前时间"})
-	}
-
-	// 查询当前日期是否已经导入
-	// exist, err := data.CheckImportedAt(beginTime, finishTime)
-
-	// if err != nil {
-	// 	panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询导入日期失败: %v", err)})
-	// }
-
-	// if exist {
-	// 	panic(tools.CustomError{Code: 40000, Message: "当前日期已经导入, 请勿重复导入"})
-	// }
-
 	file := multipart.File["file"][0]
 
 	// Remove the temporary file
-	defer os.Remove("upload/" + file.Filename)
+	// defer os.Remove("upload/" + file.Filename)
 
 	src, err := file.Open()
 	if err != nil {
@@ -112,8 +74,10 @@ func ExcelImport(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法创建文件夹: %v", err)})
 	}
 
+	uniqueFileName := fmt.Sprintf("%s_%s", uuid.New().String(), hex.EncodeToString([]byte(file.Filename)))
+
 	// Destination
-	dst, err := os.Create("upload/" + file.Filename)
+	dst, err := os.Create("upload/" + uniqueFileName)
 	if err != nil {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法创建文件: %v", err)})
 	}
@@ -126,7 +90,7 @@ func ExcelImport(c fiber.Ctx) error {
 	// Close the file
 	defer dst.Close()
 
-	f, err := excelize.OpenFile("upload/" + file.Filename)
+	f, err := excelize.OpenFile("upload/" + uniqueFileName)
 	if err != nil {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法打开文件: %v", err)})
 	}
@@ -163,20 +127,6 @@ func ExcelImport(c fiber.Ctx) error {
 		if err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期格式错误, 格式为: 年-月-日 例如 2024-08-07", rowIndex+1)})
-		}
-
-		// 将 importUserInfo.ImportdAt 转换为 CST 时区
-		location, err := time.LoadLocation("Asia/Shanghai")
-		if err != nil {
-			tx.Rollback()
-			panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("加载时区失败: %v", err)})
-		}
-
-		importUserInfo.ImportdAt = importUserInfo.ImportdAt.In(location).Add(-time.Hour * 8)
-
-		if importUserInfo.ImportdAt.Unix() < beginTime.Unix() || importUserInfo.ImportdAt.Unix() > finishTime.Unix() {
-			tx.Rollback()
-			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期不在导入范围内", rowIndex+1)})
 		}
 
 		importUserInfo.Nick = row[1]
@@ -247,7 +197,21 @@ func ExcelImport(c fiber.Ctx) error {
 			}
 
 			if importUserInfo.SnowflakeId != "" {
-				err := data.UpdateUserIntegralAndShipments(tx, importUserInfo.SnowflakeId, importUserInfo.Integral, importUserInfo.Shipments)
+
+				// 查询当前日期是否已经导入
+				exist, err := data.CheckImportedAt(importUserInfo.ImportdAt, importUserInfo.SnowflakeId)
+
+				if err != nil {
+					tx.Rollback()
+					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询导入日期失败: %v", err)})
+				}
+
+				if exist {
+					tx.Rollback()
+					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("第 %d 行, 当前日期用户已经导入, 请勿重复导入", rowIndex+2)})
+				}
+
+				err = data.UpdateUserIntegralAndShipments(tx, importUserInfo.SnowflakeId, importUserInfo.Integral, importUserInfo.Shipments)
 				if err != nil {
 					tx.Rollback()
 					panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新用户积分和出货量失败: %v", err)})
@@ -273,6 +237,9 @@ func ExcelImport(c fiber.Ctx) error {
 			addIncomeExpenseRequest.ProductId = product.SnowflakeId
 			addIncomeExpenseRequest.ProductIntegral = product.Integral
 			addIncomeExpenseRequest.ImportdAt = importUserInfo.ImportdAt
+			addIncomeExpenseRequest.WithdrawablePoints = importUserInfo.WithdrawablePoints
+			addIncomeExpenseRequest.Path = "/api/pc/upload/" + uniqueFileName
+			addIncomeExpenseRequest.FileName = file.Filename
 
 			err = data.AddIncomeExpense(tx, addIncomeExpenseRequest)
 			if err != nil {
@@ -291,7 +258,6 @@ func ExcelImport(c fiber.Ctx) error {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("更新用户可提现积分失败: %v", err)})
 		}
-
 	}
 
 	tx.Commit()

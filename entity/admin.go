@@ -50,15 +50,18 @@ type ApprovalWithdrawalRequest struct {
 }
 
 type AddIncomeExpenseRequest struct {
-	SnowflakeId     string    `json:"snowflake_id"`
-	Summary         string    `json:"summary"`
-	Integral        int64     `json:"integral"`
-	Shipments       int64     `json:"shipments"`
-	UserId          string    `json:"user_id"`
-	Batch           string    `json:"batch"`
-	ProductId       string    `json:"product_id"`
-	ProductIntegral int64     `json:"product_integral"`
-	ImportdAt       time.Time `json:"importd_at"`
+	SnowflakeId        string    `json:"snowflake_id"`
+	Summary            string    `json:"summary"`
+	Integral           int64     `json:"integral"`
+	Shipments          int64     `json:"shipments"`
+	UserId             string    `json:"user_id"`
+	Batch              string    `json:"batch"`
+	ProductId          string    `json:"product_id"`
+	ProductIntegral    int64     `json:"product_integral"`
+	ImportdAt          time.Time `json:"importd_at"`
+	WithdrawablePoints int64     `json:"withdrawable_points"`
+	Path               string    `json:"path"`
+	FileName           string    `json:"file_name"`
 }
 
 type GetAdminListRequest struct {

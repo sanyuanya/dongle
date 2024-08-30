@@ -8,12 +8,72 @@ import (
 	"github.com/sanyuanya/dongle/entity"
 )
 
+func GetIncomeByPath(tx *sql.Tx, path string) (string, error) {
+
+	baseSQL := `
+		SELECT
+			file_name
+		FROM
+			income_expense
+		WHERE
+			path = $1 AND deleted_at IS NULL
+		`
+
+	var fileName string
+	err := tx.QueryRow(baseSQL, path).Scan(&fileName)
+
+	if err != nil {
+		return "", err
+	}
+
+	return fileName, nil
+}
+
+func TableMarkUp(tx *sql.Tx, year, month string) ([]*entity.TableMarkUp, error) {
+
+	baseSQL := `
+		SELECT 
+			DATE_PART('year', importd_at) AS year ,
+			DATE_PART('month', importd_at) AS month,
+			DATE_PART('day', importd_at) AS day,
+			path,
+			file_name
+		FROM 
+			income_expense
+		WHERE 
+			DATE_PART('year', importd_at) = $1 AND DATE_PART('month', importd_at) = $2 AND deleted_at IS NULL
+		GROUP BY year, month, day, path, file_name
+		ORDER BY day ASC
+		`
+
+	tableMarkUp := make([]*entity.TableMarkUp, 0)
+
+	rows, err := tx.Query(baseSQL, year, month)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		table := new(entity.TableMarkUp)
+		err := rows.Scan(&table.Year, &table.Month, &table.Day, &table.Path, &table.FileName)
+		if err != nil {
+			return nil, err
+		}
+		tableMarkUp = append(tableMarkUp, table)
+	}
+
+	return tableMarkUp, nil
+}
+
 func AddIncomeExpense(tx *sql.Tx, addIncomeExpenseRequest *entity.AddIncomeExpenseRequest) error {
 
 	baseSQL := `
 		INSERT INTO 
-			income_expense (snowflake_id, summary, integral, shipments, user_id, batch, created_at, updated_at, product_id, product_integral, importd_at)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+			income_expense (snowflake_id, summary, integral, shipments, user_id, batch, created_at, updated_at, product_id, product_integral, importd_at, withdrawable_points, path, file_name)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 		`
 	_, err := tx.Exec(baseSQL,
 		addIncomeExpenseRequest.SnowflakeId,
@@ -27,6 +87,9 @@ func AddIncomeExpense(tx *sql.Tx, addIncomeExpenseRequest *entity.AddIncomeExpen
 		addIncomeExpenseRequest.ProductId,
 		addIncomeExpenseRequest.ProductIntegral,
 		addIncomeExpenseRequest.ImportdAt,
+		addIncomeExpenseRequest.WithdrawablePoints,
+		addIncomeExpenseRequest.Path,
+		addIncomeExpenseRequest.FileName,
 	)
 
 	if err != nil {
@@ -394,7 +457,7 @@ func UpdateIncomeBySnowflakeId(tx *sql.Tx, modify *entity.UpdateIncomeRequest) e
 	return nil
 }
 
-func CheckImportedAt(beginTime, finishTime time.Time) (bool, error) {
+func CheckImportedAt(importAt time.Time, snowflakeId string) (bool, error) {
 
 	baseSQL := `
 		SELECT
@@ -402,11 +465,11 @@ func CheckImportedAt(beginTime, finishTime time.Time) (bool, error) {
 		FROM
 			income_expense
 		WHERE
-			importd_at BETWEEN $1 AND $2
+			importd_at = $1 AND user_id = $2 AND deleted_at IS NULL
 		`
 
 	var count int64
-	err := db.QueryRow(baseSQL, beginTime, finishTime).Scan(&count)
+	err := db.QueryRow(baseSQL, importAt, snowflakeId).Scan(&count)
 
 	if err != nil {
 		return false, err
