@@ -56,45 +56,45 @@ func ExcelImport(c fiber.Ctx) error {
 
 	batch := tools.SnowflakeUseCase.NextVal()
 
-	values := multipart.Value
+	// values := multipart.Value
 
-	startTime := values["start_time"]
-	endTime := values["end_time"]
+	// startTime := values["start_time"]
+	// endTime := values["end_time"]
 
-	if len(startTime) == 0 || len(endTime) == 0 {
-		panic(tools.CustomError{Code: 40000, Message: "开始时间和结束时间不能为空"})
-	}
+	// if len(startTime) == 0 || len(endTime) == 0 {
+	// 	panic(tools.CustomError{Code: 40000, Message: "开始时间和结束时间不能为空"})
+	// }
 
-	beginTime, err := tools.ValidateTimestamp(startTime[0])
+	// beginTime, err := tools.ValidateTimestamp(startTime[0])
 
-	if err != nil {
-		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("开始时间格式错误: %v", err)})
-	}
+	// if err != nil {
+	// 	panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("开始时间格式错误: %v, 正确格式为13位的毫秒时间戳.", startTime[0])})
+	// }
 
-	finishTime, err := tools.ValidateTimestamp(endTime[0])
+	// finishTime, err := tools.ValidateTimestamp(endTime[0])
 
-	if err != nil {
-		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("结束时间格式错误: %v", err)})
-	}
+	// if err != nil {
+	// 	panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("结束时间格式错误: %v,正确格式为13位的毫秒时间戳.", endTime[0])})
+	// }
 
-	if beginTime.After(finishTime) {
-		panic(tools.CustomError{Code: 40000, Message: "开始时间不能晚于结束时间"})
-	}
+	// if beginTime.After(finishTime) {
+	// 	panic(tools.CustomError{Code: 40000, Message: "开始时间不能晚于结束时间"})
+	// }
 
-	if finishTime.After(time.Now()) {
-		panic(tools.CustomError{Code: 40000, Message: "结束时间不能晚于当前时间"})
-	}
+	// if finishTime.After(time.Now()) {
+	// 	panic(tools.CustomError{Code: 40000, Message: "结束时间不能晚于当前时间"})
+	// }
 
 	// 查询当前日期是否已经导入
-	exist, err := data.CheckImportedAt(beginTime, finishTime)
+	// exist, err := data.CheckImportedAt(beginTime, finishTime)
 
-	if err != nil {
-		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询导入日期失败: %v", err)})
-	}
+	// if err != nil {
+	// 	panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询导入日期失败: %v", err)})
+	// }
 
-	if exist {
-		panic(tools.CustomError{Code: 40000, Message: "当前日期已经导入, 请勿重复导入"})
-	}
+	// if exist {
+	// 	panic(tools.CustomError{Code: 40000, Message: "当前日期已经导入, 请勿重复导入"})
+	// }
 
 	file := multipart.File["file"][0]
 
@@ -136,6 +136,8 @@ func ExcelImport(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: "无法获取行"})
 	}
 
+	rowLength := len(rows[0])
+
 	if rows[0][1] != "姓名" || rows[0][2] != "省份" || rows[0][3] != "地市" || rows[0][4] != "手机号" {
 		panic(tools.CustomError{Code: 40000, Message: "表头错误"})
 	}
@@ -149,9 +151,9 @@ func ExcelImport(c fiber.Ctx) error {
 	for rowIndex, row := range rows[1:] {
 		length := len(row)
 
-		if length <= 5 {
+		if rowLength != length || length <= 5 {
 			tx.Rollback()
-			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 列数错误", rowIndex+1)})
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 单元格不能为空", rowIndex+1)})
 		}
 
 		importUserInfo := new(entity.ImportUserInfo)
@@ -188,7 +190,8 @@ func ExcelImport(c fiber.Ctx) error {
 		for colIndex, colCell := range row[5 : length-1] {
 
 			if colCell == "" {
-				continue
+				tx.Rollback()
+				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 单元格不能为空", rowIndex+2, colIndex+5)})
 			}
 
 			shipment, err := strconv.ParseInt(colCell, 10, 64)
@@ -197,13 +200,13 @@ func ExcelImport(c fiber.Ctx) error {
 				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 单元格: %v 格式错误, 无法转换为数字", rowIndex+2, colIndex+5, colCell)})
 			}
 
+			if shipment == 0 {
+				continue
+			}
+
 			if shipment < 0 || shipment > 100000 {
 				tx.Rollback()
 				panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 第 %d 列, 单元格: %v 不能为负数、或大于 10 万", rowIndex+2, colIndex+5, colCell)})
-			}
-
-			if shipment == 0 {
-				continue
 			}
 
 			productName := strings.TrimSpace(strings.ReplaceAll(rows[0][colIndex+5], "出货量", ""))
