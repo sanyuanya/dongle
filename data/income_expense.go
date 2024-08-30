@@ -41,7 +41,7 @@ func TableMarkUp(tx *sql.Tx, year, month string) ([]*entity.TableMarkUp, error) 
 		FROM 
 			income_expense
 		WHERE 
-			DATE_PART('year', importd_at) = $1 AND DATE_PART('month', importd_at) = $2 AND deleted_at IS NULL
+			DATE_PART('year', importd_at) = $1 AND DATE_PART('month', importd_at) = $2 AND deleted_at IS NULL AND path != '' AND file_name != ''
 		GROUP BY year, month, day, path, file_name
 		ORDER BY day ASC
 		`
