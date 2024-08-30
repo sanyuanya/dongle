@@ -56,45 +56,45 @@ func ExcelImport(c fiber.Ctx) error {
 
 	batch := tools.SnowflakeUseCase.NextVal()
 
-	// values := multipart.Value
+	values := multipart.Value
 
-	// startTime := values["start_time"]
-	// endTime := values["end_time"]
+	startTime := values["start_time"]
+	endTime := values["end_time"]
 
-	// if len(startTime) == 0 || len(endTime) == 0 {
-	// 	panic(tools.CustomError{Code: 40000, Message: "开始时间和结束时间不能为空"})
-	// }
+	if len(startTime) == 0 || len(endTime) == 0 {
+		panic(tools.CustomError{Code: 40000, Message: "开始时间和结束时间不能为空"})
+	}
 
-	// beginTime, err := tools.ValidateTimestamp(startTime[0])
+	beginTime, err := tools.ValidateTimestamp(startTime[0])
 
-	// if err != nil {
-	// 	panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("开始时间格式错误: %v, 正确格式为13位的毫秒时间戳.", startTime[0])})
-	// }
+	if err != nil {
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("开始时间格式错误: %v, 正确格式为13位的毫秒时间戳.", startTime[0])})
+	}
 
-	// finishTime, err := tools.ValidateTimestamp(endTime[0])
+	finishTime, err := tools.ValidateTimestamp(endTime[0])
 
-	// if err != nil {
-	// 	panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("结束时间格式错误: %v,正确格式为13位的毫秒时间戳.", endTime[0])})
-	// }
+	if err != nil {
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("结束时间格式错误: %v,正确格式为13位的毫秒时间戳.", endTime[0])})
+	}
 
-	// if beginTime.After(finishTime) {
-	// 	panic(tools.CustomError{Code: 40000, Message: "开始时间不能晚于结束时间"})
-	// }
+	if beginTime.After(finishTime) {
+		panic(tools.CustomError{Code: 40000, Message: "开始时间不能晚于结束时间"})
+	}
 
-	// if finishTime.After(time.Now()) {
-	// 	panic(tools.CustomError{Code: 40000, Message: "结束时间不能晚于当前时间"})
-	// }
+	if finishTime.After(time.Now()) {
+		panic(tools.CustomError{Code: 40000, Message: "结束时间不能晚于当前时间"})
+	}
 
 	// 查询当前日期是否已经导入
-	// exist, err := data.CheckImportedAt(beginTime, finishTime)
+	exist, err := data.CheckImportedAt(beginTime, finishTime)
 
-	// if err != nil {
-	// 	panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询导入日期失败: %v", err)})
-	// }
+	if err != nil {
+		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询导入日期失败: %v", err)})
+	}
 
-	// if exist {
-	// 	panic(tools.CustomError{Code: 40000, Message: "当前日期已经导入, 请勿重复导入"})
-	// }
+	if exist {
+		panic(tools.CustomError{Code: 40000, Message: "当前日期已经导入, 请勿重复导入"})
+	}
 
 	file := multipart.File["file"][0]
 
@@ -163,6 +163,11 @@ func ExcelImport(c fiber.Ctx) error {
 		if err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期格式错误, 格式为: 年-月-日 例如 2024-08-07", rowIndex+1)})
+		}
+
+		if importUserInfo.ImportdAt.Unix() < beginTime.Unix() || importUserInfo.ImportdAt.Unix() > finishTime.Unix() {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期不在导入范围内", rowIndex+1)})
 		}
 
 		importUserInfo.Nick = row[1]
