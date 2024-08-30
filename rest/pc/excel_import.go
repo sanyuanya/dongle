@@ -86,15 +86,15 @@ func ExcelImport(c fiber.Ctx) error {
 	}
 
 	// 查询当前日期是否已经导入
-	exist, err := data.CheckImportedAt(beginTime, finishTime)
+	// exist, err := data.CheckImportedAt(beginTime, finishTime)
 
-	if err != nil {
-		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询导入日期失败: %v", err)})
-	}
+	// if err != nil {
+	// 	panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("查询导入日期失败: %v", err)})
+	// }
 
-	if exist {
-		panic(tools.CustomError{Code: 40000, Message: "当前日期已经导入, 请勿重复导入"})
-	}
+	// if exist {
+	// 	panic(tools.CustomError{Code: 40000, Message: "当前日期已经导入, 请勿重复导入"})
+	// }
 
 	file := multipart.File["file"][0]
 
@@ -164,6 +164,15 @@ func ExcelImport(c fiber.Ctx) error {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("第 %d 行, 日期格式错误, 格式为: 年-月-日 例如 2024-08-07", rowIndex+1)})
 		}
+
+		// 将 importUserInfo.ImportdAt 转换为 CST 时区
+		location, err := time.LoadLocation("Asia/Shanghai")
+		if err != nil {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("加载时区失败: %v", err)})
+		}
+
+		importUserInfo.ImportdAt = importUserInfo.ImportdAt.In(location).Add(-time.Hour * 8)
 
 		if importUserInfo.ImportdAt.Unix() < beginTime.Unix() || importUserInfo.ImportdAt.Unix() > finishTime.Unix() {
 			tx.Rollback()
