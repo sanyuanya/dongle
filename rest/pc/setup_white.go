@@ -58,9 +58,11 @@ func SetUpWhite(c fiber.Ctx) error {
 	err = data.SetUpWhiteRequest(tx, setUpWhiteList)
 
 	if err != nil {
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("添加白名单失败: %v", err)})
 	}
 
+	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "添加白名单成功",
