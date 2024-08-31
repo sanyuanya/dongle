@@ -54,6 +54,7 @@ func GetProductGroupList(c fiber.Ctx) error {
 
 	productGroupList, err := data.GetProductGroupList(tx, userId)
 	if err != nil {
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取产品组列表失败: %v", err)})
 	}
 

@@ -52,6 +52,8 @@ func DownloadFile(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50004, Message: fmt.Sprintf("查询失败: %v", err)})
 	}
 
+	tx.Commit()
+
 	// 设置响应头，以确保浏览器正确识别文件类型
 	c.Set(fiber.HeaderContentType, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.Set(fiber.HeaderContentDisposition, "attachment; filename="+fileName)

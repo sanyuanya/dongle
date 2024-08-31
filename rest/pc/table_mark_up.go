@@ -51,8 +51,12 @@ func TableMarkUp(c fiber.Ctx) error {
 	tableMarkUpResponse, err := data.TableMarkUp(tx, year, month)
 
 	if err != nil {
+		tx.Rollback()
 		panic(tools.CustomError{Code: 40001, Message: fmt.Sprintf("查询失败：%v", err)})
 	}
+	
+	tx.Commit()
+
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "查询成功",

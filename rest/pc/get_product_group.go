@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
+	"github.com/sanyuanya/dongle/entity"
 	"github.com/sanyuanya/dongle/tools"
 )
 
@@ -51,9 +52,30 @@ func GetProductGroup(c fiber.Ctx) error {
 	// 统计产品出货量
 	productGroupList, err := data.GetProductGroup(tx)
 	if err != nil {
+		tx.Rollback()
 		panic(tools.CustomError{Code: 50007, Message: fmt.Sprintf("获取产品组失败: %v", err)})
 	}
 
+	tx.Commit()
+
+	var totalIntegral int64
+
+	var totalShipment int64
+
+	// 计算总积分
+	for _, item := range productGroupList {
+		totalIntegral += item.Merge
+		totalShipment += item.Shipments
+
+	}
+
+	productGroupList = append(productGroupList, &entity.GetProductGroupListResponse{
+		ProductName: "合计",
+		Merge:       totalIntegral,
+		Shipments:   totalShipment,
+		Integral:    0,
+	})
+	
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "获取产品组成功",

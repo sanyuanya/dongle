@@ -17,6 +17,7 @@ func init() {
 	if host == "" {
 		host = "81.70.154.116"
 		// host = "127.0.0.1"
+		// host = "218.11.1.36"
 	}
 
 	var err error
