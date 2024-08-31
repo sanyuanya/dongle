@@ -20,6 +20,8 @@ func main() {
 	// Define a route for the GET method on the root path '/'
 	// pc
 
+	app.Get("/api/pc/productGroup", pc.GetProductGroup)
+
 	app.Get("/api/pc/upload/:fileName", pc.DownloadFile)
 
 	app.Get("/api/pc/tableMarkUp", pc.TableMarkUp)

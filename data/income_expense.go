@@ -347,6 +347,54 @@ func IncomePageList(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) ([]*e
 	return incomeList, nil
 }
 
+func GetProductGroup(tx *sql.Tx) ([]*entity.GetProductGroupListResponse, error) {
+	baseSQL := `
+		SELECT 
+			MIN(i.product_integral), p.name, SUM(i.shipments) shipments, SUM(i.integral) integral 
+		FROM
+			income_expense i
+		JOIN
+			product p
+		ON
+			i.product_id = p.snowflake_id
+		WHERE
+			i.deleted_at IS NULL
+		GROUP BY
+			p.name
+		`
+
+	rows, err := tx.Query(baseSQL)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	productGroupList := make([]*entity.GetProductGroupListResponse, 0)
+
+	for rows.Next() {
+
+		productGroup := new(entity.GetProductGroupListResponse)
+		err := rows.Scan(
+			&productGroup.Integral,
+			&productGroup.ProductName,
+			&productGroup.Shipments,
+			&productGroup.Merge,
+		)
+		if err != nil {
+			return nil, err
+		}
+		productGroupList = append(productGroupList, productGroup)
+	}
+
+	if productGroupList == nil {
+		productGroupList = []*entity.GetProductGroupListResponse{}
+	}
+
+	return productGroupList, nil
+}
+
 func GetProductGroupList(tx *sql.Tx, snowflakeId string) ([]*entity.GetProductGroupListResponse, error) {
 
 	baseSQL := `
