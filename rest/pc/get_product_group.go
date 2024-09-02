@@ -75,7 +75,7 @@ func GetProductGroup(c fiber.Ctx) error {
 		Shipments:   totalShipment,
 		Integral:    0,
 	})
-	
+
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "获取产品组成功",

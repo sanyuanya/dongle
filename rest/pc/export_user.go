@@ -54,6 +54,8 @@ func ExportUser(c fiber.Ctx) error {
 
 	exportUserRequest.Keyword = c.Query("keyword")
 
+	exportUserRequest.City = c.Query("city", "")
+
 	tx, err := data.Transaction()
 	if err != nil {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})

@@ -18,6 +18,7 @@ type UserPageListRequest struct {
 type ExportUserRequest struct {
 	Keyword string `json:"keyword"`
 	IsWhite int64  `json:"is_white"`
+	City    string `json:"city"`
 }
 
 type UserPageListResponse struct {

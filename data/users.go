@@ -217,6 +217,12 @@ func GetUserList(tx *sql.Tx, page *entity.ExportUserRequest) ([]*entity.UserPage
 		executeParams = append(executeParams, "%"+page.Keyword+"%")
 	}
 
+	if page.City != "" {
+		baseSQL = baseSQL + fmt.Sprintf(" AND city LIKE $%d", paramIndex)
+		paramIndex++
+		executeParams = append(executeParams, "%"+page.City+"%")
+	}
+
 	baseSQL = baseSQL + " ORDER BY created_at DESC"
 
 	rows, err := tx.Query(baseSQL, executeParams...)
