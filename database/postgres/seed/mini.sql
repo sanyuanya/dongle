@@ -1,0 +1,1 @@
+INSERT INTO mini (app_id, secret, access_token, expires_in) VALUES('wx370126c8bcf8d00c', 'e2bd2db2f82b824c66d021b6d4f5b7bb', '83_E3mVzs9Xdz1cbavO_4Fm4kRKCC41HpE7JWEVM18aGwHXNysrDPX9NuEVilhycP4uUAZmFLhyvgqOMeeoTMrGzzYkWbuQfOKiCB3ocN6reJ9k0gqAyU04rg9UmbYDEZcABARSN', 1725092181);

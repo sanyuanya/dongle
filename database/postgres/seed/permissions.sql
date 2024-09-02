@@ -1,0 +1,7 @@
+INSERT INTO permissions (snowflake_id, summary, "path", created_at, updated_at, deleted_at, api_path) VALUES('306190482718331026', '用户管理', '/staff', '2024-08-16 20:25:11.000', '2024-08-16 20:25:12.000', NULL, '');
+INSERT INTO permissions (snowflake_id, summary, "path", created_at, updated_at, deleted_at, api_path) VALUES('306190482718331023', '角色管理', '/role', '2024-08-16 20:25:37.000', '2024-08-16 20:25:38.000', NULL, '');
+INSERT INTO permissions (snowflake_id, summary, "path", created_at, updated_at, deleted_at, api_path) VALUES('306190482718331022', '客户管理', '/client', '2024-08-16 20:26:01.000', '2024-08-16 20:26:04.000', NULL, '');
+INSERT INTO permissions (snowflake_id, summary, "path", created_at, updated_at, deleted_at, api_path) VALUES('306190482718331024', '审批列表', '/examine', '2024-08-16 20:26:50.000', '2024-08-16 20:26:51.000', NULL, '');
+INSERT INTO permissions (snowflake_id, summary, "path", created_at, updated_at, deleted_at, api_path) VALUES('306190482718331030', '收支明细', '/detail', '2024-08-16 20:27:37.000', '2024-08-16 20:27:38.000', NULL, '');
+INSERT INTO permissions (snowflake_id, summary, "path", created_at, updated_at, deleted_at, api_path) VALUES('306190482718331028', '产品管理', '/product', '2024-08-16 20:24:10.000', '2024-08-16 20:24:19.000', NULL, '');
+INSERT INTO permissions (snowflake_id, summary, "path", created_at, updated_at, deleted_at, api_path) VALUES('306190482718331029', '操作日志', '/log', '2024-08-16 20:24:10.000', '2024-08-16 20:24:19.000', NULL, '');
