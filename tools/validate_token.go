@@ -11,7 +11,7 @@ func ValidateUserToken(authorization string, identity string) (string, error) {
 	token, err := ValidateToken(authorization)
 
 	if err != nil {
-		return "", fmt.Errorf("未经授权: %v", err)
+		return "", err
 	}
 
 	claims := token.Claims.(jwt.MapClaims)

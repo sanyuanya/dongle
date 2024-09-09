@@ -102,6 +102,13 @@ func main() {
 
 	app.Get("/api/mini/productGroupList", mini.GetProductGroupList)
 
+	app.Post("/api/mini/address/add", mini.AddAddress)
+
+	app.Get("/api/mini/address/list", mini.GetAddressList)
+
+	app.Post("/api/mini/address/update/:addressId", mini.UpdateAddress)
+
+	app.Delete("/api/mini/address/delete/:addressId", mini.DeleteAddress)
 	// Start the server on port 3000
 	log.Fatal(app.Listen(":3000"))
 }
