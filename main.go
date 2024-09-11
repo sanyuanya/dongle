@@ -82,6 +82,14 @@ func main() {
 
 	app.Get("/api/pc/operationLog/list", pc.GetOperationLogList)
 
+	app.Get("/api/pc/productCategories/list", pc.GetProductCategoriesList)
+
+	app.Post("/api/pc/productCategories/add", pc.AddProductCategories)
+
+	app.Post("/api/pc/productCategories/update/:productCategoriesId", pc.UpdateProductCategories)
+
+	app.Delete("/api/pc/productCategories/delete/:productCategoriesId", pc.DeleteProductCategories)
+
 	app.Post("/api/pc/pay", pc.Pay)
 
 	//mini program
