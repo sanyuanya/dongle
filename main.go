@@ -90,6 +90,16 @@ func main() {
 
 	app.Delete("/api/pc/productCategories/delete/:productCategoriesId", pc.DeleteProductCategories)
 
+	app.Get("/api/pc/item/list", pc.GetItemList)
+
+	app.Post("/api/pc/item/add", pc.AddItem)
+
+	app.Post("/api/pc/item/update/:itemId", pc.UpdateItem)
+
+	app.Delete("/api/pc/item/delete/:itemId", pc.DeleteItem)
+
+	app.Get("/api/pc/item/show/:itemId", pc.ShowItem)
+
 	app.Post("/api/pc/pay", pc.Pay)
 
 	//mini program

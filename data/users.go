@@ -257,9 +257,6 @@ func GetUserList(tx *sql.Tx, page *entity.ExportUserRequest) ([]*entity.UserPage
 		userPageList = append(userPageList, user)
 	}
 
-	if userPageList == nil {
-		userPageList = []*entity.UserPageListResponse{}
-	}
 	return userPageList, nil
 }
 

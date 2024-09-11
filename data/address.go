@@ -30,7 +30,8 @@ func GetAddressList(tx *sql.Tx, userId string) ([]entity.AddressList, error) {
 	}
 	defer rows.Close()
 
-	var addressList []entity.AddressList
+	addressList := make([]entity.AddressList, 0)
+
 	for rows.Next() {
 		var address entity.AddressList
 		err := rows.Scan(&address.SnowflakeId, &address.Location, &address.PhoneNumber, &address.IsDefault, &address.Consignee, &address.Longitude, &address.Latitude, &address.DetailedAddress)

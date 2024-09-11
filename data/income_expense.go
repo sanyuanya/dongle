@@ -156,9 +156,6 @@ func GetIncomeListBySnowflakeId(tx *sql.Tx, snowflakeId string, page *entity.Get
 		incomeList = append(incomeList, income)
 	}
 
-	if incomeList == nil {
-		incomeList = []*entity.GetIncomeListResponse{}
-	}
 	return incomeList, nil
 }
 
@@ -340,10 +337,6 @@ func IncomePageList(tx *sql.Tx, page *entity.IncomePageListExpenseRequest) ([]*e
 		incomeList = append(incomeList, income)
 	}
 
-	if incomeList == nil {
-		incomeList = []*entity.IncomePageListExpenseResponse{}
-	}
-
 	return incomeList, nil
 }
 
@@ -435,10 +428,6 @@ func GetProductGroupList(tx *sql.Tx, snowflakeId string) ([]*entity.GetProductGr
 			return nil, err
 		}
 		productGroupList = append(productGroupList, productGroup)
-	}
-
-	if productGroupList == nil {
-		productGroupList = []*entity.GetProductGroupListResponse{}
 	}
 
 	return productGroupList, nil

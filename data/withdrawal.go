@@ -113,7 +113,7 @@ func WithdrawalPageList(tx *sql.Tx, page *entity.WithdrawalPageListRequest) ([]*
 		return nil, fmt.Errorf("查询提现列表失败: %v", err)
 	}
 
-	var withdrawalList []*entity.WithdrawalList
+	withdrawalList := make([]*entity.WithdrawalList, 0)
 
 	for rows.Next() {
 		withdrawal := &entity.WithdrawalList{}
@@ -140,10 +140,6 @@ func WithdrawalPageList(tx *sql.Tx, page *entity.WithdrawalPageListRequest) ([]*
 			return nil, fmt.Errorf("扫描提现列表失败: %v", err)
 		}
 		withdrawalList = append(withdrawalList, withdrawal)
-	}
-
-	if withdrawalList == nil {
-		withdrawalList = []*entity.WithdrawalList{}
 	}
 
 	return withdrawalList, nil

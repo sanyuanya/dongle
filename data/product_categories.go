@@ -143,3 +143,13 @@ func FindByProductCategoriesName(tx *sql.Tx, name string) (string, error) {
 
 	return id, nil
 }
+
+func FindByProductCategoriesId(tx *sql.Tx, id string) (string, error) {
+	var name string
+	err := tx.QueryRow("SELECT name FROM product_categories WHERE snowflake_id = $1 AND deleted_at IS NULL", id).Scan(&name)
+	if err != nil {
+		return "", err
+	}
+
+	return name, nil
+}

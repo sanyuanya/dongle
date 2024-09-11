@@ -29,7 +29,7 @@ func GetProductAll() ([]*entity.GetProductListResponse, error) {
 
 	defer rows.Close()
 
-	var productList []*entity.GetProductListResponse
+	productList := make([]*entity.GetProductListResponse, 0)
 
 	for rows.Next() {
 		product := &entity.GetProductListResponse{}
@@ -43,10 +43,6 @@ func GetProductAll() ([]*entity.GetProductListResponse, error) {
 			return nil, err
 		}
 		productList = append(productList, product)
-	}
-
-	if productList == nil {
-		productList = []*entity.GetProductListResponse{}
 	}
 
 	return productList, nil
@@ -88,7 +84,7 @@ func GetProductList(tx *sql.Tx, page *entity.GetProductListRequest) ([]*entity.G
 
 	defer rows.Close()
 
-	var productList []*entity.GetProductListResponse
+	productList := make([]*entity.GetProductListResponse, 0)
 
 	for rows.Next() {
 		product := &entity.GetProductListResponse{}
@@ -102,10 +98,6 @@ func GetProductList(tx *sql.Tx, page *entity.GetProductListRequest) ([]*entity.G
 			return nil, err
 		}
 		productList = append(productList, product)
-	}
-
-	if productList == nil {
-		productList = []*entity.GetProductListResponse{}
 	}
 
 	return productList, nil
