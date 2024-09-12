@@ -48,7 +48,7 @@ func ItemList(tx *sql.Tx, itemPage *entity.ItemPage) ([]*entity.Item, error) {
 			categories_id,
 			status,
 			description,
-			created_at
+			TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') created_at
 		FROM
 			commodity
 		WHERE
@@ -165,4 +165,12 @@ func FindByItemId(tx *sql.Tx, itemId string) (*entity.Item, error) {
 		return nil, err
 	}
 	return item, nil
+}
+
+func UpdateItemStatus(tx *sql.Tx, payload *entity.UpdateItem) error {
+	_, err := tx.Exec("UPDATE commodity SET status = $1 WHERE snowflake_id = $2 AND deleted_at IS NULL", payload.Status, payload.SnowflakeId)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -96,9 +96,21 @@ func main() {
 
 	app.Post("/api/pc/item/update/:itemId", pc.UpdateItem)
 
+	app.Patch("/api/pc/item/updateStatus/:itemId", pc.UpdateItemStatus)
+
 	app.Delete("/api/pc/item/delete/:itemId", pc.DeleteItem)
 
 	app.Get("/api/pc/item/show/:itemId", pc.ShowItem)
+
+	//Stock Keeping Unit
+
+	app.Get("/api/pc/sku/list/:itemId", pc.GetSkuList)
+
+	app.Post("/api/pc/sku/add/:itemId", pc.AddSku)
+
+	app.Post("/api/pc/sku/update/:itemId/:skuId", pc.UpdateSku)
+
+	app.Delete("/api/pc/sku/delete/:itemId/:skuId", pc.DeleteSku)
 
 	app.Post("/api/pc/pay", pc.Pay)
 

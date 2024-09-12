@@ -643,3 +643,71 @@ func ShowItem(c fiber.Ctx) error {
 		Result:  item,
 	})
 }
+
+func UpdateItemStatus(c fiber.Ctx) error {
+	defer func() {
+		if err := recover(); err != nil {
+
+			var code int
+			var message string
+
+			switch e := err.(type) {
+			case tools.CustomError:
+				code = e.Code
+				message = e.Message
+			case error:
+				code = 50001
+				message = e.Error()
+			default:
+				code = 50002
+				message = fmt.Sprintf("%v", e)
+			}
+
+			c.JSON(tools.Response{
+				Code:    code,
+				Message: message,
+				Result:  struct{}{},
+			})
+		}
+	}()
+
+	_, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
+	if err != nil {
+		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
+	}
+
+	payload := &entity.UpdateItem{}
+
+	payload.SnowflakeId = c.Params("itemId", "")
+
+	if err = c.Bind().Body(payload); err != nil {
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
+	}
+
+	tx, err := data.Transaction()
+
+	if err != nil {
+		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法开启事务: %v", err)})
+	}
+
+	_, err = data.FindByItemId(tx, payload.SnowflakeId)
+
+	if err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50001, Message: "无法找到商品"})
+	}
+
+	if err = data.UpdateItemStatus(tx, payload); err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法更新商品状态: %v", err)})
+	}
+
+	tx.Commit()
+
+	return c.JSON(tools.Response{
+		Code:    0,
+		Message: "更新商品状态成功",
+		Result:  struct{}{},
+	})
+
+}
