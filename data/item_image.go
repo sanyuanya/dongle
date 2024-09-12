@@ -36,7 +36,7 @@ func DeleteItemImage(tx *sql.Tx, item_id string) error {
 }
 
 func GetItemImageList(tx *sql.Tx, item_id string, t int64) ([]*entity.Picture, error) {
-	rows, err := tx.Query("SELECT snowflake_id, item_id, type, sorting, ext, object_name, bucket_name FROM item_images WHERE item_id = $1 AND deleted_at IS NULL AND type = $2 ORDER BY sorting ASC, created_at ASC", item_id, t)
+	rows, err := tx.Query("SELECT snowflake_id, item_id, type, sorting, ext, object_name, bucket_name, data FROM item_images WHERE item_id = $1 AND deleted_at IS NULL AND type = $2 ORDER BY sorting ASC, created_at ASC", item_id, t)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func GetItemImageList(tx *sql.Tx, item_id string, t int64) ([]*entity.Picture, e
 
 	for rows.Next() {
 		itemImage := &entity.Picture{}
-		err := rows.Scan(&itemImage.SnowflakeId, &itemImage.ItemId, &itemImage.Type, &itemImage.Sorting, &itemImage.Ext, &itemImage.ObjectName, &itemImage.BucketName)
+		err := rows.Scan(&itemImage.SnowflakeId, &itemImage.ItemId, &itemImage.Type, &itemImage.Sorting, &itemImage.Ext, &itemImage.ObjectName, &itemImage.BucketName, &itemImage.ImageData)
 		if err != nil {
 			return nil, err
 		}

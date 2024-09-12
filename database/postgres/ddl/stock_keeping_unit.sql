@@ -20,5 +20,6 @@ CREATE TABLE public.stock_keeping_unit (
 	created_at timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	updated_at timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	deleted_at timestamp NULL,
-	ext varchar DEFAULT ''::character varying NOT NULL
+	ext varchar DEFAULT ''::character varying NOT NULL,
+	image_data varchar DEFAULT ''::character varying NOT NULL
 );

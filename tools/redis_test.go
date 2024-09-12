@@ -10,4 +10,10 @@ func TestNewRedisClient(t *testing.T) {
 		t.Errorf("NewClient() error = %v", err)
 	}
 
+	err = rdb.SetSKUStock("test3", 998)
+
+	if err != nil {
+		t.Errorf("SetSKUStock() error = %v", err)
+	}
+
 }

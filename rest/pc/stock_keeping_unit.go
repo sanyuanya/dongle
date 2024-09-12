@@ -228,6 +228,20 @@ func AddSku(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("无法添加SKU: %v", err)})
 	}
 
+	rdb := tools.Redis{}
+
+	if err = rdb.NewClient(); err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法创建 Redis 客户端: %v", err)})
+	}
+
+	defer rdb.Client.Close()
+
+	if err = rdb.SetSKUStock(payload.SnowflakeId, payload.StockQuantity); err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法同步库存到 Redis: %v", err)})
+	}
+
 	tx.Commit()
 
 	return c.JSON(tools.Response{
@@ -365,6 +379,20 @@ func UpdateSku(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法上传图片: %v", err)})
 	}
 
+	rdb := tools.Redis{}
+
+	if err = rdb.NewClient(); err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法创建 Redis 客户端: %v", err)})
+	}
+
+	defer rdb.Client.Close()
+
+	if err = rdb.SetSKUStock(payload.SnowflakeId, payload.StockQuantity); err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法同步库存到 Redis: %v", err)})
+	}
+
 	err = data.UpdateSku(tx, payload)
 
 	if err != nil {
@@ -435,4 +463,66 @@ func DeleteSku(c fiber.Ctx) error {
 		Message: "删除SKU成功",
 		Result:  struct{}{},
 	})
+}
+
+func UpdateSkuStatus(c fiber.Ctx) error {
+	defer func() {
+		if err := recover(); err != nil {
+
+			var code int
+			var message string
+
+			switch e := err.(type) {
+			case tools.CustomError:
+				code = e.Code
+				message = e.Message
+			case error:
+				code = 50001
+				message = e.Error()
+			default:
+				code = 50002
+				message = fmt.Sprintf("%v", e)
+			}
+
+			c.JSON(tools.Response{
+				Code:    code,
+				Message: message,
+				Result:  struct{}{},
+			})
+		}
+	}()
+
+	snowflakeId, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
+	_ = snowflakeId
+	if err != nil {
+		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
+	}
+
+	itemId := c.Params("itemId", "")
+	skuId := c.Params("skuId", "")
+
+	status, err := strconv.ParseInt(c.Query("status", "0"), 10, 64)
+	if err != nil {
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("status 参数错误: %v", err)})
+	}
+
+	tx, err := data.Transaction()
+
+	if err != nil {
+		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法开启事务: %v", err)})
+	}
+
+	if err = data.UpdateSkuStatus(tx, itemId, skuId, status); err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50002, Message: fmt.Sprintf("无法更新SKU状态: %v", err)})
+	}
+
+	tx.Commit()
+
+	return c.JSON(tools.Response{
+		Code:    0,
+		Message: "更新SKU状态成功",
+		Result:  struct{}{},
+	})
+
 }

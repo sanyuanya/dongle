@@ -57,6 +57,7 @@ type Sku struct {
 	ObjectName    string  `json:"object_name"`
 	BucketName    string  `json:"bucket_name"`
 	Ext           string  `json:"ext"`
+	ImageData     string  `json:"image_data"`
 	CreatedAt     string  `json:"created_at"`
 	UpdatedAt     string  `json:"updated_at"`
 }

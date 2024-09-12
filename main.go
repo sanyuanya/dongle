@@ -4,7 +4,9 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/sanyuanya/dongle/data"
+	"github.com/sanyuanya/dongle/middlewares"
 	"github.com/sanyuanya/dongle/rest/mini"
 	"github.com/sanyuanya/dongle/rest/pc"
 )
@@ -15,7 +17,7 @@ func main() {
 
 	go data.StartTicker()
 
-	// app.Use(adaptor.HTTPMiddleware(middlewares.RecordLog))
+	app.Use(adaptor.HTTPMiddleware(middlewares.RecordLog))
 
 	// Define a route for the GET method on the root path '/'
 	// pc
@@ -111,6 +113,8 @@ func main() {
 	app.Post("/api/pc/sku/update/:itemId/:skuId", pc.UpdateSku)
 
 	app.Delete("/api/pc/sku/delete/:itemId/:skuId", pc.DeleteSku)
+
+	app.Patch("/api/pc/sku/updateStatus/:itemId/:skuId", pc.UpdateSkuStatus)
 
 	app.Post("/api/pc/pay", pc.Pay)
 
