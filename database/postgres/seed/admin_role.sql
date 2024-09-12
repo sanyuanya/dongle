@@ -1,0 +1,1 @@
+INSERT INTO admin_role (snowflake_id, admin_id, role_id, created_at, updated_at, deleted_at) VALUES('306337304550051840', '303476637910437887', '306190482718330963', '2024-08-17 15:50:09.753', '2024-08-17 15:50:09.753', NULL);

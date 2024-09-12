@@ -1,7 +1,7 @@
 package entity
 
 type Permission struct {
-	SnowflakeID string `json:"snowflake_id"`
+	SnowflakeId string `json:"snowflake_id"`
 	Summary     string `json:"summary"`
 	Path        string `json:"path"`
 	CreatedAt   string `json:"created_at"`
@@ -9,8 +9,10 @@ type Permission struct {
 }
 
 type PermissionMenu struct {
-	SnowflakeID string `json:"snowflake_id"`
-	Summary     string `json:"summary"`
-	Path        string `json:"path"`
-	ApiPath     string `json:"api_path"`
+	SnowflakeId string            `json:"snowflake_id"`
+	Summary     string            `json:"summary"`
+	Path        string            `json:"path"`
+	ApiPath     string            `json:"api_path"`
+	ParentId    string            `json:"parent_id"`
+	Children    []*PermissionMenu `json:"children"`
 }

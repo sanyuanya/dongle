@@ -31,7 +31,7 @@ func GetPermissionList(tx *sql.Tx) ([]*entity.Permission, error) {
 
 		permission := &entity.Permission{}
 		err := rows.Scan(
-			&permission.SnowflakeID,
+			&permission.SnowflakeId,
 			&permission.Summary,
 			&permission.Path,
 			&permission.CreatedAt,
@@ -64,7 +64,7 @@ func GetPermission(tx *sql.Tx, snowflakeId string) (*entity.Permission, error) {
 	permission := &entity.Permission{}
 
 	err := tx.QueryRow(baseSQL, snowflakeId).Scan(
-		&permission.SnowflakeID,
+		&permission.SnowflakeId,
 		&permission.Summary,
 		&permission.Path,
 		&permission.CreatedAt,
@@ -86,7 +86,8 @@ func GetPermissionMenu(tx *sql.Tx, permissionId string) (*entity.PermissionMenu,
 			snowflake_id,
 			summary,
 			path,
-			api_path
+			api_path,
+			parent_id
 		FROM
 			permissions
 		WHERE
@@ -96,10 +97,11 @@ func GetPermissionMenu(tx *sql.Tx, permissionId string) (*entity.PermissionMenu,
 	permissionMenu := &entity.PermissionMenu{}
 
 	err := tx.QueryRow(baseSQL, permissionId).Scan(
-		&permissionMenu.SnowflakeID,
+		&permissionMenu.SnowflakeId,
 		&permissionMenu.Summary,
 		&permissionMenu.Path,
 		&permissionMenu.ApiPath,
+		&permissionMenu.ParentId,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -141,7 +143,7 @@ func GetPermissionListByRoleId(tx *sql.Tx, roleId string) ([]*entity.Permission,
 
 		permission := &entity.Permission{}
 		err := rows.Scan(
-			&permission.SnowflakeID,
+			&permission.SnowflakeId,
 			&permission.Summary,
 			&permission.Path,
 			&permission.CreatedAt,
