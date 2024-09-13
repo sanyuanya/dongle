@@ -6,14 +6,15 @@ import (
 	"github.com/sanyuanya/dongle/entity"
 )
 
-func GetPermissionList(tx *sql.Tx) ([]*entity.Permission, error) {
+func GetPermissionList(tx *sql.Tx) ([]*entity.PermissionMenu, error) {
 	baseSQL := `
 		SELECT
 			snowflake_id,
 			summary,
 			path,
-			created_at,
-			updated_at
+			parent_id,
+			TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') created_at,
+			TO_CHAR(updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at
 		FROM
 			permissions
 		WHERE
@@ -26,20 +27,23 @@ func GetPermissionList(tx *sql.Tx) ([]*entity.Permission, error) {
 	}
 	defer rows.Close()
 
-	permissions := make([]*entity.Permission, 0)
+	permissions := make([]*entity.PermissionMenu, 0)
 	for rows.Next() {
 
-		permission := &entity.Permission{}
+		permission := &entity.PermissionMenu{}
 		err := rows.Scan(
 			&permission.SnowflakeId,
 			&permission.Summary,
 			&permission.Path,
+			&permission.ParentId,
 			&permission.CreatedAt,
 			&permission.UpdatedAt,
 		)
 		if err != nil {
 			return nil, err
 		}
+
+		permission.Children = make([]*entity.PermissionMenu, 0)
 		permissions = append(permissions, permission)
 	}
 
@@ -109,6 +113,8 @@ func GetPermissionMenu(tx *sql.Tx, permissionId string) (*entity.PermissionMenu,
 		}
 		return nil, err
 	}
+
+	permissionMenu.Children = make([]*entity.PermissionMenu, 0)
 
 	return permissionMenu, nil
 }

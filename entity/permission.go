@@ -15,4 +15,6 @@ type PermissionMenu struct {
 	ApiPath     string            `json:"api_path"`
 	ParentId    string            `json:"parent_id"`
 	Children    []*PermissionMenu `json:"children"`
+	CreatedAt   string            `json:"created_at"`
+	UpdatedAt   string            `json:"updated_at"`
 }

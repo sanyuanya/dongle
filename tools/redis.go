@@ -42,8 +42,6 @@ func (r *Redis) SetSKUStock(skuId string, stock int64) error {
 	return nil
 }
 
-
-
 func (r *Redis) DeductStock(skuId string, quantity int64) (bool, error) {
 	// Lua 脚本，保证扣减库存的原子性
 	luaScript := `
@@ -70,4 +68,13 @@ func (r *Redis) DeductStock(skuId string, quantity int64) (bool, error) {
 	// 否则表示库存不足
 	log.Println("库存不足:", skuId)
 	return false, nil
+}
+
+func (r *Redis) DeleteSkuStock(skuId string) error {
+	err := r.Client.Del(context.Background(), "sku:"+skuId+":stock").Err()
+	if err != nil {
+		return fmt.Errorf("redis delete sku stock failed: %#+v", err)
+	}
+	log.Println("删除 Redis 中的库存:", skuId)
+	return nil
 }
