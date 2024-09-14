@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"regexp"
 )
 
 func Signature(method string, url string, timestamp string, nonceStr string, body string, pri *rsa.PrivateKey) (string, error) {
@@ -28,4 +29,13 @@ func Signature(method string, url string, timestamp string, nonceStr string, bod
 	authorization := fmt.Sprintf("WECHATPAY2-SHA256-RSA2048 mchid=\"%s\",nonce_str=\"%s\",timestamp=\"%s\",serial_no=\"%s\",signature=\"%s\"", mchid, nonceStr, timestamp, serialNo, signatureStr)
 
 	return authorization, nil
+}
+
+func ExtractSignature(authorization string) (string, error) {
+	re := regexp.MustCompile(`signature="([^"]+)"`)
+	matches := re.FindStringSubmatch(authorization)
+	if len(matches) < 2 {
+		return "", fmt.Errorf("无法从 authorization 字符串中提取签名")
+	}
+	return matches[1], nil
 }

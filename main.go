@@ -143,6 +143,8 @@ func main() {
 	app.Post("/api/mini/address/update/:addressId", mini.UpdateAddress)
 
 	app.Delete("/api/mini/address/delete/:addressId", mini.DeleteAddress)
+
+	app.Post("/api/pay/jsApi", mini.JsApi)
 	// Start the server on port 3000
 	log.Fatal(app.Listen(":3000"))
 }
