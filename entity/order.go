@@ -36,16 +36,37 @@ type GetOrderListRequest struct {
 }
 
 type GetOrderListResponse struct {
-	SnowflakeId    string  `json:"snowflakeId"`
-	OutTradeNo     string  `json:"outTradeNo"`
-	Total          float64 `json:"total"`
-	PayerTotal     float64 `json:"payerTotal"`
-	SuccessTime    int64   `json:"successTime"`
-	TradeType      string  `json:"tradeType"`
-	TradeState     string  `json:"tradeState"`
-	OrderState     int64   `json:"orderState"`
-	Nick           string  `json:"nick"`
-	Phone          string  `json:"phone"`
-	ExpirationTime int64   `json:"expirationTime"`
-	CreatedAt      string  `json:"createdAt"`
+	SnowflakeId     string  `json:"snowflakeId"`
+	TransactionId   string  `json:"transactionId"`
+	AppId           string  `json:"appId"`
+	MchId           string  `json:"mchId"`
+	TradeType       string  `json:"tradeType"`
+	TradeState      string  `json:"tradeState"`
+	TradeStateDesc  string  `json:"tradeStateDesc"`
+	BankType        string  `json:"bankType"`
+	SuccessTime     string  `json:"successTime"`
+	OpenId          string  `json:"openId"`
+	UserId          string  `json:"userId"`
+	Total           float64 `json:"total"`
+	PayerTotal      float64 `json:"payerTotal"`
+	Currency        string  `json:"currency"`
+	PayerCurrency   string  `json:"payerCurrency"`
+	OutTradeNo      string  `json:"outTradeNo"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+	PrepayId        string  `json:"prepayId"`
+	ExpirationTime  int64   `json:"expirationTime"`
+	AddressId       string  `json:"addressId"`
+	Consignee       string  `json:"consignee"`
+	PhoneNumber     string  `json:"phoneNumber"`
+	Location        string  `json:"location"`
+	DetailedAddress string  `json:"detailedAddress"`
+	OrderState      int64   `json:"orderState"`
+	NonceStr        string  `json:"nonceStr"`
+	PaySign         string  `json:"paySign"`
+	PayTimestamp    string  `json:"payTimestamp"`
+	SignType        string  `json:"signType"`
+	Nick            string  `json:"nick"`
+	Phone           string  `json:"phone"`
+	OrderCommodity  []*GetOrderCommodityListResponse
 }

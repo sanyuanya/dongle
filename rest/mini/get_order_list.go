@@ -70,11 +70,28 @@ func GetOrderList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取订单列表失败: %v", err)})
 	}
 
+	for _, order := range orderList {
+		order.OrderCommodity, err = data.GetOrderCommodityList(tx, order.SnowflakeId)
+		if err != nil {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取订单商品列表失败: %v", err)})
+		}
+	}
+
+	orderCount, err := data.GetOrderCount(tx, payload)
+	if err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取订单数量失败: %v", err)})
+	}
+
 	tx.Commit()
 
 	return c.JSON(tools.Response{
 		Code:    20000,
 		Message: "获取订单列表成功",
-		Result:  orderList,
+		Result: map[string]any{
+			"order_list": orderList,
+			"total":      orderCount,
+		},
 	})
 }

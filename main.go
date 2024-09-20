@@ -150,8 +150,6 @@ func main() {
 
 	app.Post("/api/order/cancel/{orderId}", mini.CancelOrder)
 
-	app.Get("/api/order/detail/{orderId}", mini.GetOrderDetail)
-
 	app.Post("/api/order/submit", mini.Submit)
 
 	app.Get("/api/cart/index", mini.CartIndex)
