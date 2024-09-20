@@ -26,7 +26,8 @@ create table "order"
     consignee        varchar   default ''::character varying not null,
     phone_number     varchar   default ''::character varying not null,
     location         varchar   default ''::character varying not null,
-    detailed_address varchar   default ''::character varying not null
+    detailed_address varchar   default ''::character varying not null,
+    order_state      integer   default 0                     not null
 );
 
 comment on table "order" is '订单';
@@ -68,6 +69,8 @@ comment on column "order".phone_number is '收货人手机号';
 comment on column "order".location is '收货人所在地区';
 
 comment on column "order".detailed_address is '收货人-详细地址';
+
+comment on column "order".order_state is '订单状态';
 
 alter table "order"
     owner to postgres;

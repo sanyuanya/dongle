@@ -78,7 +78,7 @@ func Submit(c fiber.Ctx) error {
 	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
-		Message: "下单成功",
+		Message: "创建订单成功",
 		Result:  struct{}{},
 	})
 }
