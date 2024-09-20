@@ -173,7 +173,7 @@ func UpdateSkuStatus(tx *sql.Tx, itemId, skuId string, status int64) error {
 	return err
 }
 
-func UpdateSkuStockQuantity(tx *sql.Tx, itemId, skuId string, quantity uint8) error {
+func UpdateSkuStockQuantity(tx *sql.Tx, itemId, skuId string, quantity int64) error {
 	_, err := tx.Exec("UPDATE stock_keeping_unit SET stock_quantity = $1 WHERE item_id = $2 AND snowflake_id = $3 AND deleted_at IS NULL", quantity, itemId, skuId)
 	if err != nil {
 		if err == sql.ErrNoRows {

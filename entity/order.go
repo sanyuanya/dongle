@@ -6,24 +6,24 @@ type SubmitOrderRequest struct {
 }
 
 type AddOrder struct {
-	SnowflakeId     string  `json:"snowflakeId"`
-	Total           float64 `json:"total"`
-	Currency        string  `json:"currency"`
-	OutTradeNo      string  `json:"outTradeNo"`
-	PrepayId        string  `json:"prepayId"`
-	AddressId       string  `json:"addressId"`
-	Consignee       string  `json:"consignee"`
-	PhoneNumber     string  `json:"phoneNumber"`
-	Location        string  `json:"location"`
-	DetailedAddress string  `json:"detailedAddress"`
-	OrderState      int64   `json:"orderState"`
-	NonceStr        string  `json:"nonceStr"`
-	PaySign         string  `json:"paySign"`
-	PayTimestamp    string  `json:"payTimestamp"`
-	SignType        string  `json:"signType"`
-	ExpirationTime  int64   `json:"expirationTime"`
-	UserId          string  `json:"userId"`
-	OpenId          string  `json:"openId"`
+	SnowflakeId     string `json:"snowflakeId"`
+	Total           int64  `json:"total"`
+	Currency        string `json:"currency"`
+	OutTradeNo      string `json:"outTradeNo"`
+	PrepayId        string `json:"prepayId"`
+	AddressId       string `json:"addressId"`
+	Consignee       string `json:"consignee"`
+	PhoneNumber     string `json:"phoneNumber"`
+	Location        string `json:"location"`
+	DetailedAddress string `json:"detailedAddress"`
+	OrderState      int64  `json:"orderState"`
+	NonceStr        string `json:"nonceStr"`
+	PaySign         string `json:"paySign"`
+	PayTimestamp    string `json:"payTimestamp"`
+	SignType        string `json:"signType"`
+	ExpirationTime  int64  `json:"expirationTime"`
+	UserId          string `json:"userId"`
+	OpenId          string `json:"openId"`
 }
 
 type GetOrderListRequest struct {

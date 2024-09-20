@@ -144,7 +144,7 @@ func main() {
 
 	app.Delete("/api/mini/address/delete/:addressId", mini.DeleteAddress)
 
-	app.Post("/api/order/create", mini.Submit)
+	app.Post("/api/order/submit", mini.Submit)
 
 	app.Get("/api/order/list", mini.GetOrderList)
 
@@ -160,6 +160,7 @@ func main() {
 
 	app.Post("/api/cart/delete/{cartId}", mini.CartDelete)
 
+	app.Post("/api/jsApi/notify", mini.Notify)
 	// Start the server on port 3000
 	log.Fatal(app.Listen(":3000"))
 }

@@ -2,11 +2,13 @@ package mini
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
 	"github.com/sanyuanya/dongle/entity"
+	"github.com/sanyuanya/dongle/pay"
 	"github.com/sanyuanya/dongle/tools"
 )
 
@@ -85,40 +87,53 @@ func Submit(c fiber.Ctx) error {
 	for _, commodity := range payload.OrderCommodity {
 		if commodity.Quantity <= 0 {
 			tx.Rollback()
-			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("商品数量不能小于 1")})
+			panic(tools.CustomError{Code: 40000, Message: "商品数量不能小于 1"})
 		}
 		if commodity.SkuId == "" {
 			tx.Rollback()
-			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("商品 skuId 不能为空")})
+			panic(tools.CustomError{Code: 40000, Message: "商品 skuId 不能为空"})
 		}
 		if commodity.CommodityId == "" {
 			tx.Rollback()
-			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("商品 commodityId 不能为空")})
+			panic(tools.CustomError{Code: 40000, Message: "商品 commodityId 不能为空"})
 		}
 
 		if result, err := rdb.DeductStock(commodity.SkuId, commodity.Quantity); err != nil || !result {
 			tx.Rollback()
-			panic(tools.CustomError{Code: 50002, Message: fmt.Sprintf("库存不足,下单失败")})
+			log.Printf("扣减库存失败: %#+v", err)
+			panic(tools.CustomError{Code: 50002, Message: "库存不足,下单失败"})
 		}
 
 		if err = data.UpdateSkuStockQuantity(tx, commodity.CommodityId, commodity.SkuId, commodity.Quantity); err != nil {
 			tx.Rollback()
+			if err = rdb.UpdateSkuStock(commodity.SkuId, commodity.Quantity); err != nil {
+				log.Printf("redis 更新库存失败: %#+v", err)
+			}
+			log.Printf("更新库存失败: %#+v", err)
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("更新库存失败: %v", err)})
 		}
 
 		comm, err := data.FindByItemId(tx, commodity.CommodityId)
 		if err != nil {
 			tx.Rollback()
+			if err = rdb.UpdateSkuStock(commodity.SkuId, commodity.Quantity); err != nil {
+				log.Printf("redis 更新库存失败: %#+v", err)
+			}
+			log.Printf("获取商品失败: %#+v", err)
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取商品失败: %v", err)})
 		}
 
 		sku, err := data.FindBySkuSnowflakeId(tx, commodity.SkuId)
 		if err != nil {
 			tx.Rollback()
+			if err = rdb.UpdateSkuStock(commodity.SkuId, commodity.Quantity); err != nil {
+				log.Printf("redis 更新库存失败: %#+v", err)
+			}
+			log.Printf("获取商品失败: %#+v", err)
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取商品失败: %v", err)})
 		}
 
-		addOrder.Total += (sku.Price * 100) * float64(commodity.Quantity)
+		addOrder.Total += int64((sku.Price * 100)) * commodity.Quantity
 
 		addOrderCommodity := &entity.AddOrderCommodity{
 			SnowflakeId:          tools.SnowflakeUseCase.NextVal(),
@@ -140,6 +155,43 @@ func Submit(c fiber.Ctx) error {
 		addOrderCommodityList = append(addOrderCommodityList, addOrderCommodity)
 	}
 
+	jsApiRequest := &pay.JsApiRequest{
+		AppId:       "wx370126c8bcf8d00c",
+		Mchid:       "1682195529",
+		Description: "购买中心",
+		OutTradeNo:  addOrder.OutTradeNo,
+		Attach:      "",
+		Amount: pay.Amount{
+			Total:    addOrder.Total,
+			Currency: addOrder.Currency,
+		},
+		Payer: pay.Payer{
+			OpenId: addOrder.OpenId,
+		},
+		Detail: pay.Detail{
+			GoodDetail: []*pay.GoodDetail{},
+		},
+		NotifyUrl: "https://www.weixin.qq.com/wxpay/pay.php",
+	}
+
+	jsApiResponse, err := pay.JsApi(jsApiRequest)
+
+	if err != nil {
+		tx.Rollback()
+		for _, addOrderCommodity := range addOrderCommodityList {
+			if err = rdb.UpdateSkuStock(addOrderCommodity.SkuId, addOrderCommodity.Quantity); err != nil {
+				log.Printf("redis 更新库存失败: %#+v", err)
+			}
+		}
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("支付失败: %v", err)})
+	}
+
+	addOrder.PrepayId = jsApiResponse.PrepayId
+	addOrder.PaySign = jsApiResponse.PaySign
+	addOrder.PayTimestamp = jsApiResponse.TimeStamp
+	addOrder.SignType = jsApiResponse.SignType
+	addOrder.NonceStr = jsApiResponse.NonceStr
+
 	if err = data.AddOrder(tx, addOrder); err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("添加订单失败: %v", err)})
@@ -152,35 +204,17 @@ func Submit(c fiber.Ctx) error {
 		}
 	}
 
-	// jsApiRequest := &pay.JsApiRequest{
-	// 	AppId:       "wx370126c8bcf8d00c",
-	// 	Mchid:       "1682195529",
-	// 	Description: "购买中心",
-	// 	OutTradeNo:  addOrder.OutTradeNo,
-	// 	Attach:      "",
-	// 	Amount: pay.Amount{
-	// 		Total:    addOrder.Total,
-	// 		Currency: addOrder.Currency,
-	// 	},
-	// 	Payer: pay.Payer{
-	// 		OpenId: user.OpenId,
-	// 	},
-	// 	Detail: pay.Detail{
-	// 		GoodDetail: []*pay.GoodDetail{},
-	// 	},
-	// 	NotifyUrl: "https://www.weixin.qq.com/wxpay/pay.php",
-	// }
-
-	// log.Printf("jsApiRequest: %#+v", jsApiRequest)
-	// jsApiResponse, err := pay.JsApi(jsApiRequest)
-
-	// if err != nil {
-
-	// }
 	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "创建订单成功",
-		Result:  struct{}{},
+		Result: map[string]any{
+			"outTradeNo": addOrder.OutTradeNo,
+			"paySign":    addOrder.PaySign,
+			"timestamp":  addOrder.PayTimestamp,
+			"signType":   addOrder.SignType,
+			"nonceStr":   addOrder.NonceStr,
+			"package":    "prepay_id=" + addOrder.PrepayId,
+		},
 	})
 }

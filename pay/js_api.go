@@ -34,7 +34,7 @@ type JsApiRequest struct {
 }
 
 type Amount struct {
-	Total    uint64 `json:"total"`
+	Total    int64  `json:"total"`
 	Currency string `json:"currency"`
 }
 

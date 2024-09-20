@@ -3,7 +3,7 @@ package entity
 type OrderCommodity struct {
 	CommodityId string `json:"commodityId"`
 	SkuId       string `json:"skuId"`
-	Quantity    uint8  `json:"quantity"`
+	Quantity    int64  `json:"quantity"`
 }
 
 type AddOrderCommodity struct {
@@ -17,7 +17,7 @@ type AddOrderCommodity struct {
 	SkuCode              string  `json:"skuCode"`
 	SkuName              string  `json:"skuName"`
 	Price                float64 `json:"price"`
-	Quantity             uint8   `json:"quantity"`
+	Quantity             int64   `json:"quantity"`
 	ObjectName           string  `json:"objectName"`
 	BucketName           string  `json:"bucketName"`
 	OrderId              string  `json:"orderId"`
