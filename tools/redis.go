@@ -42,7 +42,7 @@ func (r *Redis) SetSKUStock(skuId string, stock int64) error {
 	return nil
 }
 
-func (r *Redis) DeductStock(skuId string, quantity int64) (bool, error) {
+func (r *Redis) DeductStock(skuId string, quantity uint8) (bool, error) {
 	// Lua 脚本，保证扣减库存的原子性
 	luaScript := `
 		local stock = tonumber(redis.call("GET", KEYS[1]))

@@ -11,7 +11,7 @@ func ValidateUserToken(authorization string, identity string) (string, error) {
 	token, err := ValidateToken(authorization)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("无效的token: %v", err)
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
