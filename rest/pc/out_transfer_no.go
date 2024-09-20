@@ -13,10 +13,8 @@ import (
 func OutTransferNo(c fiber.Ctx) error {
 	defer func() {
 		if err := recover(); err != nil {
-
 			var code int
 			var message string
-
 			switch e := err.(type) {
 			case tools.CustomError:
 				code = e.Code

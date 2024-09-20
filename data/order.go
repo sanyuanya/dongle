@@ -213,3 +213,72 @@ func GetOrderCount(tx *sql.Tx, payload *entity.GetOrderListRequest) (uint64, err
 
 	return count, nil
 }
+
+func UpdateOrder(tx *sql.Tx, payload *entity.DecryptResourceResponse) error {
+	_, err := tx.Exec(`
+		UPDATE
+			order
+		SET
+			transaction_id = $1,
+			app_id = $2,
+			mch_id = $3,
+			trade_type = $4,
+			trade_state = $5,
+			trade_state_desc = $6,
+			bank_type = $7,
+			success_time = $8,
+			open_id = $9,
+			total = $10,
+			payer_total = $11,
+			currency = $12,
+			payer_currency = $13,
+			updated_at = NOW()
+		WHERE
+			out_trade_no = $14
+	`, payload.TransactionId,
+		payload.AppId,
+		payload.MchId,
+		payload.TradeType,
+		payload.TradeState,
+		payload.TradeStateDesc,
+		payload.BankType,
+		payload.SuccessTime,
+		payload.Payer.OpenId,
+		payload.Amount.Total,
+		payload.Amount.PayerTotal,
+		payload.Amount.Currency,
+		payload.Amount.PayerCurrency,
+		payload.OutTradeNo,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetOrderByTradeState() ([]string, error) {
+
+	rows, err := db.Query(`
+		SELECT
+			out_trade_no
+		FROM
+			order
+		WHERE
+			trade_state = ''
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	outTradeNos := make([]string, 0)
+	for rows.Next() {
+		var outTradeNo string
+		err := rows.Scan(&outTradeNo)
+		if err != nil {
+			return nil, err
+		}
+		outTradeNos = append(outTradeNos, outTradeNo)
+	}
+	return outTradeNos, nil
+}
