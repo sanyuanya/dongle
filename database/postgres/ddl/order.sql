@@ -1,33 +1,37 @@
 -- auto-generated definition
 create table "order"
 (
-    snowflake_id     varchar   default ''::character varying not null,
-    transaction_id   varchar   default ''::character varying not null,
-    app_id           varchar   default ''::character varying not null,
-    mch_id           varchar   default ''::character varying not null,
-    trade_type       varchar   default ''::character varying not null,
-    trade_state      varchar   default ''::character varying not null,
-    trade_state_desc varchar   default ''::character varying not null,
-    bank_type        varchar   default ''::character varying not null,
-    success_time     varchar   default ''::character varying not null,
-    open_id          varchar   default ''::character varying not null,
-    user_id          varchar   default ''::character varying not null,
-    total            bigint    default 0                     not null,
-    payer_total      bigint    default 0                     not null,
-    currency         varchar   default ''::character varying not null,
-    payer_currency   varchar   default ''::character varying not null,
-    out_trade_no     varchar   default ''::character varying not null,
-    created_at       timestamp default CURRENT_TIMESTAMP     not null,
-    updated_at       timestamp default CURRENT_TIMESTAMP     not null,
+    snowflake_id     varchar   default ''::character varying    not null,
+    transaction_id   varchar   default ''::character varying    not null,
+    app_id           varchar   default ''::character varying    not null,
+    mch_id           varchar   default ''::character varying    not null,
+    trade_type       varchar   default ''::character varying    not null,
+    trade_state      varchar   default ''::character varying    not null,
+    trade_state_desc varchar   default ''::character varying    not null,
+    bank_type        varchar   default ''::character varying    not null,
+    success_time     varchar   default ''::character varying    not null,
+    open_id          varchar   default ''::character varying    not null,
+    user_id          varchar   default ''::character varying    not null,
+    total            bigint    default 0                        not null,
+    payer_total      bigint    default 0                        not null,
+    currency         varchar   default ''::character varying    not null,
+    payer_currency   varchar   default ''::character varying    not null,
+    out_trade_no     varchar   default ''::character varying    not null,
+    created_at       timestamp default CURRENT_TIMESTAMP        not null,
+    updated_at       timestamp default CURRENT_TIMESTAMP        not null,
     deleted_at       timestamp,
-    prepay_id        varchar   default ''::character varying not null,
-    expiration_time  integer   default 0                     not null,
-    address_id       varchar   default ''::character varying not null,
-    consignee        varchar   default ''::character varying not null,
-    phone_number     varchar   default ''::character varying not null,
-    location         varchar   default ''::character varying not null,
-    detailed_address varchar   default ''::character varying not null,
-    order_state      integer   default 0                     not null
+    prepay_id        varchar   default ''::character varying    not null,
+    expiration_time  integer   default 0                        not null,
+    address_id       varchar   default ''::character varying    not null,
+    consignee        varchar   default ''::character varying    not null,
+    phone_number     varchar   default ''::character varying    not null,
+    location         varchar   default ''::character varying    not null,
+    detailed_address varchar   default ''::character varying    not null,
+    order_state      integer   default 0                        not null,
+    nonce_str        varchar   default ''::character varying    not null,
+    pay_sign         varchar   default ''::character varying    not null,
+    pay_timestamp    varchar   default ''::character varying    not null,
+    sign_type        varchar   default 'RSA'::character varying not null
 );
 
 comment on table "order" is '订单';
@@ -71,6 +75,12 @@ comment on column "order".location is '收货人所在地区';
 comment on column "order".detailed_address is '收货人-详细地址';
 
 comment on column "order".order_state is '订单状态';
+
+comment on column "order".nonce_str is '随机字符串';
+
+comment on column "order".pay_sign is '签名';
+
+comment on column "order".pay_timestamp is '支付时间';
 
 alter table "order"
     owner to postgres;

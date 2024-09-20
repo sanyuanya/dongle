@@ -67,3 +67,13 @@ func UpdateAddressIsDefault(tx *sql.Tx, userId string) error {
 	_, err := tx.Exec("UPDATE address SET is_default=0 WHERE user_id=$1", userId)
 	return err
 }
+
+func FindByAddressSnowflakeId(tx *sql.Tx, snowflakeId string, userId string) (*entity.AddressList, error) {
+	row := tx.QueryRow("SELECT snowflake_id, location, phone_number, is_default, consignee, longitude, latitude, detailed_address FROM address WHERE snowflake_id=$1 AND user_id=$2 AND deleted_at IS NULL", snowflakeId, userId)
+	var address entity.AddressList
+	err := row.Scan(&address.SnowflakeId, &address.Location, &address.PhoneNumber, &address.IsDefault, &address.Consignee, &address.Longitude, &address.Latitude, &address.DetailedAddress)
+	if err != nil {
+		return nil, err
+	}
+	return &address, nil
+}

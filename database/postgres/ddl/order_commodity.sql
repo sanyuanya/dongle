@@ -15,7 +15,9 @@ create table order_commodity
     order_id              varchar   default ''::character varying not null,
     created_at            timestamp default CURRENT_TIMESTAMP     not null,
     updated_at            timestamp default CURRENT_TIMESTAMP     not null,
-    deleted_at            timestamp
+    deleted_at            timestamp,
+    quantity              integer   default 1                     not null,
+    sku_name              varchar   default ''::character varying not null
 );
 
 comment on table order_commodity is '订单商品关联关系表';
@@ -41,6 +43,10 @@ comment on column order_commodity.object_name is '对象名称';
 comment on column order_commodity.bucket_name is '桶名称';
 
 comment on column order_commodity.order_id is '订单ID';
+
+comment on column order_commodity.quantity is '商品数量';
+
+comment on column order_commodity.sku_name is 'sku名称';
 
 alter table order_commodity
     owner to postgres;
