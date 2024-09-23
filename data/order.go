@@ -232,7 +232,8 @@ func UpdateOrder(tx *sql.Tx, payload *entity.DecryptResourceResponse) error {
 			payer_total = $11,
 			currency = $12,
 			payer_currency = $13,
-			updated_at = NOW()
+			updated_at = NOW(),
+			order_state = 2
 		WHERE
 			out_trade_no = $14
 	`, payload.TransactionId,
