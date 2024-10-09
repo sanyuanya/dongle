@@ -1,5 +1,5 @@
 variable "TAG" {
-  default = "v0.0.73"
+  default = "v0.0.74"
 }
 
 group "default" {

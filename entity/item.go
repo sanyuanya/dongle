@@ -43,6 +43,7 @@ type Item struct {
 	SnowflakeId  string     `json:"snowflake_id"`
 	Status       uint8      `json:"status"`
 	CreatedAt    string     `json:"created_at"`
+	Sku          []*Sku     `json:"sku"`
 }
 
 type ItemPage struct {

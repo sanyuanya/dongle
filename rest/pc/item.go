@@ -88,6 +88,17 @@ func GetItemList(c fiber.Ctx) error {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法获取商品详情: %v", err)})
 		}
+
+		itemSku := &entity.GetSkuRequest{
+			Page:     1,
+			PageSize: 1000,
+			ItemId:   item.SnowflakeId,
+		}
+		item.Sku, err = data.GetSkuList(tx, itemSku)
+		if err != nil {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法获取商品Sku: %v", err)})
+		}
 	}
 
 	itemTotal, err := data.ItemListCount(tx, payload)

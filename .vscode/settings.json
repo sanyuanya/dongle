@@ -3,6 +3,7 @@
     "apiclient",
     "ciphertext",
     "datacenterid",
+    "expressdelivery",
     "HMACSHA",
     "Importd",
     "mchid",
