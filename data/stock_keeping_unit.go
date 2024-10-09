@@ -70,7 +70,8 @@ func GetSkuList(tx *sql.Tx, payload *entity.GetSkuRequest) ([]*entity.Sku, error
 			ext,
 			image_data,
 			TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') created_at, 
-			TO_CHAR(updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at
+			TO_CHAR(updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at,
+			actual_sales
 		FROM 
 			stock_keeping_unit 
 		WHERE deleted_at IS NULL AND item_id = $1`
@@ -105,7 +106,7 @@ func GetSkuList(tx *sql.Tx, payload *entity.GetSkuRequest) ([]*entity.Sku, error
 
 	for rows.Next() {
 		sku := &entity.Sku{}
-		if err := rows.Scan(&sku.SnowflakeId, &sku.Code, &sku.Name, &sku.StockQuantity, &sku.VirtualSales, &sku.Price, &sku.Status, &sku.Sorting, &sku.ItemId, &sku.ObjectName, &sku.BucketName, &sku.Ext, &sku.ImageData, &sku.CreatedAt, &sku.UpdatedAt); err != nil {
+		if err := rows.Scan(&sku.SnowflakeId, &sku.Code, &sku.Name, &sku.StockQuantity, &sku.VirtualSales, &sku.Price, &sku.Status, &sku.Sorting, &sku.ItemId, &sku.ObjectName, &sku.BucketName, &sku.Ext, &sku.ImageData, &sku.CreatedAt, &sku.UpdatedAt, &sku.ActualSales); err != nil {
 			return nil, err
 		}
 		skuList = append(skuList, sku)

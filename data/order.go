@@ -263,7 +263,7 @@ func GetOrderByTradeState() ([]string, error) {
 		SELECT
 			out_trade_no
 		FROM
-			order
+			"order"
 		WHERE
 			trade_state = ''
 	`)

@@ -60,6 +60,7 @@ type Sku struct {
 	ImageData     string  `json:"image_data"`
 	CreatedAt     string  `json:"created_at"`
 	UpdatedAt     string  `json:"updated_at"`
+	ActualSales   int64   `json:"actual_sales"`
 }
 
 type GetSkuRequest struct {
