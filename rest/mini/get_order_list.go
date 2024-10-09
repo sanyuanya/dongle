@@ -53,9 +53,13 @@ func GetOrderList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("page_size 参数错误: %v", err)})
 	}
 
+	if payload.Status, err = strconv.ParseInt(c.Query("status", "0"), 10, 64); err != nil {
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("status 参数错误: %v", err)})
+	}
 	payload.Keyword = c.Query("keyword", "")
 	payload.OutTradeNo = c.Query("out_trade_no", "")
 	payload.OpenId = c.Query("open_id", "")
+	payload.TradeState = c.Query("trade_state", "")
 
 	tx, err := data.Transaction()
 

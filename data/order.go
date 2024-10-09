@@ -117,6 +117,18 @@ func GetOrderList(tx *sql.Tx, payload *entity.GetOrderListRequest) ([]*entity.Ge
 		paramsIndex++
 	}
 
+	if payload.TradeState != "" {
+		baseQuery += fmt.Sprintf(" AND o.trade_state = $%d", paramsIndex)
+		executeParams = append(executeParams, payload.TradeState)
+		paramsIndex++
+	}
+
+	if payload.Status != 0 {
+		baseQuery += fmt.Sprintf(" AND o.order_state = $%d", paramsIndex)
+		executeParams = append(executeParams, payload.Status)
+		paramsIndex++
+	}
+
 	baseQuery += fmt.Sprintf(" ORDER BY o.created_at DESC LIMIT $%d OFFSET $%d", paramsIndex, paramsIndex+1)
 	executeParams = append(executeParams, payload.PageSize, (payload.Page-1)*payload.PageSize)
 

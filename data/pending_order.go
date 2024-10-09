@@ -95,5 +95,4 @@ func closeOrder() {
 
 		defer resp.Body.Close()
 	}
-
 }

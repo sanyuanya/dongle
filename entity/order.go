@@ -33,6 +33,7 @@ type GetOrderListRequest struct {
 	Keyword    string `json:"keyword"`
 	OutTradeNo string `json:"outTradeNo"`
 	OpenId     string `json:"openId"`
+	TradeState string `json:"trade_state"`
 }
 
 type GetOrderListResponse struct {
