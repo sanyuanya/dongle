@@ -3,6 +3,7 @@ package data
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/sanyuanya/dongle/entity"
 )
@@ -282,4 +283,52 @@ func GetOrderByTradeState() ([]string, error) {
 		outTradeNos = append(outTradeNos, outTradeNo)
 	}
 	return outTradeNos, nil
+}
+
+func GetOrderExpired() ([]string, error) {
+
+	timestamp := time.Now().Add(-10 * time.Second).Unix()
+
+	rows, err := db.Query(`
+		SELECT
+			out_trade_no
+		FROM
+			"order"
+		WHERE
+			expiration_time <= $1
+	`, timestamp)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	outTradeNos := make([]string, 0)
+	for rows.Next() {
+		var outTradeNo string
+		err := rows.Scan(&outTradeNo)
+		if err != nil {
+			return nil, err
+		}
+		outTradeNos = append(outTradeNos, outTradeNo)
+	}
+	return outTradeNos, nil
+}
+
+func UpdateOrderByOutTradeNo(tx *sql.Tx, payload *entity.UpdateOrderByOutTradeNo) error {
+	_, err := tx.Exec(`
+		UPDATE
+			order
+		SET
+			order_state = $1
+		WHERE
+			out_trade_no = $2
+	`,
+		payload.Status,
+		payload.OutTradeNo,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }

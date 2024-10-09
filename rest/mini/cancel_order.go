@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/sanyuanya/dongle/data"
+	"github.com/sanyuanya/dongle/entity"
 	"github.com/sanyuanya/dongle/pay"
 	"github.com/sanyuanya/dongle/tools"
 )
@@ -46,6 +48,24 @@ func CancelOrder(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("关闭订单失败: %v", err)})
 	}
 
+	// 更新订单状态
+
+	tx, err := data.Transaction()
+	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
+	}
+
+	updateOrderByOutTradeNo := &entity.UpdateOrderByOutTradeNo{
+		Status:     99,
+		OutTradeNo: outTradeNo,
+	}
+
+	err = data.UpdateOrderByOutTradeNo(tx, updateOrderByOutTradeNo)
+
+	if err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("更新订单状态失败: %v", err)})
+	}
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "关闭订单成功",

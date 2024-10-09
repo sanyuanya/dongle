@@ -8,11 +8,12 @@ import (
 )
 
 func StartTicker() {
-	ticker := time.NewTicker(3 * time.Minute)
+	ticker := time.NewTicker(30 * time.Second)
 
 	for range ticker.C {
 		checkPendingWithdrawals()
 		outTradeNo()
+		closeOrder()
 	}
 }
 
@@ -65,6 +66,31 @@ func checkPendingWithdrawals() {
 				panic(fmt.Sprintf("获取支付状态失败: %v body: %#+v", err, string(body)))
 			}
 			panic(fmt.Sprintf("获取支付状态失败: %v body: %#+v", err, string(body)))
+		}
+
+		defer resp.Body.Close()
+	}
+}
+
+func closeOrder() {
+	cancelList, err := GetOrderExpired()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, outTradeNo := range cancelList {
+		resp, err := http.Post("http://localhost:3000/api/order/cancel/"+outTradeNo, "application/json", nil)
+		if err != nil {
+			panic(fmt.Sprintf("关闭订单失败: %v", err))
+		}
+
+		if resp.StatusCode != 200 {
+			body, err := io.ReadAll(resp.Body)
+
+			if err != nil {
+				panic(fmt.Sprintf("关闭订单失败: %v body: %#+v", err, string(body)))
+			}
+			panic(fmt.Sprintf("关闭订单失败: %v body: %#+v", err, string(body)))
 		}
 
 		defer resp.Body.Close()

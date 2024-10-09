@@ -70,3 +70,8 @@ type GetOrderListResponse struct {
 	Phone           string  `json:"phone"`
 	OrderCommodity  []*GetOrderCommodityListResponse
 }
+
+type UpdateOrderByOutTradeNo struct {
+	Status     int64
+	OutTradeNo string
+}
