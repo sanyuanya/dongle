@@ -93,6 +93,7 @@ func GetItemList(c fiber.Ctx) error {
 			Page:     1,
 			PageSize: 1000,
 			ItemId:   item.SnowflakeId,
+			Status:   1,
 		}
 		item.Sku, err = data.GetSkuList(tx, itemSku)
 		if err != nil {
