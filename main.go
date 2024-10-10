@@ -150,15 +150,15 @@ func main() {
 
 	app.Get("/api/order/list", mini.GetOrderList)
 
-	app.Post("/api/order/cancel/{orderId}", mini.CancelOrder)
+	app.Post("/api/order/cancel/:orderId", mini.CancelOrder)
 
 	app.Get("/api/cart/index", mini.CartIndex)
 
 	app.Post("/api/cart/add", mini.CartAdd)
 
-	app.Post("/api/cart/update/{cartId}", mini.CartUpdate)
+	app.Post("/api/cart/update/:cartId", mini.CartUpdate)
 
-	app.Post("/api/cart/delete/{cartId}", mini.CartDelete)
+	app.Post("/api/cart/delete/:cartId", mini.CartDelete)
 
 	app.Post("/api/jsApi/notify", mini.Notify)
 	// Start the server on port 3000
