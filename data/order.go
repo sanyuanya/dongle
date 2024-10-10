@@ -86,9 +86,9 @@ func GetOrderList(tx *sql.Tx, payload *entity.GetOrderListRequest) ([]*entity.Ge
 			o.pay_timestamp,
 			o.sign_type,
 			u.nick,
-			u.phone,
+			u.phone
 		FROM
-			order o
+			"order" o
 		LEFT JOIN 
 			users u
 		ON 
@@ -189,7 +189,7 @@ func GetOrderCount(tx *sql.Tx, payload *entity.GetOrderListRequest) (uint64, err
 		SELECT
 			COUNT(o.snowflake_id)
 		FROM
-			order o
+			"order" o
 		LEFT JOIN 
 			users u
 		ON 
@@ -230,7 +230,7 @@ func GetOrderCount(tx *sql.Tx, payload *entity.GetOrderListRequest) (uint64, err
 func UpdateOrder(tx *sql.Tx, payload *entity.DecryptResourceResponse) error {
 	_, err := tx.Exec(`
 		UPDATE
-			order
+			"order"
 		SET
 			transaction_id = $1,
 			app_id = $2,
@@ -330,7 +330,7 @@ func GetOrderExpired() ([]string, error) {
 func UpdateOrderByOutTradeNo(tx *sql.Tx, payload *entity.UpdateOrderByOutTradeNo) error {
 	_, err := tx.Exec(`
 		UPDATE
-			order
+			"order"
 		SET
 			order_state = $1
 		WHERE
