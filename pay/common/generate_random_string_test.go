@@ -10,7 +10,7 @@ func TestGenerateRandomString(t *testing.T) {
 		t.Fatalf("err: %v", err)
 	}
 	if len(s) != 32 {
-		t.Fatalf("字符串长度错误")
+		t.Fatalf("字符串长度错误: %v", s)
 	}
 	t.Logf("success: %v", s)
 }
