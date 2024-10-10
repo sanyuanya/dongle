@@ -346,3 +346,92 @@ func UpdateOrderByOutTradeNo(tx *sql.Tx, payload *entity.UpdateOrderByOutTradeNo
 	}
 	return nil
 }
+
+func GetOrderDetail(tx *sql.Tx, snowflakeId string) (*entity.GetOrderListResponse, error) {
+	baseQuery := `
+	SELECT
+		o.snowflake_id,
+		o.transaction_id,
+		o.app_id,
+		o.mch_id,
+		o.trade_type,
+		o.trade_state,
+		o.trade_state_desc,
+		o.bank_type,
+		o.success_time,
+		o.open_id,
+		o.user_id,
+		o.total,
+		o.payer_total,
+		o.currency,
+		o.payer_currency,
+		o.out_trade_no,
+		TO_CHAR(o.created_at, 'YYYY-MM-DD HH24:MI:SS') created_at,
+		TO_CHAR(o.updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at,
+		o.prepay_id,
+		o.expiration_time,
+		o.address_id,
+		o.consignee,
+		o.phone_number,
+		o.location,
+		o.detailed_address,
+		o.order_state,
+		o.nonce_str,
+		o.pay_sign,
+		o.pay_timestamp,
+		o.sign_type,
+		u.nick,
+		u.phone
+	FROM
+		"order" o
+	LEFT JOIN 
+		users u
+	ON 
+		o.user_id = u.snowflake_id AND u.deleted_at IS NULL
+	WHERE
+		o.deleted_at IS NULL AND o.snowflake_id = $1
+		`
+
+	order := &entity.GetOrderListResponse{}
+
+	err := tx.QueryRow(baseQuery, snowflakeId).Scan(&order.SnowflakeId,
+		&order.TransactionId,
+		&order.AppId,
+		&order.MchId,
+		&order.TradeType,
+		&order.TradeState,
+		&order.TradeStateDesc,
+		&order.BankType,
+		&order.SuccessTime,
+		&order.OpenId,
+		&order.UserId,
+		&order.Total,
+		&order.PayerTotal,
+		&order.Currency,
+		&order.PayerCurrency,
+		&order.OutTradeNo,
+		&order.CreatedAt,
+		&order.UpdatedAt,
+		&order.PrepayId,
+		&order.ExpirationTime,
+		&order.AddressId,
+		&order.Consignee,
+		&order.PhoneNumber,
+		&order.Location,
+		&order.DetailedAddress,
+		&order.OrderState,
+		&order.NonceStr,
+		&order.PaySign,
+		&order.PayTimestamp,
+		&order.SignType,
+		&order.Nick,
+		&order.Phone)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("未找到订单信息：%v", err)
+		}
+		return nil, fmt.Errorf("查询订单信息失败： %v", err)
+	}
+	return order, nil
+}
