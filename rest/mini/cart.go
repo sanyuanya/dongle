@@ -161,7 +161,7 @@ func CartUpdate(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
 	payload := new(entity.UpdateCardRequest)
-	payload.SnowflakeId = c.Params("snowflake_id")
+	payload.SnowflakeId = c.Params("cartId", "")
 	payload.UserId = snowflakeId
 	if err := c.Bind().Body(payload); err != nil {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("参数错误: %v", err)})
@@ -213,19 +213,28 @@ func CartDelete(c fiber.Ctx) error {
 	if err != nil {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
-	snowflakeId := c.Params("snowflake_id")
+
+	payload := new(entity.DeleteCardRequest)
+	if err := c.Bind().Body(payload); err != nil {
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("参数错误: %v", err)})
+	}
+
 	tx, err := data.Transaction()
 	if err != nil {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
 	}
-	if id, err := data.FindByCartSnowflakeId(tx, snowflakeId); err != nil || id == "" {
-		tx.Rollback()
-		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取购物车信息失败: %v", err)})
+
+	for _, itemId := range payload.CartIdList {
+		if id, err := data.FindByCartSnowflakeId(tx, itemId); err != nil || id == "" {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取购物车信息失败: %v", err)})
+		}
+		if err := data.DeleteCart(tx, itemId, userId); err != nil {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("删除购物车失败: %v", err)})
+		}
 	}
-	if err := data.DeleteCart(tx, snowflakeId, userId); err != nil {
-		tx.Rollback()
-		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("删除购物车失败: %v", err)})
-	}
+
 	tx.Commit()
 	return c.JSON(tools.Response{
 		Code:    0,

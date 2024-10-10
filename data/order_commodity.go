@@ -2,13 +2,69 @@ package data
 
 import (
 	"database/sql"
+	"fmt"
+	"time"
 
 	"github.com/sanyuanya/dongle/entity"
 )
 
 func AddOrderCommodity(tx *sql.Tx, payload *entity.AddOrderCommodity) error {
+	baseQuery := `
+		INSERT INTO 
+			order_commodity(
+				snowflake_id,
+				commodity_id,
+				commodity_name,
+				commodity_code,
+				categories_id,
+				commodity_description,
+				sku_id,
+				sku_code,
+				price,
+				object_name,
+				bucket_name,
+				order_id,
+				created_at,
+				updated_at,
+				quantity,
+				sku_name,
+				address_id,
+				consignee,
+				phone_number,
+				location,
+				detailed_address
+			)
+			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+	`
 
-	
+	_, err := tx.Exec(baseQuery,
+		payload.SnowflakeId,
+		payload.CommodityId,
+		payload.CommodityName,
+		payload.CommodityCode,
+		payload.CategoriesId,
+		payload.CommodityDescription,
+		payload.SkuId,
+		payload.SkuCode,
+		payload.Price,
+		payload.ObjectName,
+		payload.BucketName,
+		payload.OrderId,
+		time.Now(),
+		time.Now(),
+		payload.Quantity,
+		payload.SkuName,
+		payload.AddressId,
+		payload.Consignee,
+		payload.PhoneNumber,
+		payload.Location,
+		payload.DetailedAddress,
+	)
+
+	if err != nil {
+		return fmt.Errorf("创建订单详情失败：%v", err)
+	}
+
 	return nil
 }
 

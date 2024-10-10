@@ -40,3 +40,7 @@ type UpdateCardRequest struct {
 	Quantity    int    `json:"quantity"`
 	UserId      string `json:"userId"`
 }
+
+type DeleteCardRequest struct {
+	CartIdList []string `json:"cartIdList"`
+}

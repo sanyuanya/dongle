@@ -158,7 +158,7 @@ func main() {
 
 	app.Post("/api/cart/update/:cartId", mini.CartUpdate)
 
-	app.Post("/api/cart/delete/:cartId", mini.CartDelete)
+	app.Post("/api/cart/delete", mini.CartDelete)
 
 	app.Post("/api/jsApi/notify", mini.Notify)
 	// Start the server on port 3000

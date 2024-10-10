@@ -4,6 +4,7 @@ type OrderCommodity struct {
 	CommodityId string `json:"commodityId"`
 	SkuId       string `json:"skuId"`
 	Quantity    int64  `json:"quantity"`
+	AddressId   string `json:"addressId"`
 }
 
 type AddOrderCommodity struct {
@@ -21,6 +22,11 @@ type AddOrderCommodity struct {
 	ObjectName           string  `json:"objectName"`
 	BucketName           string  `json:"bucketName"`
 	OrderId              string  `json:"orderId"`
+	AddressId            string  `json:"addressId"`
+	Consignee            string  `json:"consignee"`
+	PhoneNumber          string  `json:"phoneNumber"`
+	Location             string  `json:"location"`
+	DetailedAddress      string  `json:"detailedAddress"`
 }
 
 type GetOrderCommodityListResponse struct {
