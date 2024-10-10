@@ -7,7 +7,7 @@ COPY . .
 
 RUN go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /dongle
+RUN CGO_ENABLED=0 GOOS=linux go build -gcflags=all="-N -l" -o /dongle
 
 FROM debian:latest
 COPY --from=builder /dongle /dongle
