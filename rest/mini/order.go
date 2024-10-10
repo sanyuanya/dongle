@@ -205,10 +205,13 @@ func Submit(c fiber.Ctx) error {
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("添加订单商品失败: %v", err)})
 		}
 
-		if err = data.DeleteCart(tx, addOrderCommodity.CartId, userId); err != nil {
-			tx.Rollback()
-			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("清除购物车失败: %v", err)})
+		if addOrderCommodity.CartId != "" {
+			if err = data.DeleteCart(tx, addOrderCommodity.CartId, userId); err != nil {
+				tx.Rollback()
+				panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("清除购物车失败: %v", err)})
+			}
 		}
+
 	}
 
 	tx.Commit()
