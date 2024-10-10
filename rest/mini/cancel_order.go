@@ -38,13 +38,8 @@ func CancelOrder(c fiber.Ctx) error {
 		}
 	}()
 
-	snowflakeId, err := tools.ValidateUserToken(c.Get("Authorization"), "user")
-	_ = snowflakeId
-	if err != nil {
-		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
-	}
 	outTradeNo := c.Params("orderId")
-	err = pay.CloseOrder(outTradeNo)
+	err := pay.CloseOrder(outTradeNo)
 	if err != nil {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("关闭订单失败: %v", err)})
 	}
@@ -105,6 +100,10 @@ func CancelOrder(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("更新订单状态失败: %v", err)})
 	}
 
+	err = tx.Commit()
+	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("数据库发生错误，请联系管理员: %v", err)})
+	}
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "关闭订单成功",

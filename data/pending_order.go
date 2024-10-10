@@ -1,19 +1,23 @@
 package data
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
+
+	"github.com/sanyuanya/dongle/tools"
 )
 
 func StartTicker() {
 	ticker := time.NewTicker(30 * time.Second)
 
 	for range ticker.C {
+		closeOrder()
 		checkPendingWithdrawals()
 		outTradeNo()
-		closeOrder()
 	}
 }
 
@@ -41,6 +45,18 @@ func outTradeNo() {
 		}
 
 		defer resp.Body.Close()
+
+		transform := &tools.Response{}
+		if err := json.NewDecoder(resp.Body).Decode(&transform); err != nil {
+			panic(fmt.Sprintf("获取支付状态失败: %v ", err))
+		}
+
+		if transform.Code != 0 {
+			panic(fmt.Sprintf("获取支付状态失败: %v ", transform.Message))
+		}
+
+		log.Printf("获取支付状态成功: %v", transform)
+
 	}
 }
 
@@ -69,6 +85,17 @@ func checkPendingWithdrawals() {
 		}
 
 		defer resp.Body.Close()
+
+		transform := &tools.Response{}
+		if err := json.NewDecoder(resp.Body).Decode(&transform); err != nil {
+			panic(fmt.Sprintf("获取支付状态失败: %v ", err))
+		}
+
+		if transform.Code != 0 {
+			panic(fmt.Sprintf("获取支付状态失败: %v ", transform.Message))
+		}
+
+		log.Printf("获取支付状态成功: %v", withdrawal)
 	}
 }
 
@@ -94,5 +121,16 @@ func closeOrder() {
 		}
 
 		defer resp.Body.Close()
+
+		transform := &tools.Response{}
+		if err := json.NewDecoder(resp.Body).Decode(&transform); err != nil {
+			panic(fmt.Sprintf("关闭订单失败：%v ", err))
+		}
+
+		if transform.Code != 0 {
+			panic(fmt.Sprintf("关闭订单失败：%v ", transform.Message))
+		}
+
+		log.Printf("关闭订单成功：%v", outTradeNo)
 	}
 }

@@ -309,7 +309,7 @@ func GetOrderExpired() ([]string, error) {
 		FROM
 			"order"
 		WHERE
-			expiration_time <= $1
+			expiration_time <= $1 AND order_state != 99
 	`, timestamp)
 
 	if err != nil {
