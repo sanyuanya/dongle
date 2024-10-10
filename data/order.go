@@ -280,7 +280,7 @@ func GetOrderByTradeState() ([]string, error) {
 		FROM
 			"order"
 		WHERE
-			trade_state = ''
+			trade_state = '' AND order_state != 99
 	`)
 	if err != nil {
 		return nil, err
