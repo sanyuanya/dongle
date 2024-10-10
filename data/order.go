@@ -27,7 +27,8 @@ func AddOrder(tx *sql.Tx, payload *entity.AddOrder) error {
 			prepay_id,
 			pay_sign,
 			pay_timestamp,
-			sign_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+			sign_type,
+			nonce_str) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
 	`, payload.SnowflakeId,
 		payload.AddressId,
 		payload.Consignee,
@@ -41,10 +42,11 @@ func AddOrder(tx *sql.Tx, payload *entity.AddOrder) error {
 		payload.OrderState,
 		payload.Currency,
 		payload.Total,
-		payload.PrepayId,
+		fmt.Sprintf("prepay_id=%s", payload.PrepayId),
 		payload.PaySign,
 		payload.PayTimestamp,
 		payload.SignType,
+		payload.NonceStr,
 	)
 	if err != nil {
 		return err
