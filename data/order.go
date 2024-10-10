@@ -17,6 +17,7 @@ func AddOrder(tx *sql.Tx, payload *entity.AddOrder) error {
 			phone_number,
 			location,
 			detailed_address,
+			open_id,
 			user_id,
 			expiration_time,
 			out_trade_no,
@@ -27,13 +28,14 @@ func AddOrder(tx *sql.Tx, payload *entity.AddOrder) error {
 			prepay_id,
 			pay_sign,
 			pay_timestamp,
-			sign_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+			sign_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
 	`, payload.SnowflakeId,
 		payload.AddressId,
 		payload.Consignee,
 		payload.PhoneNumber,
 		payload.Location,
 		payload.DetailedAddress,
+		payload.OpenId,
 		payload.UserId,
 		payload.ExpirationTime,
 		payload.OutTradeNo,
