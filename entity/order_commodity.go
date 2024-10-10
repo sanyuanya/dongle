@@ -46,4 +46,9 @@ type GetOrderCommodityListResponse struct {
 	OrderId              string  `json:"orderId"`
 	CreatedAt            string  `json:"createdAt"`
 	UpdatedAt            string  `json:"updatedAt"`
+	AddressId            string  `json:"addressId"`
+	Consignee            string  `json:"consignee"`
+	PhoneNumber          string  `json:"phoneNumber"`
+	Location             string  `json:"location"`
+	DetailedAddress      string  `json:"detailedAddress"`
 }

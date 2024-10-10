@@ -87,7 +87,12 @@ func GetOrderCommodityList(tx *sql.Tx, orderId string) ([]*entity.GetOrderCommod
 			oc.bucket_name,
 			oc.order_id,
 			TO_CHAR(oc.created_at, 'YYYY-MM-DD HH24:MI:SS') created_at,
-			TO_CHAR(oc.updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at
+			TO_CHAR(oc.updated_at, 'YYYY-MM-DD HH24:MI:SS') updated_at,
+			address_id,
+			consignee,
+			phone_number,
+			location,
+			detailed_address
 		FROM
 			order_commodity oc
 		WHERE
@@ -120,6 +125,11 @@ func GetOrderCommodityList(tx *sql.Tx, orderId string) ([]*entity.GetOrderCommod
 			&item.OrderId,
 			&item.CreatedAt,
 			&item.UpdatedAt,
+			&item.AddressId,
+			&item.Consignee,
+			&item.PhoneNumber,
+			&item.Location,
+			&item.DetailedAddress,
 		)
 		if err != nil {
 			return nil, err
