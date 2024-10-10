@@ -5,6 +5,7 @@ type OrderCommodity struct {
 	SkuId       string `json:"skuId"`
 	Quantity    int64  `json:"quantity"`
 	AddressId   string `json:"addressId"`
+	CartId      string `json:"cartId"`
 }
 
 type AddOrderCommodity struct {
@@ -27,6 +28,7 @@ type AddOrderCommodity struct {
 	PhoneNumber          string  `json:"phoneNumber"`
 	Location             string  `json:"location"`
 	DetailedAddress      string  `json:"detailedAddress"`
+	CartId               string  `json:"cartId"`
 }
 
 type GetOrderCommodityListResponse struct {
