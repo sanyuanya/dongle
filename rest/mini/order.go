@@ -188,7 +188,7 @@ func Submit(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("支付失败: %v", err)})
 	}
 
-	addOrder.PrepayId = "prepay_id=" + jsApiResponse.PrepayId
+	addOrder.PrepayId = jsApiResponse.Package
 	addOrder.PaySign = jsApiResponse.PaySign
 	addOrder.PayTimestamp = jsApiResponse.TimeStamp
 	addOrder.SignType = jsApiResponse.SignType
@@ -224,7 +224,7 @@ func Submit(c fiber.Ctx) error {
 			"timestamp":  addOrder.PayTimestamp,
 			"signType":   addOrder.SignType,
 			"nonceStr":   addOrder.NonceStr,
-			"package":    "prepay_id=" + addOrder.PrepayId,
+			"package":    addOrder.PrepayId,
 		},
 	})
 }
