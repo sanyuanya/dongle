@@ -23,12 +23,11 @@ func AddOrder(tx *sql.Tx, payload *entity.AddOrder) error {
 			out_trade_no,
 			order_state,
 			currency,
-			open_id,
 			total,
 			prepay_id,
 			pay_sign,
 			pay_timestamp,
-			sign_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+			sign_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 	`, payload.SnowflakeId,
 		payload.AddressId,
 		payload.Consignee,
@@ -41,7 +40,6 @@ func AddOrder(tx *sql.Tx, payload *entity.AddOrder) error {
 		payload.OutTradeNo,
 		payload.OrderState,
 		payload.Currency,
-		payload.OpenId,
 		payload.Total,
 		payload.PrepayId,
 		payload.PaySign,

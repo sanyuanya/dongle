@@ -172,7 +172,7 @@ func Submit(c fiber.Ctx) error {
 		// Detail: pay.Detail{
 		// 	GoodDetail: []*pay.GoodDetail{},
 		// },
-		NotifyUrl: "https://www.weixin.qq.com/wxpay/pay.php",
+		NotifyUrl: "https://www.iotpeachcloud.com/api/jsApi/notify",
 	}
 
 	jsApiResponse, err := pay.JsApi(jsApiRequest)

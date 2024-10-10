@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -89,6 +90,8 @@ func JsApi(payInfo *JsApiRequest) (*JsApiResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("无法序列化请求体: %v", err)
 	}
+
+	log.Printf("支付请求参数： %v", string(payloadBytes))
 
 	authorization, err := common.Signature(method, path, timestamp, nonceStr, string(payloadBytes), privateKey)
 	if err != nil {

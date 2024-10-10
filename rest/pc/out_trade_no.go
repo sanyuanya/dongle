@@ -62,7 +62,7 @@ func OutTradeNo(c fiber.Ctx) error {
 	}
 
 	return c.JSON(tools.Response{
-		Code:    200,
+		Code:    0,
 		Message: "success",
 		Result:  outTradeNoResponse,
 	})
