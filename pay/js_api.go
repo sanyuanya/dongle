@@ -29,8 +29,8 @@ type JsApiRequest struct {
 	Attach      string `json:"attach"`
 	Amount      Amount `json:"amount"`
 	Payer       Payer  `json:"payer"`
-	Detail      Detail `json:"detail"`
-	NotifyUrl   string `json:"notify_url"`
+	// Detail      Detail `json:"detail"`
+	NotifyUrl string `json:"notify_url"`
 }
 
 type Amount struct {
@@ -110,7 +110,6 @@ func JsApi(payInfo *JsApiRequest) (*JsApiResponse, error) {
 	}
 	client := &http.Client{Transport: tr}
 	resp, err := client.Do(req)
-
 	if err != nil {
 		return nil, fmt.Errorf("无法发送请求: %v", err)
 	}

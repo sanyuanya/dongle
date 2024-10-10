@@ -10,7 +10,7 @@ import (
 
 func AddOrder(tx *sql.Tx, payload *entity.AddOrder) error {
 	_, err := tx.Exec(`
-		INSERT INTO order (
+		INSERT INTO "order" (
 			snowflake_id,
 			address_id,
 			consignee,

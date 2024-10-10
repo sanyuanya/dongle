@@ -179,9 +179,9 @@ func Submit(c fiber.Ctx) error {
 		Payer: pay.Payer{
 			OpenId: addOrder.OpenId,
 		},
-		Detail: pay.Detail{
-			GoodDetail: []*pay.GoodDetail{},
-		},
+		// Detail: pay.Detail{
+		// 	GoodDetail: []*pay.GoodDetail{},
+		// },
 		NotifyUrl: "https://www.weixin.qq.com/wxpay/pay.php",
 	}
 
@@ -190,10 +190,11 @@ func Submit(c fiber.Ctx) error {
 	if err != nil {
 		tx.Rollback()
 		for _, addOrderCommodity := range addOrderCommodityList {
-			if err = rdb.UpdateSkuStock(addOrderCommodity.SkuId, addOrderCommodity.Quantity); err != nil {
-				log.Printf("redis 更新库存失败: %#+v", err)
+			if e := rdb.UpdateSkuStock(addOrderCommodity.SkuId, addOrderCommodity.Quantity); e != nil {
+				log.Printf("redis 更新库存失败: %#+v", e)
 			}
 		}
+		log.Printf("创建订单失败：%#+v", jsApiResponse)
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("支付失败: %v", err)})
 	}
 
