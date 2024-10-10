@@ -48,12 +48,6 @@ func Submit(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("开始事务失败: %v", err)})
 	}
 
-	// address, err := data.FindByAddressSnowflakeId(tx, payload.AddressId, userId)
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取地址失败: %v", err)})
-	// }
-
 	user, err := data.GetUserDetailBySnowflakeID(tx, userId)
 	if err != nil {
 		tx.Rollback()
@@ -61,12 +55,7 @@ func Submit(c fiber.Ctx) error {
 	}
 
 	addOrder := &entity.AddOrder{
-		SnowflakeId: tools.SnowflakeUseCase.NextVal(),
-		// AddressId:       payload.AddressId,
-		// Consignee:       address.Consignee,
-		// PhoneNumber:     address.PhoneNumber,
-		// Location:        address.Location,
-		// DetailedAddress: address.DetailedAddress,
+		SnowflakeId:    tools.SnowflakeUseCase.NextVal(),
 		UserId:         userId,
 		ExpirationTime: time.Now().Add(5 * time.Minute).Unix(),
 		OutTradeNo:     tools.SnowflakeUseCase.NextVal(),
@@ -135,7 +124,7 @@ func Submit(c fiber.Ctx) error {
 
 		addOrder.Total += int64((sku.Price * 100)) * commodity.Quantity
 
-		address, err := data.FindByAddressSnowflakeId(tx, payload.AddressId, userId)
+		address, err := data.FindByAddressSnowflakeId(tx, commodity.AddressId, userId)
 		if err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取地址失败: %v", err)})
