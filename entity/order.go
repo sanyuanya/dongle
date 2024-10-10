@@ -70,6 +70,7 @@ type GetOrderListResponse struct {
 	Nick            string  `json:"nick"`
 	Phone           string  `json:"phone"`
 	OrderCommodity  []*GetOrderCommodityListResponse
+	Package         string `json:"package"`
 }
 
 type UpdateOrderByOutTradeNo struct {

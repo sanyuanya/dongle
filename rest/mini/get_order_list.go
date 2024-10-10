@@ -75,6 +75,7 @@ func GetOrderList(c fiber.Ctx) error {
 	}
 
 	for _, order := range orderList {
+		order.Package = order.PrepayId
 		order.OrderCommodity, err = data.GetOrderCommodityList(tx, order.SnowflakeId)
 		if err != nil {
 			tx.Rollback()

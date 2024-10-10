@@ -42,7 +42,7 @@ func AddOrder(tx *sql.Tx, payload *entity.AddOrder) error {
 		payload.OrderState,
 		payload.Currency,
 		payload.Total,
-		fmt.Sprintf("prepay_id=%s", payload.PrepayId),
+		payload.PrepayId,
 		payload.PaySign,
 		payload.PayTimestamp,
 		payload.SignType,
