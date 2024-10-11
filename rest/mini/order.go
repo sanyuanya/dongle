@@ -187,7 +187,7 @@ func Submit(c fiber.Ctx) error {
 		log.Printf("创建订单失败：%#+v", jsApiResponse)
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("支付失败: %v", err)})
 	}
-	
+
 	addOrder.PrepayId = jsApiResponse.Package
 	addOrder.PaySign = jsApiResponse.PaySign
 	addOrder.PayTimestamp = jsApiResponse.TimeStamp
@@ -219,12 +219,13 @@ func Submit(c fiber.Ctx) error {
 		Code:    0,
 		Message: "创建订单成功",
 		Result: map[string]any{
-			"outTradeNo": addOrder.OutTradeNo,
-			"paySign":    addOrder.PaySign,
-			"timestamp":  addOrder.PayTimestamp,
-			"signType":   addOrder.SignType,
-			"nonceStr":   addOrder.NonceStr,
-			"package":    addOrder.PrepayId,
+			"outTradeNo":  addOrder.OutTradeNo,
+			"paySign":     addOrder.PaySign,
+			"timestamp":   addOrder.PayTimestamp,
+			"signType":    addOrder.SignType,
+			"nonceStr":    addOrder.NonceStr,
+			"package":     addOrder.PrepayId,
+			"snowflakeId": addOrder.SnowflakeId,
 		},
 	})
 }

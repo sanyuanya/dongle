@@ -70,3 +70,7 @@ type GetSkuRequest struct {
 	Status   int64  `json:"status"`
 	ItemId   string `json:"item_id"`
 }
+
+type UpdateSkuStatus struct {
+	Status int64 `json:"status"`
+}

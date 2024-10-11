@@ -501,9 +501,9 @@ func UpdateSkuStatus(c fiber.Ctx) error {
 	itemId := c.Params("itemId", "")
 	skuId := c.Params("skuId", "")
 
-	status, err := strconv.ParseInt(c.Query("status", "0"), 10, 64)
-	if err != nil {
-		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("status 参数错误: %v", err)})
+	payload := &entity.UpdateSkuStatus{}
+	if err = c.Bind().Body(payload); err != nil {
+		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("请求参数错误: %v", err)})
 	}
 
 	tx, err := data.Transaction()
@@ -512,7 +512,7 @@ func UpdateSkuStatus(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法开启事务: %v", err)})
 	}
 
-	if err = data.UpdateSkuStatus(tx, itemId, skuId, status); err != nil {
+	if err = data.UpdateSkuStatus(tx, itemId, skuId, payload.Status); err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50002, Message: fmt.Sprintf("无法更新SKU状态: %v", err)})
 	}
