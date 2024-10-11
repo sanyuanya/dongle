@@ -93,7 +93,7 @@ func Submit(c fiber.Ctx) error {
 			panic(tools.CustomError{Code: 50002, Message: "库存不足,下单失败"})
 		}
 
-		if err = data.UpdateSkuStockQuantity(tx, commodity.CommodityId, commodity.SkuId, commodity.Quantity); err != nil {
+		if err = data.UpdateSkuStockQuantity(tx, commodity.CommodityId, commodity.SkuId, -commodity.Quantity); err != nil {
 			tx.Rollback()
 			if err = rdb.UpdateSkuStock(commodity.SkuId, commodity.Quantity); err != nil {
 				log.Printf("redis 更新库存失败: %#+v", err)
@@ -108,6 +108,10 @@ func Submit(c fiber.Ctx) error {
 			if err = rdb.UpdateSkuStock(commodity.SkuId, commodity.Quantity); err != nil {
 				log.Printf("redis 更新库存失败: %#+v", err)
 			}
+
+			if err = data.UpdateSkuStockQuantity(tx, commodity.CommodityId, commodity.SkuId, commodity.Quantity); err != nil {
+				log.Printf("数据库 更新库存失败: %#+v", err)
+			}
 			log.Printf("获取商品失败: %#+v", err)
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取商品失败: %v", err)})
 		}
@@ -117,6 +121,10 @@ func Submit(c fiber.Ctx) error {
 			tx.Rollback()
 			if err = rdb.UpdateSkuStock(commodity.SkuId, commodity.Quantity); err != nil {
 				log.Printf("redis 更新库存失败: %#+v", err)
+			}
+
+			if err = data.UpdateSkuStockQuantity(tx, commodity.CommodityId, commodity.SkuId, commodity.Quantity); err != nil {
+				log.Printf("数据库 更新库存失败: %#+v", err)
 			}
 			log.Printf("获取商品失败: %#+v", err)
 			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取商品失败: %v", err)})
@@ -182,6 +190,10 @@ func Submit(c fiber.Ctx) error {
 		for _, addOrderCommodity := range addOrderCommodityList {
 			if e := rdb.UpdateSkuStock(addOrderCommodity.SkuId, addOrderCommodity.Quantity); e != nil {
 				log.Printf("redis 更新库存失败: %#+v", e)
+			}
+
+			if err = data.UpdateSkuStockQuantity(tx, addOrderCommodity.CommodityId, addOrderCommodity.SkuId, addOrderCommodity.Quantity); err != nil {
+				log.Printf("数据库 更新库存失败: %#+v", err)
 			}
 		}
 		log.Printf("创建订单失败：%#+v", jsApiResponse)
