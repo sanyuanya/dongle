@@ -36,9 +36,8 @@ func DeleteCart(tx *sql.Tx, snowflakeId, userId string) error {
 	return nil
 }
 
-func GetCartList(tx *sql.Tx, payload *entity.GetCartListRequest) ([]entity.Cart, error) {
-	var carts []entity.Cart
-
+func GetCartList(tx *sql.Tx, payload *entity.GetCartListRequest) ([]*entity.Cart, error) {
+	carts := make([]*entity.Cart, 0)
 	baseQuery := `
 		SELECT
 			cart.snowflake_id,
@@ -77,7 +76,7 @@ func GetCartList(tx *sql.Tx, payload *entity.GetCartListRequest) ([]entity.Cart,
 	}
 
 	for rows.Next() {
-		var cart entity.Cart
+		cart := &entity.Cart{}
 		err := rows.Scan(
 			&cart.SnowflakeId,
 			&cart.CommodityId,
