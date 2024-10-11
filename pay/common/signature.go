@@ -31,6 +31,22 @@ func Signature(method string, url string, timestamp string, nonceStr string, bod
 	return authorization, nil
 }
 
+func PaySign(appId string, timestampString string, nonceString string, packageString string, pri *rsa.PrivateKey) (string, error) {
+	signStr := fmt.Sprintf("%s\n%s\n%s\n%s\n", appId, timestampString, nonceString, packageString)
+
+	// 计算 SHA256 哈希值
+	hashed := sha256.Sum256([]byte(signStr))
+
+	signature, err := rsa.SignPKCS1v15(rand.Reader, pri, crypto.SHA256, hashed[:])
+	if err != nil {
+		return "", fmt.Errorf("无法签名: %v", err)
+	}
+
+	signatureStr := base64.StdEncoding.EncodeToString(signature)
+
+	return signatureStr, nil
+}
+
 func ExtractSignature(authorization string) (string, error) {
 	re := regexp.MustCompile(`signature="([^"]+)"`)
 	matches := re.FindStringSubmatch(authorization)

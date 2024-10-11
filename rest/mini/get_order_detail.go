@@ -53,13 +53,13 @@ func GetOrderDetail(c fiber.Ctx) error {
 
 	if err != nil {
 		tx.Rollback()
-		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取订单列表失败: %v", err)})
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取订单详情失败: %v", err)})
 	}
 
 	order.OrderCommodity, err = data.GetOrderCommodityList(tx, order.SnowflakeId)
 	if err != nil {
 		tx.Rollback()
-		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取订单商品列表失败: %v", err)})
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取订单商品详情失败: %v", err)})
 	}
 
 	tx.Commit()

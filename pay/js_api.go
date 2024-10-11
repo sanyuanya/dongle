@@ -132,13 +132,19 @@ func JsApi(payInfo *JsApiRequest) (*JsApiResponse, error) {
 		return nil, fmt.Errorf("无法生成预支付交易会话: %v", jsApiResponse)
 	}
 
-	if jsApiResponse.PaySign, err = common.ExtractSignature(authorization); err != nil {
-		return nil, fmt.Errorf("无法提取签名: %v", err)
-	}
+	// if jsApiResponse.PaySign, err = common.ExtractSignature(authorization); err != nil {
+	// 	return nil, fmt.Errorf("无法提取签名: %v", err)
+	// }
+	appId := "wx370126c8bcf8d00c"
 
 	jsApiResponse.TimeStamp = timestamp
 	jsApiResponse.NonceStr = nonceStr
 	jsApiResponse.SignType = "RSA"
 	jsApiResponse.Package = fmt.Sprintf("prepay_id=%s", jsApiResponse.PrepayId)
+
+	if jsApiResponse.PaySign, err = common.PaySign(appId, timestamp, nonceStr, jsApiResponse.Package, privateKey); err != nil {
+		return nil, fmt.Errorf("计算支付签名失败：%v", err)
+	}
+
 	return &jsApiResponse, nil
 }
