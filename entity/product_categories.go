@@ -22,8 +22,9 @@ type GetProductCategoriesListRequest struct {
 }
 
 type ProductCategories struct {
-	SnowflakeId string `json:"snowflakeId"`
-	Name        string `json:"name"`
-	Status      uint8  `json:"status"`
-	Sorting     uint64 `json:"sorting"`
+	SnowflakeId string  `json:"snowflakeId"`
+	Name        string  `json:"name"`
+	Status      uint8   `json:"status"`
+	Sorting     uint64  `json:"sorting"`
+	Item        []*Item `json:"item"`
 }

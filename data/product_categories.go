@@ -43,8 +43,8 @@ func UpdateProductCategories(tx *sql.Tx, updateProductCategoriesRequest *entity.
 	return nil
 }
 
-func GetProductCategoriesList(tx *sql.Tx, payload *entity.GetProductCategoriesListRequest) ([]entity.ProductCategories, error) {
-	productCategories := make([]entity.ProductCategories, 0)
+func GetProductCategoriesList(tx *sql.Tx, payload *entity.GetProductCategoriesListRequest) ([]*entity.ProductCategories, error) {
+	productCategories := make([]*entity.ProductCategories, 0)
 
 	baseQuery := `
 		SELECT 
@@ -84,7 +84,7 @@ func GetProductCategoriesList(tx *sql.Tx, payload *entity.GetProductCategoriesLi
 	defer rows.Close()
 
 	for rows.Next() {
-		var productCategory entity.ProductCategories
+		productCategory := &entity.ProductCategories{}
 		err := rows.Scan(&productCategory.SnowflakeId, &productCategory.Name, &productCategory.Status, &productCategory.Sorting)
 		if err != nil {
 			return nil, err

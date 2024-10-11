@@ -72,6 +72,48 @@ func GetProductCategoriesList(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50003, Message: fmt.Sprintf("获取产品分类列表失败: %v", err)})
 	}
 
+	for _, categories := range productCategoriesList {
+
+		payload := &entity.ItemPage{
+			Page:         1,
+			PageSize:     1000,
+			Status:       1,
+			CategoriesId: categories.SnowflakeId,
+		}
+
+		categories.Item, err = data.ItemList(tx, payload)
+		if err != nil {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法获取商品列表: %v", err)})
+		}
+
+		for _, item := range categories.Item {
+			item.Picture, err = data.GetItemImageList(tx, item.SnowflakeId, 1)
+			if err != nil {
+				tx.Rollback()
+				panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法获取商品图片: %v", err)})
+			}
+
+			item.Detail, err = data.GetItemImageList(tx, item.SnowflakeId, 2)
+			if err != nil {
+				tx.Rollback()
+				panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法获取商品详情: %v", err)})
+			}
+
+			itemSku := &entity.GetSkuRequest{
+				Page:     1,
+				PageSize: 1000,
+				ItemId:   item.SnowflakeId,
+				Status:   1,
+			}
+			item.Sku, err = data.GetSkuList(tx, itemSku)
+			if err != nil {
+				tx.Rollback()
+				panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法获取商品Sku: %v", err)})
+			}
+		}
+	}
+
 	total, err := data.GetProductCategoriesListCount(tx, payload)
 
 	if err != nil {
