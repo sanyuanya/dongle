@@ -273,15 +273,15 @@ func UpdateOrder(tx *sql.Tx, payload *entity.DecryptResourceResponse) error {
 }
 
 func GetOrderByTradeState() ([]string, error) {
-
+	timestamp := time.Now().Unix()
 	rows, err := db.Query(`
 		SELECT
 			out_trade_no
 		FROM
 			"order"
 		WHERE
-			trade_state = '' AND order_state != 99
-	`)
+			trade_state = '' AND order_state != 99 AND expiration_time <= $1
+	`, timestamp)
 	if err != nil {
 		return nil, err
 	}
