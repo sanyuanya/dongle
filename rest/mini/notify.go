@@ -45,7 +45,7 @@ func Notify(c fiber.Ctx) error {
 	timestamp := c.Get("Wechatpay-Timestamp")
 	nonce := c.Get("Wechatpay-Nonce")
 
-	if serialNo != "1A1EAB972BD01FB2C072DD11996582D1B9F66F5A" {
+	if serialNo != "17BDDF6F46451DE2C953B628B76D4458B00CF054" {
 		log.Printf("无效的证书序列号: %s", serialNo)
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 			"code":    "401",
