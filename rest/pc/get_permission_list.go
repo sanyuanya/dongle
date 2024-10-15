@@ -58,7 +58,8 @@ func GetPermissionList(c fiber.Ctx) error {
 		Code:    0,
 		Message: "获取权限列表成功",
 		Result: map[string]any{
-			"permission_list": tools.BuildPermissionTree(permissionList),
+			// "permission_list": tools.BuildPermissionTree(permissionList),
+			"permission_list": permissionList,
 		},
 	})
 }

@@ -272,11 +272,12 @@ func UpdateOrder(tx *sql.Tx, payload *entity.DecryptResourceResponse) error {
 	return nil
 }
 
-func GetOrderByTradeState() ([]string, error) {
+func GetOrderByTradeState() ([]*entity.GetOrderByTradeStateResponse, error) {
 	timestamp := time.Now().Unix()
 	rows, err := db.Query(`
 		SELECT
-			out_trade_no
+			out_trade_no,
+			snowflake_id
 		FROM
 			"order"
 		WHERE
@@ -287,10 +288,10 @@ func GetOrderByTradeState() ([]string, error) {
 	}
 	defer rows.Close()
 
-	outTradeNos := make([]string, 0)
+	outTradeNos := make([]*entity.GetOrderByTradeStateResponse, 0)
 	for rows.Next() {
-		var outTradeNo string
-		err := rows.Scan(&outTradeNo)
+		outTradeNo := &entity.GetOrderByTradeStateResponse{}
+		err := rows.Scan(&outTradeNo.OutTradeNo, &outTradeNo.SnowflakeId)
 		if err != nil {
 			return nil, err
 		}

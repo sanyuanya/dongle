@@ -26,6 +26,8 @@ spec:
       labels:
         app: dongle-deploy
     spec:
+      imagePullSecrets:
+        - name: coding-docker
       containers:
       - name: dongle-deploy
         image: hj212223/dongle:v0.0.99

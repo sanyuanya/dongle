@@ -28,9 +28,9 @@ func outTradeNo() {
 	if err != nil {
 		panic(err)
 	}
-	for _, outTradeNo := range outTradeNoList {
+	for _, orderInfo := range outTradeNoList {
 
-		resp, err := http.Get("http://localhost:3000/api/pc/outTradeNo/" + outTradeNo)
+		resp, err := http.Get("http://localhost:3000/api/pc/outTradeNo/" + orderInfo.OutTradeNo + "/" + orderInfo.SnowflakeId)
 		if err != nil {
 			panic(fmt.Sprintf("获取支付状态失败: %v", err))
 		}

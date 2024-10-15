@@ -54,7 +54,7 @@ func main() {
 
 	app.Get("/api/pc/batch/:batchId/transfer/:transferId", pc.OutTransferNo)
 
-	app.Get("/api/pc/outTradeNo/:outTradeNo", pc.OutTradeNo)
+	app.Get("/api/pc/outTradeNo/:outTradeNo/:orderId", pc.OutTradeNo)
 
 	app.Get("/api/pc/permission/list", pc.GetPermissionList)
 

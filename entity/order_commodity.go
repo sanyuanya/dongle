@@ -54,3 +54,10 @@ type GetOrderCommodityListResponse struct {
 	Location             string  `json:"location"`
 	DetailedAddress      string  `json:"detailedAddress"`
 }
+
+type GetOrderCommodityActualSalesResponse struct {
+	SnowflakeId string
+	CommodityId string
+	SkuId       string
+	Quantity    int64
+}

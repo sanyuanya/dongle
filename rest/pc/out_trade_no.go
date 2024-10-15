@@ -2,6 +2,7 @@ package pc
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/sanyuanya/dongle/data"
@@ -36,6 +37,14 @@ func OutTradeNo(c fiber.Ctx) error {
 	outTradeNo := c.Params("outTradeNo", "")
 
 	if outTradeNo == "" {
+		log.Printf("outTradeNo = %s\n", outTradeNo)
+		panic(tools.CustomError{Code: 40000, Message: "参数错误"})
+	}
+
+	orderId := c.Params("orderId", "")
+
+	if outTradeNo == "" {
+		log.Printf("orderId = %s\n", orderId)
 		panic(tools.CustomError{Code: 40000, Message: "参数错误"})
 	}
 
@@ -54,6 +63,20 @@ func OutTradeNo(c fiber.Ctx) error {
 	if err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("更新订单失败: %v", err)})
+	}
+
+	if outTradeNoResponse.TradeState == "SUCCESS" {
+		orderCommodityList, err := data.GetOrderCommodityList(tx, orderId)
+		if err != nil {
+			tx.Rollback()
+			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取订单所购商品信息失败: %v", err)})
+		}
+		for _, orderCommodity := range orderCommodityList {
+			if err := data.UpdateSkuActualSales(tx, orderCommodity.CommodityId, orderCommodity.SkuId, int64(orderCommodity.Quantity)); err != nil {
+				tx.Rollback()
+				panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("更新实际销售数量失败: %v", err)})
+			}
+		}
 	}
 
 	err = tx.Commit()

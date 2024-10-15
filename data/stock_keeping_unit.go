@@ -174,6 +174,16 @@ func UpdateSkuStatus(tx *sql.Tx, itemId, skuId string, status int64) error {
 	return err
 }
 
+func UpdateSkuActualSales(tx *sql.Tx, itemId, skuId string, quantity int64) error {
+	_, err := tx.Exec("UPDATE stock_keeping_unit SET actual_sales = actual_sales+$1 WHERE item_id = $2 AND snowflake_id = $3 AND deleted_at IS NULL", quantity, itemId, skuId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New("未找到该商品的SKU, 请检查商品ID和SKU ID是否正确")
+		}
+	}
+	return err
+}
+
 func UpdateSkuStockQuantity(tx *sql.Tx, itemId, skuId string, quantity int64) error {
 	_, err := tx.Exec("UPDATE stock_keeping_unit SET stock_quantity = stock_quantity+$1 WHERE item_id = $2 AND snowflake_id = $3 AND deleted_at IS NULL", quantity, itemId, skuId)
 	if err != nil {

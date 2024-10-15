@@ -77,3 +77,8 @@ type UpdateOrderByOutTradeNo struct {
 	Status     int64
 	OutTradeNo string
 }
+
+type GetOrderByTradeStateResponse struct {
+	OutTradeNo  string
+	SnowflakeId string
+}

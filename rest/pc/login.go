@@ -106,7 +106,8 @@ func PcLogin(c fiber.Ctx) error {
 		Code:    0,
 		Message: "登录成功",
 		Result: map[string]any{
-			"menu_list": tools.BuildPermissionTree(menuList),
+			// "menu_list": tools.BuildPermissionTree(menuList),
+			"menu_list": menuList,
 		},
 	})
 }
