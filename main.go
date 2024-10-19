@@ -163,6 +163,12 @@ func main() {
 	app.Post("/api/cart/delete", mini.CartDelete)
 
 	app.Post("/api/jsApi/notify", mini.Notify)
+
+	app.Post("/api/order/logistics", pc.Logistics)
+
+	app.Post("/api/order/label", pc.Label)
+
+	app.Post("/api/order/pollQuery", pc.PollQuery)
 	// Start the server on port 3000
 	log.Fatal(app.Listen(":3000"))
 }
