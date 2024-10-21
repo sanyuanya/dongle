@@ -77,12 +77,12 @@ func Shipping(c fiber.Ctx) error {
 		resp, err := expressdelivery.BorderApi(border)
 		if err != nil {
 			log.Printf("商家寄件下单失败 下单参数:%#+v,  失败原因: %v", v, err)
-			continue
+			panic(tools.CustomError{Code: 50007, Message: "商家寄件下单失败"})
 		}
 
 		if !resp.Result {
 			log.Printf("商家寄件下单失败返回编码%s返回报文描述%s", resp.ReturnCode, resp.Message)
-			continue
+			panic(tools.CustomError{Code: 50007, Message: fmt.Sprintf("商家寄件下单失败描述%s", resp.Message)})
 		}
 
 		addShippingRequest := entity.AddShippingRequest{
@@ -102,6 +102,7 @@ func Shipping(c fiber.Ctx) error {
 			OrderId: addShippingRequest.OrderId,
 			Status:  3,
 		}
+		
 		if err := data.UpdateOrderStatus(tx, updateOrderStatusRequest); err != nil {
 			tx.Rollback()
 			log.Printf("更新订单状态失败 失败原因: %v", err)

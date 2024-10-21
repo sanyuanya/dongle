@@ -12,10 +12,15 @@ import (
 func OrderCallback(c fiber.Ctx) error {
 
 	param := c.FormValue("param")
+	taskId := c.FormValue("taskId")
+	sign := c.FormValue("sign")
+
+	log.Printf("接受寄件下单回调接口 param: %s, taskId: %s, sign: %s", param, taskId, sign)
 
 	orderCallback := new(entity.OrderCallback)
 	if err := json.Unmarshal([]byte(param), orderCallback); err != nil {
-		log.Printf("接受寄件下单回调接口失败 param: %s", param)
+		log.Printf("接受寄件下单回调接口 Json Unmarshal 失败 param: %s, taskId: %s, sign: %s", param, taskId, sign)
+
 		return c.JSON(map[string]any{
 			"result":     false,
 			"returnCode": "500",

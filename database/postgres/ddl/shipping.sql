@@ -1,7 +1,7 @@
 -- auto-generated definition
 create table shipping
 (
-    snowflake_id      integer,
+    snowflake_id      varchar   default ''::character varying not null,
     order_id          varchar   default ''::character varying not null,
     task_id           varchar   default ''::character varying not null,
     third_order_id    varchar   default ''::character varying not null,
