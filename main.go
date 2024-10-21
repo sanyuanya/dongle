@@ -169,6 +169,10 @@ func main() {
 	app.Post("/api/order/label", pc.Label)
 
 	app.Post("/api/order/pollQuery", pc.PollQuery)
+
+	app.Post("/api/order/shipping", pc.Shipping)
+
+	app.Post("/api/order/orderCallback", pc.OrderCallback)
 	// Start the server on port 3000
 	log.Fatal(app.Listen(":3000"))
 }

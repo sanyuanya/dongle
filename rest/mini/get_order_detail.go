@@ -62,6 +62,12 @@ func GetOrderDetail(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取订单商品详情失败: %v", err)})
 	}
 
+	order.OrderShipping, err = data.GetShippingByOrderId(tx, order.SnowflakeId)
+
+	if err != nil {
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("获取订单下单详情失败: %v", err)})
+	}
+
 	tx.Commit()
 
 	return c.JSON(tools.Response{

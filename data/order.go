@@ -435,3 +435,21 @@ func GetOrderDetail(tx *sql.Tx, snowflakeId string) (*entity.GetOrderListRespons
 	}
 	return order, nil
 }
+
+func UpdateOrderStatus(tx *sql.Tx, payload *entity.UpdateOrderStatusRequest) error {
+	_, err := tx.Exec(`
+		UPDATE
+			"order"
+		SET
+			order_state = $1
+		WHERE
+			snowflake_id = $2
+	`,
+		payload.Status,
+		payload.OrderId,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}

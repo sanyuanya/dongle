@@ -70,7 +70,8 @@ type GetOrderListResponse struct {
 	Nick            string  `json:"nick"`
 	Phone           string  `json:"phone"`
 	OrderCommodity  []*GetOrderCommodityListResponse
-	Package         string `json:"package"`
+	Package         string               `json:"package"`
+	OrderShipping   *GetShippingResponse `json:"orderShipping"`
 }
 
 type UpdateOrderByOutTradeNo struct {
@@ -81,4 +82,9 @@ type UpdateOrderByOutTradeNo struct {
 type GetOrderByTradeStateResponse struct {
 	OutTradeNo  string
 	SnowflakeId string
+}
+
+type UpdateOrderStatusRequest struct {
+	OrderId string
+	Status  int64
 }
