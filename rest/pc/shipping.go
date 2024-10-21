@@ -66,12 +66,11 @@ func Shipping(c fiber.Ctx) error {
 			RecManMobile:     orderCommodityList[0].PhoneNumber,
 			RecManPrintAddr:  fmt.Sprintf("%s%s", orderCommodityList[0].Location, orderCommodityList[0].DetailedAddress),
 			SendManName:      "赵世龙",
-			SendManMobile:    "17696116796",
+			SendManMobile:    "15135002301",
 			SendManPrintAddr: "山西省太原市小店区长治306号1幢B座11层1116室",
 			Cargo:            "电子产品",
-			// Payment:          "SHIPPER",
-			Remark:      orderCommodityList[0].OrderId,
-			CallBackUrl: "https://www.iotpeachcloud.com/api/order/orderCallback",
+			Remark:           orderCommodityList[0].OrderId,
+			CallBackUrl:      "https://www.iotpeachcloud.com/api/order/orderCallback",
 		}
 
 		resp, err := expressdelivery.BorderApi(border)
@@ -102,7 +101,7 @@ func Shipping(c fiber.Ctx) error {
 			OrderId: addShippingRequest.OrderId,
 			Status:  3,
 		}
-		
+
 		if err := data.UpdateOrderStatus(tx, updateOrderStatusRequest); err != nil {
 			tx.Rollback()
 			log.Printf("更新订单状态失败 失败原因: %v", err)
