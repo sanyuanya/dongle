@@ -85,6 +85,6 @@ type GetOrderByTradeStateResponse struct {
 }
 
 type UpdateOrderStatusRequest struct {
-	OrderId string
-	Status  int64
+	OrderId string `json:"orderId"`
+	Status  int64  `json:"status"`
 }

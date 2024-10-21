@@ -173,6 +173,8 @@ func main() {
 	app.Post("/api/order/shipping", pc.Shipping)
 
 	app.Post("/api/order/orderCallback", pc.OrderCallback)
+
+	app.Post("/api/order/confirm/receipt/good", mini.ConfirmReceiptGood)
 	// Start the server on port 3000
 	log.Fatal(app.Listen(":3000"))
 }
