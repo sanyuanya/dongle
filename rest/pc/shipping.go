@@ -69,9 +69,9 @@ func Shipping(c fiber.Ctx) error {
 			SendManMobile:    "17696116796",
 			SendManPrintAddr: "山西省太原市小店区长治306号1幢B座11层1116室",
 			Cargo:            "电子产品",
-			Payment:          "SHIPPER",
-			Remark:           orderCommodityList[0].OrderId,
-			DayType:          "今天",
+			// Payment:          "SHIPPER",
+			Remark:      orderCommodityList[0].OrderId,
+			CallBackUrl: "https://www.iotpeachcloud.com/api/order/orderCallback",
 		}
 
 		resp, err := expressdelivery.BorderApi(border)

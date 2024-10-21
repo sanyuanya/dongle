@@ -1,22 +1,52 @@
 package pc
 
 import (
+	"encoding/json"
+	"log"
+
 	"github.com/gofiber/fiber/v3"
-	"github.com/sanyuanya/dongle/tools"
+	"github.com/sanyuanya/dongle/data"
+	"github.com/sanyuanya/dongle/entity"
 )
 
 func OrderCallback(c fiber.Ctx) error {
 
-	taskId := c.FormValue("taskId")
-	sign := c.FormValue("sign")
 	param := c.FormValue("param")
 
+	orderCallback := new(entity.OrderCallback)
+	if err := json.Unmarshal([]byte(param), orderCallback); err != nil {
+		log.Printf("接受寄件下单回调接口失败 param: %s", param)
+		return c.JSON(map[string]any{
+			"result":     false,
+			"returnCode": "500",
+			"message":    "Invalid parameters",
+		})
+	}
 
-	
+	tx, err := data.Transaction()
+	if err != nil {
+		log.Printf("接受寄件下单回调接口失败 开启事物失败: %v", err)
+		return c.JSON(map[string]any{
+			"result":     false,
+			"returnCode": "500",
+			"message":    "开启事务失败",
+		})
+	}
 
-	return c.JSON(tools.Response{
-		Code:    0,
-		Message: taskId,
-		Result:  map[string]any{},
+	if err := data.UpdatedShippingByThirdOrderId(tx, orderCallback.Data); err != nil {
+		log.Printf("接受寄件下单回调接口更新数据库失败 orderCallback: %v", orderCallback.Data)
+		return c.JSON(map[string]any{
+			"result":     false,
+			"returnCode": "500",
+			"message":    "更新寄件信息失败",
+		})
+	}
+
+	tx.Commit()
+
+	return c.JSON(map[string]any{
+		"result":     true,
+		"returnCode": "200",
+		"message":    "successfully updated order callback.",
 	})
 }

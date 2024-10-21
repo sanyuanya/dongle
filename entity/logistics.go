@@ -8,13 +8,13 @@ type KOrderApiRequestParam struct {
 	SendManName      string `json:"sendManName"`
 	SendManMobile    string `json:"sendManMobile"`
 	SendManPrintAddr string `json:"sendManPrintAddr"`
-	// CallBackUrl      string `json:"callBackUrl"`
-	Cargo   string `json:"cargo"`
-	Payment string `json:"payment"`
+	CallBackUrl      string `json:"callBackUrl"`
+	Cargo            string `json:"cargo"`
+	// Payment          string `json:"payment"`
 	// ServiceType      string `json:"serviceType"`
 	// Weight           string `json:"weight"`
-	Remark  string `json:"remark"`
-	DayType string `json:"dayType"`
+	Remark string `json:"remark"`
+	// DayType string `json:"dayType"`
 	// PickupStartTime  string `json:"pickupStartTime"`
 	// PickupEndTime    string `json:"pickupEndTime"`
 	// ChannelSw        string `json:"channelSw"`

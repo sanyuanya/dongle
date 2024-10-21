@@ -1,5 +1,5 @@
 -- auto-generated definition
-create table shipping_8
+create table shipping
 (
     snowflake_id      integer,
     order_id          varchar   default ''::character varying not null,
