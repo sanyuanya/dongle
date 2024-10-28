@@ -30,30 +30,30 @@ func GetShippingByOrderId(tx *sql.Tx, orderId string) (*entity.GetShippingRespon
 
 	shippingResponse := &entity.GetShippingResponse{}
 	if err := tx.QueryRow("SELECT snowflake_id, order_id, task_id, third_order_id, order_number, e_order, created_at, updated_at, status, user_cancel_msg, system_cancel_msg, courier_name, courier_mobile, net_tel, net_code, weight, def_price, volume, actual_weight, print_task_id, label, pickup_code FROM shipping WHERE order_id = $1", orderId).Scan(
-		shippingResponse.SnowflakeId,
-		shippingResponse.OrderId,
-		shippingResponse.TaskId,
-		shippingResponse.ThirdOrderId,
-		shippingResponse.OrderNumber,
-		shippingResponse.EOrder,
-		shippingResponse.CreatedAt,
-		shippingResponse.UpdatedAt,
-		shippingResponse.Status,
-		shippingResponse.UserCancelMsg,
-		shippingResponse.SystemCancelMsg,
-		shippingResponse.CourierName,
-		shippingResponse.CourierMobile,
-		shippingResponse.NetTel,
-		shippingResponse.NetCode,
-		shippingResponse.Weight,
-		shippingResponse.DefPrice,
-		shippingResponse.Volume,
-		shippingResponse.ActualWeight,
-		shippingResponse.PrintTaskId,
-		shippingResponse.Label,
-		shippingResponse.PickupCode,
+		&shippingResponse.SnowflakeId,
+		&shippingResponse.OrderId,
+		&shippingResponse.TaskId,
+		&shippingResponse.ThirdOrderId,
+		&shippingResponse.OrderNumber,
+		&shippingResponse.EOrder,
+		&shippingResponse.CreatedAt,
+		&shippingResponse.UpdatedAt,
+		&shippingResponse.Status,
+		&shippingResponse.UserCancelMsg,
+		&shippingResponse.SystemCancelMsg,
+		&shippingResponse.CourierName,
+		&shippingResponse.CourierMobile,
+		&shippingResponse.NetTel,
+		&shippingResponse.NetCode,
+		&shippingResponse.Weight,
+		&shippingResponse.DefPrice,
+		&shippingResponse.Volume,
+		&shippingResponse.ActualWeight,
+		&shippingResponse.PrintTaskId,
+		&shippingResponse.Label,
+		&shippingResponse.PickupCode,
 	); err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("查询下单信息失败")
+		return nil, fmt.Errorf("查询下单信息失败: %v", err)
 	}
 
 	return shippingResponse, nil
