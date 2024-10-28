@@ -2,6 +2,7 @@ package expressdelivery
 
 import (
 	"crypto/md5"
+	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -38,7 +39,12 @@ func LabelOrder(param *entity.LabelOrderRequest) (*entity.LabelOrderResponse, er
 	payload.Set("param", string(paramBytes))
 	payload.Set("sign", sign)
 
-	resp, err := http.PostForm(apiURL, payload)
+	client := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}}
+	resp, err := client.PostForm(apiURL, payload)
 	if err != nil {
 		return nil, fmt.Errorf("快递100 电子面单与云打印请求下单接口 http 发起请求 出错: %v", err)
 	}

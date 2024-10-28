@@ -2,6 +2,7 @@ package expressdelivery
 
 import (
 	"crypto/md5"
+	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -28,7 +29,12 @@ func PollQuery(param *entity.PollQueryRequest) (*entity.PollQueryResponse, error
 	data.Set("customer", customer)
 	data.Set("param", string(paramBytes))
 	data.Set("sign", sign)
-	resp, err := http.PostForm(apiURL, data)
+	client := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}}
+	resp, err := client.PostForm(apiURL, data)
 	if err != nil {
 		return nil, fmt.Errorf("快递100 实时快递查询下单接口http发起请求出错:%v", err)
 	}

@@ -2,6 +2,7 @@ package expressdelivery
 
 import (
 	"crypto/md5"
+	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -37,7 +38,12 @@ func BorderApi(payload *entity.KOrderApiRequestParam) (*entity.KOrderApiResponse
 	data.Set("param", string(payloadBytes))
 	data.Set("sign", md5String)
 
-	resp, err := http.PostForm(apiURL, data)
+	client := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}}
+	resp, err := client.PostForm(apiURL, data)
 	if err != nil {
 		return nil, fmt.Errorf("快递100 商家寄件请求下单接口 http 发起请求 出错: %v", err)
 	}
