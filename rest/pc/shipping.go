@@ -112,7 +112,7 @@ func Shipping(c fiber.Ctx) error {
 
 	return c.JSON(tools.Response{
 		Code:    0,
-		Message: "Shipping successfully created.",
+		Message: "发货成功",
 		Result:  map[string]any{},
 	})
 }
