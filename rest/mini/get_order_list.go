@@ -92,7 +92,7 @@ func GetOrderList(c fiber.Ctx) error {
 	tx.Commit()
 
 	return c.JSON(tools.Response{
-		Code:    20000,
+		Code:    0,
 		Message: "获取订单列表成功",
 		Result: map[string]any{
 			"order_list": orderList,
