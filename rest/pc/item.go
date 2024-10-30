@@ -377,7 +377,7 @@ func UpdateItem(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法找到商品: %v", err)})
 	}
 
-	if itemId != updateItem.SnowflakeId {
+	if itemId != "" && itemId != updateItem.SnowflakeId {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("商品编码已存在: %v", updateItem.Code)})
 	}
@@ -658,7 +658,7 @@ func ShowItem(c fiber.Ctx) error {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法获取商品Sku: %v", err)})
 	}
-	
+
 	tx.Commit()
 
 	return c.JSON(tools.Response{

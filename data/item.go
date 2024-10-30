@@ -145,7 +145,9 @@ func FindByItemCode(tx *sql.Tx, code string) (string, error) {
 	var snowflakeId string
 	err := tx.QueryRow("SELECT snowflake_id FROM commodity WHERE code = $1 AND deleted_at IS NULL", code).Scan(&snowflakeId)
 	if err != nil {
-		return "", err
+		if err != sql.ErrNoRows {
+			return "", err
+		}
 	}
 	return snowflakeId, nil
 }
