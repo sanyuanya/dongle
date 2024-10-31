@@ -453,3 +453,23 @@ func UpdateOrderStatus(tx *sql.Tx, payload *entity.UpdateOrderStatusRequest) err
 	}
 	return nil
 }
+
+func GetOrderInformationByOutTradeNo(tx *sql.Tx, outTradeNo string) (string, error) {
+	baseQuery := `
+	SELECT
+		snowflake_id
+	FROM
+		"order"
+	WHERE
+		deleted_at IS NULL AND out_trade_no = $1
+		`
+	var snowflakeId string
+	if err := tx.QueryRow(baseQuery, outTradeNo).Scan(&snowflakeId); err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("未找到订单信息：%v", err)
+		}
+		return "", fmt.Errorf("查询订单信息失败： %v", err)
+	}
+
+	return snowflakeId, nil
+}

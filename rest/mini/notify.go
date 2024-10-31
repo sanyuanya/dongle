@@ -84,8 +84,7 @@ func Notify(c fiber.Ctx) error {
 	}
 
 	// 验证签名
-	err = VerifySignature(publicKey, signature, message)
-	if err != nil {
+	if err := VerifySignature(publicKey, signature, message); err != nil {
 		log.Printf("签名验证失败: %#+v", err)
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 			"code":    "401",
@@ -95,8 +94,7 @@ func Notify(c fiber.Ctx) error {
 
 	// 解析回调通知
 	var notify *WeChatPayNotify
-	err = json.Unmarshal(body, &notify)
-	if err != nil {
+	if err := json.Unmarshal(body, &notify); err != nil {
 		log.Printf("无法解析回调通知: %#+v", err)
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"code":    "422",
@@ -122,8 +120,7 @@ func Notify(c fiber.Ctx) error {
 
 		var response *entity.DecryptResourceResponse
 
-		err = json.Unmarshal(plaintext, &response)
-		if err != nil {
+		if err := json.Unmarshal(plaintext, &response); err != nil {
 			log.Printf("无法解析解密后的回调通知: %#+v", err)
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"code":    "500",
@@ -143,9 +140,7 @@ func Notify(c fiber.Ctx) error {
 			})
 		}
 
-		err = data.UpdateOrder(tx, response)
-
-		if err != nil {
+		if err := data.UpdateOrder(tx, response); err != nil {
 			log.Printf("无法更新订单: %#+v", err)
 			tx.Rollback()
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -154,10 +149,44 @@ func Notify(c fiber.Ctx) error {
 			})
 		}
 
-		err = tx.Commit()
+		if response.TradeState == "SUCCESS" {
 
-		if err != nil {
+			orderId, err := data.GetOrderInformationByOutTradeNo(tx, response.OutTradeNo)
+			if err != nil {
+				tx.Rollback()
+				log.Printf("获取订单信息失败: %v", err)
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+					"code":    "500",
+					"message": "获取订单信息失败",
+				})
+			}
+			orderCommodityList, err := data.GetOrderCommodityList(tx, orderId)
+			if err != nil {
+				tx.Rollback()
+				log.Printf("获取订单所购商品信息失败: %v", err)
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+					"code":    "500",
+					"message": "获取订单所购商品信息失败",
+				})
+			}
+			for _, orderCommodity := range orderCommodityList {
+				if err := data.UpdateSkuActualSales(tx, orderCommodity.CommodityId, orderCommodity.SkuId, int64(orderCommodity.Quantity)); err != nil {
+					tx.Rollback()
+					log.Printf("更新实际销售数量失败: %v", err)
+					return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+						"code":    "500",
+						"message": "更新实际销售数量失败",
+					})
+				}
+			}
+		}
+
+		if err := tx.Commit(); err != nil {
 			log.Printf("无法提交事务: %#+v", err)
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"code":    "500",
+				"message": "无法提交事务",
+			})
 		}
 
 		return c.JSON(fiber.Map{
