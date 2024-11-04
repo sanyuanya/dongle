@@ -200,7 +200,7 @@ func main() {
 
 	app.Post("/api/order/confirm/receipt/good", mini.ConfirmReceiptGood)
 
-	app.Post("/api/order/shipping/cancel:orderId", pc.CancelShipping)
+	app.Post("/api/order/shipping/cancel/:orderId", pc.CancelShipping)
 
 	// Metrics route
 	// app.Get("/metrics", adaptor.HTTPHandlerFunc(func(w http.ResponseWriter, r *http.Request) {

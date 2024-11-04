@@ -66,26 +66,30 @@ func CancelShipping(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("暂未获取到物流信息,请稍后再试: %v", err)})
 	}
 
-	if shipping != nil {
+	if shipping == nil {
+		return c.JSON(tools.Response{
+			Code:    0,
+			Message: "暂未获取到物流信息,请稍后再试",
+			Result:  struct{}{},
+		})
+	}
 
-		payload := &entity.CancelKOrderApiRequest{
-			TaskId:    shipping.TaskId,
-			OrderId:   shipping.ThirdOrderId,
-			CancelMsg: request.CancelMsg,
-		}
-		resp, err := expressdelivery.CancelBorderApi(payload)
+	payload := &entity.CancelKOrderApiRequest{
+		TaskId:    shipping.TaskId,
+		OrderId:   shipping.ThirdOrderId,
+		CancelMsg: request.CancelMsg,
+	}
+	resp, err := expressdelivery.CancelBorderApi(payload)
 
-		if err != nil {
+	if err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("取消寄件失败: %v", err)})
+	}
+
+	if resp.Result {
+		if err := data.UpdateOrderStatus(tx, &entity.UpdateOrderStatusRequest{OrderId: shipping.OrderId, Status: 100}); err != nil {
 			tx.Rollback()
-			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("取消寄件失败: %v", err)})
-		}
-
-		if resp.Result {
-
-			if err := data.UpdateOrderStatus(tx, &entity.UpdateOrderStatusRequest{OrderId: shipping.OrderId, Status: 100}); err != nil {
-				tx.Rollback()
-				panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("取消寄件-更新订单状态失败: %v", err)})
-			}
+			panic(tools.CustomError{Code: 50006, Message: fmt.Sprintf("取消寄件-更新订单状态失败: %v", err)})
 		}
 	}
 
@@ -93,7 +97,7 @@ func CancelShipping(c fiber.Ctx) error {
 
 	return c.JSON(tools.Response{
 		Code:    0,
-		Message: "success",
+		Message: resp.Message,
 		Result:  struct{}{},
 	})
 }

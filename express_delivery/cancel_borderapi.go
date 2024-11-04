@@ -33,7 +33,7 @@ func CancelBorderApi(payload *entity.CancelKOrderApiRequest) (*entity.CancelKOrd
 	data := url.Values{}
 
 	data.Set("key", key)
-	data.Set("method", "bOrder")
+	data.Set("method", "cancel")
 	data.Set("t", t)
 	data.Set("param", string(payloadBytes))
 	data.Set("sign", md5String)
