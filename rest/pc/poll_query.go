@@ -1,6 +1,7 @@
 package pc
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/gofiber/fiber/v3"
@@ -37,12 +38,33 @@ func PollQuery(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
 	}
 
-	resp, err := expressdelivery.PollQuery(payload)
-
-	if err != nil {
-		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("失败: %v", err)})
+	rdb := tools.Redis{}
+	if err := rdb.NewClient(); err != nil {
+		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法创建 Redis 客户端: %v", err)})
 	}
 
-	return c.JSON(resp)
-
+	value, err := rdb.GetLogisticsInformation(payload.Num)
+	if err != nil {
+		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法获取 Redis 客户端数据: %v", err)})
+	}
+	if value == "" {
+		resp, err := expressdelivery.PollQuery(payload)
+		if err != nil {
+			panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("失败: %v", err)})
+		}
+		information, err := json.Marshal(resp)
+		if err != nil {
+			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("序列化物流信息失败: %v", err)})
+		}
+		if err := rdb.SetLogisticsInformation(payload.Num, string(information)); err != nil {
+			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("设置订单物流信息失败: %v", err)})
+		}
+		return c.JSON(resp)
+	} else {
+		var resp *entity.PollQueryResponse
+		if err := json.Unmarshal([]byte(value), &resp); err != nil {
+			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("反序列化物流信息失败: %v", err)})
+		}
+		return c.JSON(resp)
+	}
 }

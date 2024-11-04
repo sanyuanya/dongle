@@ -12,10 +12,24 @@ import (
 	"github.com/sanyuanya/dongle/rest/pc"
 )
 
+// var (
+// 	httpRequestsTotal = prometheus.NewCounterVec(
+// 		prometheus.CounterOpts{
+// 			Name: "http_requests_total",
+// 			Help: "HTTP 请求的总数量",
+// 		},
+// 		[]string{"path", "method", "status"},
+// 	)
+// )
+
+// func init() {
+// 	// 注册自定义指标
+// 	prometheus.MustRegister(httpRequestsTotal)
+// }
+
 func main() {
 	// Initialize a new Fiber app
 	app := fiber.New()
-
 	app.Use(requestid.New())
 
 	app.Use(logger.New(logger.Config{
@@ -185,6 +199,15 @@ func main() {
 	app.Post("/api/order/orderCallback", pc.OrderCallback)
 
 	app.Post("/api/order/confirm/receipt/good", mini.ConfirmReceiptGood)
+
+	app.Post("/api/order/shipping/cancel:orderId", pc.CancelShipping)
+
+	// Metrics route
+	// app.Get("/metrics", adaptor.HTTPHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 	r.Header.Set("Content-Type", "application/vnd.prometheus.metrics; version=0.0.4; charset=utf-8")
+	// 	promhttp.Handler().ServeHTTP(w, r)
+	// }))
+
 	// Start the server on port 3000
 	log.Fatal(app.Listen(":3000"))
 }

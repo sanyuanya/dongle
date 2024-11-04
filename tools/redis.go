@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -71,8 +72,7 @@ func (r *Redis) DeductStock(skuId string, quantity int64) (bool, error) {
 }
 
 func (r *Redis) DeleteSkuStock(skuId string) error {
-	err := r.Client.Del(context.Background(), "sku:"+skuId+":stock").Err()
-	if err != nil {
+	if err := r.Client.Del(context.Background(), "sku:"+skuId+":stock").Err(); err != nil {
 		return fmt.Errorf("redis delete sku stock failed: %#+v", err)
 	}
 	log.Println("删除 Redis 中的库存:", skuId)
@@ -80,10 +80,30 @@ func (r *Redis) DeleteSkuStock(skuId string) error {
 }
 
 func (r *Redis) UpdateSkuStock(skuId string, quantity int64) error {
-	err := r.Client.IncrBy(context.Background(), "sku:"+skuId+":stock", quantity).Err()
-	if err != nil {
+	if err := r.Client.IncrBy(context.Background(), "sku:"+skuId+":stock", quantity).Err(); err != nil {
 		return fmt.Errorf("redis update sku stock failed: %#+v", err)
 	}
 	log.Println("更新 Redis 中的库存:", skuId, quantity)
 	return nil
+}
+
+func (r *Redis) SetLogisticsInformation(com string, value string) error {
+	expiration := 31 * time.Minute
+	if err := r.Client.SetEx(context.Background(), com, value, expiration).Err(); err != nil {
+		return fmt.Errorf("redis 保存物流信息失败: %#+v", err)
+	}
+	log.Println("更新 Redis 中的物流信息:", com, value)
+
+	return nil
+}
+
+func (r *Redis) GetLogisticsInformation(com string) (string, error) {
+	value, err := r.Client.Get(context.Background(), com).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return "", nil
+		}
+		return "", err
+	}
+	return value, nil
 }
