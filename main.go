@@ -2,12 +2,12 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/adaptor"
+	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/sanyuanya/dongle/data"
-	"github.com/sanyuanya/dongle/middlewares"
 	"github.com/sanyuanya/dongle/rest/mini"
 	"github.com/sanyuanya/dongle/rest/pc"
 )
@@ -18,9 +18,16 @@ func main() {
 
 	app.Use(requestid.New())
 
+	app.Use(logger.New(logger.Config{
+		// For more options, see the Config section
+		Format:     "${pid} ${time} ${locals:requestid} ${status} - ${method} ${path} ${resBody} ${reqHeaders} ${queryParams} ${bytesSent} ${bytesReceived}​\n",
+		TimeZone:   "Asia/Shanghai",
+		TimeFormat: time.RFC3339Nano,
+	}))
+
 	go data.StartTicker()
 
-	app.Use(adaptor.HTTPMiddleware(middlewares.RecordLog))
+	// app.Use(adaptor.HTTPMiddleware(middlewares.RecordLog))
 
 	// Define a route for the GET method on the root path '/'
 	// pc
