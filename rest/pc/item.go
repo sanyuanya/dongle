@@ -170,11 +170,18 @@ func AddItem(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法开启事务: %v", err)})
 	}
 
-	if _, err = data.FindByProductCategoriesId(tx, addItem.CategoriesId); err != nil {
+	if _, err := data.FindByProductCategoriesId(tx, addItem.CategoriesId); err != nil {
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法找到商品分类: %v", addItem.CategoriesId)})
 	}
 
-	if _, err = data.FindByItemCode(tx, addItem.Code); err == nil {
+	itemId, err := data.FindByItemCode(tx, addItem.Code)
+
+	if err != nil {
+		tx.Rollback()
+		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法找到商品: %v", err)})
+	}
+
+	if itemId != "" {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("商品编码已存在: %v", addItem.Code)})
 	}
@@ -193,12 +200,12 @@ func AddItem(c fiber.Ctx) error {
 		},
 	}
 
-	if err = m.NewClient(); err != nil {
+	if err := m.NewClient(); err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法创建 Minio 客户端: %v", err)})
 	}
 
-	if err = m.MakeBucket(c.Context(), "dongle"); err != nil {
+	if err := m.MakeBucket(c.Context(), "dongle"); err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法创建 Minio 存储桶: %v", err)})
 	}
@@ -234,12 +241,10 @@ func AddItem(c fiber.Ctx) error {
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 Base64 编码: %v", err)})
 		}
 
-		_, err = m.PutObject(c.Context(), imageBytes, bucketName, objectName, minio.PutObjectOptions{
+		if _, err := m.PutObject(c.Context(), imageBytes, bucketName, objectName, minio.PutObjectOptions{
 			ContentType:        mimeType,
 			ContentDisposition: "inline",
-		})
-
-		if err != nil {
+		}); err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法上传图片: %v", err)})
 		}
@@ -255,7 +260,7 @@ func AddItem(c fiber.Ctx) error {
 			Ext:         picture.Ext,
 		}
 
-		if err = data.AddItemImage(tx, addItemImage); err != nil {
+		if err := data.AddItemImage(tx, addItemImage); err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法添加商品图片: %v", err)})
 		}
@@ -288,12 +293,10 @@ func AddItem(c fiber.Ctx) error {
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 Base64 编码: %v", err)})
 		}
 
-		_, err = m.PutObject(c.Context(), imageBytes, bucketName, objectName, minio.PutObjectOptions{
+		if _, err := m.PutObject(c.Context(), imageBytes, bucketName, objectName, minio.PutObjectOptions{
 			ContentType:        mimeType,
 			ContentDisposition: "inline",
-		})
-
-		if err != nil {
+		}); err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法上传图片: %v", err)})
 		}
@@ -309,7 +312,7 @@ func AddItem(c fiber.Ctx) error {
 			Ext:         detail.Ext,
 		}
 
-		if err = data.AddItemImage(tx, addItemImage); err != nil {
+		if err := data.AddItemImage(tx, addItemImage); err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法添加商品详情: %v", err)})
 		}
@@ -351,8 +354,7 @@ func UpdateItem(c fiber.Ctx) error {
 		}
 	}()
 
-	_, err := tools.ValidateUserToken(c.Get("Authorization"), "admin")
-	if err != nil {
+	if _, err := tools.ValidateUserToken(c.Get("Authorization"), "admin"); err != nil {
 		panic(tools.CustomError{Code: 50000, Message: fmt.Sprintf("未经授权: %v", err)})
 	}
 
@@ -360,7 +362,7 @@ func UpdateItem(c fiber.Ctx) error {
 
 	updateItem.SnowflakeId = c.Params("itemId", "")
 
-	if err = c.Bind().Body(updateItem); err != nil {
+	if err := c.Bind().Body(updateItem); err != nil {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
 	}
 
@@ -382,12 +384,12 @@ func UpdateItem(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("商品编码已存在: %v", updateItem.Code)})
 	}
 
-	if err = data.UpdateItem(tx, updateItem); err != nil {
+	if err := data.UpdateItem(tx, updateItem); err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法更新商品: %v", err)})
 	}
 
-	if err = data.DeleteItemImage(tx, updateItem.SnowflakeId); err != nil {
+	if err := data.DeleteItemImage(tx, updateItem.SnowflakeId); err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法删除商品图片: %v", err)})
 	}
@@ -401,12 +403,12 @@ func UpdateItem(c fiber.Ctx) error {
 		},
 	}
 
-	if err = m.NewClient(); err != nil {
+	if err := m.NewClient(); err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法创建 Minio 客户端: %v", err)})
 	}
 
-	if err = m.MakeBucket(c.Context(), "dongle"); err != nil {
+	if err := m.MakeBucket(c.Context(), "dongle"); err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法创建 Minio 存储桶: %v", err)})
 	}
@@ -442,12 +444,10 @@ func UpdateItem(c fiber.Ctx) error {
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 Base64 编码: %v", err)})
 		}
 
-		_, err = m.PutObject(c.Context(), imageBytes, bucketName, objectName, minio.PutObjectOptions{
+		if _, err := m.PutObject(c.Context(), imageBytes, bucketName, objectName, minio.PutObjectOptions{
 			ContentType:        mimeType,
 			ContentDisposition: "inline",
-		})
-
-		if err != nil {
+		}); err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法上传图片: %v", err)})
 		}
@@ -463,7 +463,7 @@ func UpdateItem(c fiber.Ctx) error {
 			Ext:         picture.Ext,
 		}
 
-		if err = data.AddItemImage(tx, addItemImage); err != nil {
+		if err := data.AddItemImage(tx, addItemImage); err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法添加商品图片: %v", err)})
 		}
@@ -496,12 +496,10 @@ func UpdateItem(c fiber.Ctx) error {
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 Base64 编码: %v", err)})
 		}
 
-		_, err = m.PutObject(c.Context(), imageBytes, bucketName, objectName, minio.PutObjectOptions{
+		if _, err := m.PutObject(c.Context(), imageBytes, bucketName, objectName, minio.PutObjectOptions{
 			ContentType:        mimeType,
 			ContentDisposition: "inline",
-		})
-
-		if err != nil {
+		}); err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法上传图片: %v", err)})
 		}
@@ -517,7 +515,7 @@ func UpdateItem(c fiber.Ctx) error {
 			Ext:         detail.Ext,
 		}
 
-		if err = data.AddItemImage(tx, addItemImage); err != nil {
+		if err := data.AddItemImage(tx, addItemImage); err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无法添加商品详情: %v", err)})
 		}
