@@ -10,7 +10,7 @@ import (
 
 func AddItem(tx *sql.Tx, addItem *entity.AddItem) error {
 
-	_, err := tx.Exec("INSERT INTO commodity (snowflake_id, name, code, categories_id, status, description) VALUES ($1, $2, $3, $4, $5, $6)", addItem.SnowflakeId, addItem.Name, addItem.Code, addItem.CategoriesId, addItem.Status, addItem.Description)
+	_, err := tx.Exec("INSERT INTO commodity (snowflake_id, name, code, categories_id, status, description, sorting) VALUES ($1, $2, $3, $4, $5, $6, $7)", addItem.SnowflakeId, addItem.Name, addItem.Code, addItem.CategoriesId, addItem.Status, addItem.Description, addItem.Sorting)
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func DeleteItem(tx *sql.Tx, snowflake_id string) error {
 
 func UpdateItem(tx *sql.Tx, updateItem *entity.UpdateItem) error {
 
-	_, err := tx.Exec("UPDATE commodity SET name = $1, code = $2, categories_id = $3, status = $4, description = $5 WHERE snowflake_id = $6 AND deleted_at IS NULL", updateItem.Name, updateItem.Code, updateItem.CategoriesId, updateItem.Status, updateItem.Description, updateItem.SnowflakeId)
+	_, err := tx.Exec("UPDATE commodity SET name = $1, code = $2, categories_id = $3, status = $4, description = $5, sorting = $6 WHERE snowflake_id = $7 AND deleted_at IS NULL", updateItem.Name, updateItem.Code, updateItem.CategoriesId, updateItem.Status, updateItem.Description, updateItem.Sorting, updateItem.SnowflakeId)
 	if err != nil {
 		return err
 	}
@@ -48,6 +48,7 @@ func ItemList(tx *sql.Tx, itemPage *entity.ItemPage) ([]*entity.Item, error) {
 			categories_id,
 			status,
 			description,
+			sorting,
 			TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') created_at
 		FROM
 			commodity
@@ -76,7 +77,7 @@ func ItemList(tx *sql.Tx, itemPage *entity.ItemPage) ([]*entity.Item, error) {
 		paramsIndex++
 	}
 
-	baseQuery += fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", paramsIndex, paramsIndex+1)
+	baseQuery += fmt.Sprintf(" ORDER BY sorting DESC, created_at DESC LIMIT $%d OFFSET $%d", paramsIndex, paramsIndex+1)
 	executeParams = append(executeParams, itemPage.PageSize, (itemPage.Page-1)*itemPage.PageSize)
 
 	rows, err := tx.Query(baseQuery, executeParams...)
@@ -90,7 +91,7 @@ func ItemList(tx *sql.Tx, itemPage *entity.ItemPage) ([]*entity.Item, error) {
 
 	for rows.Next() {
 		item := &entity.Item{}
-		err := rows.Scan(&item.SnowflakeId, &item.Name, &item.Code, &item.CategoriesId, &item.Status, &item.Description, &item.CreatedAt)
+		err := rows.Scan(&item.SnowflakeId, &item.Name, &item.Code, &item.CategoriesId, &item.Status, &item.Description, &item.Sorting, &item.CreatedAt)
 		if err != nil {
 			return nil, err
 		}

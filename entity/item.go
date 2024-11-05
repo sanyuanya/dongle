@@ -9,6 +9,7 @@ type AddItem struct {
 	Detail       []*Picture `json:"detail_list"`
 	SnowflakeId  string     `json:"snowflake_id"`
 	Status       uint8      `json:"status"`
+	Sorting      string     `json:"sorting"`
 }
 
 type Picture struct {
@@ -31,6 +32,7 @@ type UpdateItem struct {
 	Detail       []*Picture `json:"detail_list"`
 	SnowflakeId  string     `json:"snowflake_id"`
 	Status       uint8      `json:"status"`
+	Sorting      string     `json:"sorting"`
 }
 
 type Item struct {
@@ -44,6 +46,7 @@ type Item struct {
 	Status       uint8      `json:"status"`
 	CreatedAt    string     `json:"created_at"`
 	Sku          []*Sku     `json:"sku"`
+	Sorting      string     `json:"sorting"`
 }
 
 type ItemPage struct {
