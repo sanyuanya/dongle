@@ -30,7 +30,7 @@ import (
 func main() {
 	// Initialize a new Fiber app
 	app := fiber.New(fiber.Config{
-		BodyLimit:     10 * 1024 * 1024,
+		BodyLimit:     21 * 1024 * 1024,
 		AppName:       "dongle",
 		CaseSensitive: true,
 	})
