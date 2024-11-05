@@ -29,7 +29,12 @@ import (
 
 func main() {
 	// Initialize a new Fiber app
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit:     100 * 1024 * 1024,
+		AppName:       "dongle",
+		CaseSensitive: true,
+	})
+	
 	app.Use(requestid.New())
 
 	app.Use(logger.New(logger.Config{
