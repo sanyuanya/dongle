@@ -242,15 +242,14 @@ func UpdateOrder(tx *sql.Tx, payload *entity.DecryptResourceResponse) error {
 			trade_state_desc = $6,
 			bank_type = $7,
 			success_time = $8,
-			open_id = $9,
-			total = $10,
-			payer_total = $11,
-			currency = $12,
-			payer_currency = $13,
+			total = $9,
+			payer_total = $10,
+			currency = $11,
+			payer_currency = $12,
 			updated_at = NOW(),
 			order_state = 2
 		WHERE
-			out_trade_no = $14
+			out_trade_no = $13
 	`, payload.TransactionId,
 		payload.AppId,
 		payload.MchId,
@@ -259,7 +258,6 @@ func UpdateOrder(tx *sql.Tx, payload *entity.DecryptResourceResponse) error {
 		payload.TradeStateDesc,
 		payload.BankType,
 		payload.SuccessTime,
-		payload.Payer.OpenId,
 		payload.Amount.Total,
 		payload.Amount.PayerTotal,
 		payload.Amount.Currency,
