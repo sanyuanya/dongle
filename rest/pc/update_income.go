@@ -49,9 +49,9 @@ func UpdateIncome(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 40000, Message: fmt.Sprintf("无法绑定请求体: %v", err)})
 	}
 
-	if payload.Shipments <= 0 {
-		panic(tools.CustomError{Code: 40000, Message: "出货量不能为小于或等于0"})
-	}
+	// if payload.Shipments <= 0 {
+	// 	panic(tools.CustomError{Code: 40000, Message: "出货量不能为小于或等于0"})
+	// }
 
 	tx, err := data.Transaction()
 
