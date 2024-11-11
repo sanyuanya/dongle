@@ -15,9 +15,7 @@ func init() {
 	host := os.Getenv("DB_HOST")
 
 	if host == "" {
-		// host = "81.70.154.116"
-		// host = "127.0.0.1"
-		host = "218.11.1.36"
+		host = "127.0.0.1"
 	}
 
 	var err error
