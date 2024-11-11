@@ -24,13 +24,10 @@ func Login(tx *sql.Tx, auth *entity.LoginRequest) (string, error) {
 		return "", err
 	}
 
-	hashPassword, err := HashPassword(auth.Password)
-
-	if err != nil {
-		return "", fmt.Errorf("密码 bcrypt 加密失败")
-	}
 	// Compare the stored hashed password, with the hashed version of the password that was received
-	if CheckPasswordHash(auth.Password, hashPassword) {
+	fmt.Println(auth.Password)
+	fmt.Println(password)
+	if CheckPasswordHash(auth.Password, password) {
 		return snowflakeId, nil
 	}
 
