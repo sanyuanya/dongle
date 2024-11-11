@@ -1,0 +1,11 @@
+name: dongle
+description: "dongle 微信小程序"
+on:
+  push:
+    branches:
+      - "main"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: run 
