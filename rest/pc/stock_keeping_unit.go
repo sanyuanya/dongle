@@ -89,9 +89,6 @@ func GetSkuList(c fiber.Ctx) error {
 
 	tx.Commit()
 
-	// 清空 base64 图片数据
-	tools.ClearSkuBase64(skuList)
-
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "获取SKU列表成功",
