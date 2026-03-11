@@ -1,5 +1,7 @@
 package entity
 
+import "encoding/json"
+
 type AddItem struct {
 	Name         string     `json:"name"`
 	Code         string     `json:"code"`
@@ -21,6 +23,17 @@ type Picture struct {
 	Ext         string `json:"ext"`
 	ObjectName  string `json:"object_name"`
 	BucketName  string `json:"bucket_name"`
+}
+
+func (p Picture) MarshalJSON() ([]byte, error) {
+	type Alias Picture
+	return json.Marshal(&struct {
+		ImageData string `json:"image_data"`
+		*Alias
+	}{
+		ImageData: "",
+		Alias:     (*Alias)(&p),
+	})
 }
 
 type UpdateItem struct {
