@@ -216,7 +216,7 @@ func AddItem(c fiber.Ctx) error {
 
 	for _, picture := range addItem.Picture {
 
-		imageData := []byte(picture.ImageData)
+		imageData := []byte(picture.ImageData.String())
 
 		hash.Write(imageData)
 
@@ -235,7 +235,7 @@ func AddItem(c fiber.Ctx) error {
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 MIME 类型: %v, 必须是图片类型", err)})
 		}
 
-		imageBytes, err := base64.StdEncoding.DecodeString(picture.ImageData)
+		imageBytes, err := base64.StdEncoding.DecodeString(picture.ImageData.String())
 		if err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 Base64 编码: %v", err)})
@@ -268,7 +268,7 @@ func AddItem(c fiber.Ctx) error {
 
 	for _, detail := range addItem.Detail {
 
-		imageData := []byte(detail.ImageData)
+		imageData := []byte(detail.ImageData.String())
 
 		hash.Write(imageData)
 
@@ -287,7 +287,7 @@ func AddItem(c fiber.Ctx) error {
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 MIME 类型: %v, 必须是图片类型", err)})
 		}
 
-		imageBytes, err := base64.StdEncoding.DecodeString(detail.ImageData)
+		imageBytes, err := base64.StdEncoding.DecodeString(detail.ImageData.String())
 		if err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 Base64 编码: %v", err)})
@@ -419,7 +419,7 @@ func UpdateItem(c fiber.Ctx) error {
 
 	for _, picture := range updateItem.Picture {
 
-		imageData := []byte(picture.ImageData)
+		imageData := []byte(picture.ImageData.String())
 
 		hash.Write(imageData)
 
@@ -438,7 +438,7 @@ func UpdateItem(c fiber.Ctx) error {
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 MIME 类型: %v, 必须是图片类型", err)})
 		}
 
-		imageBytes, err := base64.StdEncoding.DecodeString(picture.ImageData)
+		imageBytes, err := base64.StdEncoding.DecodeString(picture.ImageData.String())
 		if err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 Base64 编码: %v", err)})
@@ -471,7 +471,7 @@ func UpdateItem(c fiber.Ctx) error {
 
 	for _, detail := range updateItem.Detail {
 
-		imageData := []byte(detail.ImageData)
+		imageData := []byte(detail.ImageData.String())
 
 		hash.Write(imageData)
 
@@ -490,7 +490,7 @@ func UpdateItem(c fiber.Ctx) error {
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 MIME 类型: %v, 必须是图片类型", err)})
 		}
 
-		imageBytes, err := base64.StdEncoding.DecodeString(detail.ImageData)
+		imageBytes, err := base64.StdEncoding.DecodeString(detail.ImageData.String())
 		if err != nil {
 			tx.Rollback()
 			panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 Base64 编码: %v", err)})

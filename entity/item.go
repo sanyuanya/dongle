@@ -13,14 +13,14 @@ type AddItem struct {
 }
 
 type Picture struct {
-	SnowflakeId string `json:"snowflake_id"`
-	ItemId      string `json:"item_id"`
-	Type        uint8  `json:"type"`
-	ImageData   string `json:"image_data"`
-	Sorting     uint8  `json:"sorting"`
-	Ext         string `json:"ext"`
-	ObjectName  string `json:"object_name"`
-	BucketName  string `json:"bucket_name"`
+	SnowflakeId string       `json:"snowflake_id"`
+	ItemId      string       `json:"item_id"`
+	Type        uint8        `json:"type"`
+	ImageData   Base64String `json:"image_data"`
+	Sorting     uint8        `json:"sorting"`
+	Ext         string       `json:"ext"`
+	ObjectName  string       `json:"object_name"`
+	BucketName  string       `json:"bucket_name"`
 }
 
 type UpdateItem struct {
