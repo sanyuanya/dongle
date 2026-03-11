@@ -1,5 +1,7 @@
 package entity
 
+import "encoding/json"
+
 type AddSkuRequest struct {
 	SnowflakeId   string  `json:"snowflake_id"`
 	Code          string  `json:"code"`
@@ -16,6 +18,17 @@ type AddSkuRequest struct {
 	Ext           string  `json:"ext"`
 }
 
+func (a AddSkuRequest) MarshalJSON() ([]byte, error) {
+	type Alias AddSkuRequest
+	return json.Marshal(&struct {
+		ImageData string `json:"image_data"`
+		*Alias
+	}{
+		ImageData: "",
+		Alias:     (*Alias)(&a),
+	})
+}
+
 type UpdateSkuRequest struct {
 	SnowflakeId   string  `json:"snowflake_id"`
 	Code          string  `json:"code"`
@@ -30,6 +43,17 @@ type UpdateSkuRequest struct {
 	ObjectName    string  `json:"object_name"`
 	BucketName    string  `json:"bucket_name"`
 	Ext           string  `json:"ext"`
+}
+
+func (u UpdateSkuRequest) MarshalJSON() ([]byte, error) {
+	type Alias UpdateSkuRequest
+	return json.Marshal(&struct {
+		ImageData string `json:"image_data"`
+		*Alias
+	}{
+		ImageData: "",
+		Alias:     (*Alias)(&u),
+	})
 }
 
 type ShowSkuResponse struct {
@@ -61,6 +85,17 @@ type Sku struct {
 	CreatedAt     string  `json:"created_at"`
 	UpdatedAt     string  `json:"updated_at"`
 	ActualSales   int64   `json:"actual_sales"`
+}
+
+func (s Sku) MarshalJSON() ([]byte, error) {
+	type Alias Sku
+	return json.Marshal(&struct {
+		ImageData string `json:"image_data"`
+		*Alias
+	}{
+		ImageData: "",
+		Alias:     (*Alias)(&s),
+	})
 }
 
 type GetSkuRequest struct {
