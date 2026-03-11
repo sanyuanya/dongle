@@ -186,7 +186,7 @@ func AddSku(c fiber.Ctx) error {
 
 	payload.BucketName = "dongle"
 
-	imageData := []byte(payload.ImageData)
+	imageData := []byte(payload.ImageData.String())
 
 	hash.Write(imageData)
 
@@ -205,7 +205,7 @@ func AddSku(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 MIME 类型: %v, 必须是图片类型", err)})
 	}
 
-	imageBytes, err := base64.StdEncoding.DecodeString(payload.ImageData)
+	imageBytes, err := base64.StdEncoding.DecodeString(payload.ImageData.String())
 	if err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 Base64 编码: %v", err)})
@@ -344,7 +344,7 @@ func UpdateSku(c fiber.Ctx) error {
 
 	payload.BucketName = "dongle"
 
-	imageData := []byte(payload.ImageData)
+	imageData := []byte(payload.ImageData.String())
 
 	hash.Write(imageData)
 
@@ -363,7 +363,7 @@ func UpdateSku(c fiber.Ctx) error {
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 MIME 类型: %v, 必须是图片类型", err)})
 	}
 
-	imageBytes, err := base64.StdEncoding.DecodeString(payload.ImageData)
+	imageBytes, err := base64.StdEncoding.DecodeString(payload.ImageData.String())
 	if err != nil {
 		tx.Rollback()
 		panic(tools.CustomError{Code: 50001, Message: fmt.Sprintf("无效的 Base64 编码: %v", err)})

@@ -23,7 +23,7 @@ func AddSku(tx *sql.Tx, sku *entity.AddSkuRequest) error {
 		sku.ObjectName,
 		sku.BucketName,
 		sku.Ext,
-		sku.ImageData,
+		sku.ImageData.String(),
 	)
 	return err
 }
@@ -42,7 +42,7 @@ func UpdateSku(tx *sql.Tx, sku *entity.UpdateSkuRequest) error {
 		sku.ObjectName,
 		sku.BucketName,
 		sku.Ext,
-		sku.ImageData,
+		sku.ImageData.String(),
 		sku.SnowflakeId)
 	return err
 }

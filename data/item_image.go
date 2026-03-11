@@ -13,7 +13,7 @@ func AddItemImage(tx *sql.Tx, addItemImage *entity.AddItemImage) error {
 		addItemImage.SnowflakeId,
 		addItemImage.ItemId,
 		addItemImage.Type,
-		addItemImage.Data,
+		addItemImage.Data.String(),
 		addItemImage.Sorting,
 		addItemImage.Ext,
 		addItemImage.ObjectName,
