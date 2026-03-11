@@ -111,6 +111,9 @@ func GetItemList(c fiber.Ctx) error {
 
 	tx.Commit()
 
+	// 清空 base64 图片数据
+	tools.ClearItemListBase64(itemList)
+
 	return c.JSON(tools.Response{
 		Code:    0,
 		Message: "获取商品列表成功",
@@ -658,6 +661,9 @@ func ShowItem(c fiber.Ctx) error {
 	}
 
 	tx.Commit()
+
+	// 清空 base64 图片数据
+	tools.ClearItemBase64(item)
 
 	return c.JSON(tools.Response{
 		Code:    0,
